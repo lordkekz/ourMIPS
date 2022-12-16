@@ -21,17 +21,20 @@ public class Token {
             case TokenType.String:
                 s = "S";
                 break;
+            case TokenType.Comment:
+                s = "C";
+                break;
             default:
             case TokenType.None:
-                s = "";
+                s = "?";
                 break;
         }
 
         return $"{s} {Content}";
     }
+}
 
-    public enum TokenType
-    {
-        None, Word, InstructionBreak, Number, String
-    }
+public enum TokenType
+{
+    None, Word, InstructionBreak, Number, String, Comment
 }

@@ -27,25 +27,24 @@ public class Tokenizer {
 
         // Read sourcecode
         foreach (var c in _sourcecode) {
+            if (c == '\r')
+                continue;
             switch (_state) {
                 default:
                 case TokenizerState.None:
                 case TokenizerState.Whitespace:
                     if (char.IsDigit(c)) {
-                        StartToken();
-                        _current.Type = Token.TokenType.Number;
+                        StartToken(TokenType.Number);
                         _state = TokenizerState.InNumber;
                         AppendChar(c);
                     }
                     else if (char.IsLetter(c)) {
-                        StartToken();
-                        _current.Type = Token.TokenType.Word;
+                        StartToken(TokenType.Word);
                         _state = TokenizerState.InWord;
                         AppendChar(c);
                     }
                     else if (c == '"') {
-                        StartToken();
-                        _current.Type = Token.TokenType.String;
+                        StartToken(TokenType.String);
                         _state = TokenizerState.InString;
                     }
                     else if (c == '\n') {
@@ -53,6 +52,7 @@ public class Tokenizer {
                     }
                     else if (c is ';' or '#') {
                         EndToken();
+                        StartToken(TokenType.Comment);
                         _state = TokenizerState.InComment;
                     }
                     else if (char.IsWhiteSpace(c)) { }
@@ -63,12 +63,13 @@ public class Tokenizer {
                 case TokenizerState.InWord:
                     if (c == '\n')
                         HandleLineBreak();
-                    if (char.IsLetterOrDigit(c) || c == '_')
+                    else if (char.IsLetterOrDigit(c) || c == '_')
                         AppendChar(c);
-                    if (char.IsWhiteSpace(c) || c == ':')
+                    else if (char.IsWhiteSpace(c) || c == ':')
                         EndToken();
                     else if (c is ';' or '#') {
                         EndToken();
+                        StartToken(TokenType.Comment);
                         _state = TokenizerState.InComment;
                     }
                     else throw new SyntaxError($"Unexpected character '{c}' at line {_line}, col {_col}!");
@@ -96,6 +97,7 @@ public class Tokenizer {
                 case TokenizerState.InComment:
                     if (c == '\n')
                         HandleLineBreak();
+                    else AppendChar(c);
                     break;
             }
 
@@ -108,9 +110,8 @@ public class Tokenizer {
 
     private void HandleLineBreak() {
         EndToken();
-        if (_result.Count > 0 && _result.Last().Type != Token.TokenType.InstructionBreak) {
-            StartToken();
-            _current.Type = Token.TokenType.InstructionBreak;
+        if (_result.Count > 0 && _result.Last().Type != TokenType.InstructionBreak) {
+            StartToken(TokenType.InstructionBreak);
             EndToken();
         }
         _col = 1;
@@ -124,10 +125,11 @@ public class Tokenizer {
         _state = TokenizerState.Whitespace;
     }
 
-    private void StartToken() {
+    private void StartToken(TokenType t) {
         _current = new Token {
             Line = _line,
-            Column = _col
+            Column = _col,
+            Type = t
         };
     }
 
@@ -135,7 +137,7 @@ public class Tokenizer {
         _current.Content += c;
     }
 
-    enum TokenizerState {
+    private enum TokenizerState {
         None,
         Whitespace,
         InWord,
