@@ -1,8 +1,15 @@
 ﻿namespace lib_ourMIPSSharp;
 
+/// <summary>
+/// Class to tokenize a source code string into a regularized list of easily-processable Tokens.
+/// Detects some syntax errors such as misplaced characters or unclosed strings.
+/// Doesn't validate the validity of Token contents.
+/// Token lists always end with InstructionBreak Tokens, but only one InstructionBreak Token will be created in a row.
+/// Comments are preserved as Comment tokens so that they may be restored while outputting modified source code.
+/// </summary>
 public class Tokenizer {
     private TokenizerState _state;
-    private Token _current;
+    private Token? _current;
     private List<Token> _result;
     private readonly string _sourcecode;
     private int _line;
@@ -33,7 +40,7 @@ public class Tokenizer {
                 default:
                 case TokenizerState.None:
                 case TokenizerState.Whitespace:
-                    if (char.IsDigit(c)) {
+                    if (char.IsDigit(c) || c is '+' or '-') {
                         StartToken(TokenType.Number);
                         _state = TokenizerState.InNumber;
                         AppendChar(c);
