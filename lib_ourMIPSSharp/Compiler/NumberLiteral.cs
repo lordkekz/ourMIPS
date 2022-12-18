@@ -1,9 +1,13 @@
+using System.ComponentModel;
+
 namespace lib_ourMIPSSharp;
 
 public class NumberLiteral {
     public int Value { get; }
 
-    public NumberLiteral(string content) {
+    public NumberLiteral(string content, DialectOptions options) {
+        if (!options.IsValid())
+            throw new InvalidEnumArgumentException(nameof(options), (int) options, typeof(DialectOptions));
         content = content.Trim().ToLowerInvariant();
         var sign = 1;
         if (content.StartsWith("+"))

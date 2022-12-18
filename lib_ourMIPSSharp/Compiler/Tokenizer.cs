@@ -1,4 +1,6 @@
-﻿namespace lib_ourMIPSSharp;
+﻿using System.ComponentModel;
+
+namespace lib_ourMIPSSharp;
 
 /// <summary>
 /// Class to tokenize a source code string into a regularized list of easily-processable Tokens.
@@ -15,7 +17,9 @@ public class Tokenizer {
     private int _line;
     private int _col;
 
-    public Tokenizer(string sourcecode) {
+    public Tokenizer(string sourcecode, DialectOptions options) {
+        if (!options.IsValid())
+            throw new InvalidEnumArgumentException(nameof(options), (int) options, typeof(DialectOptions));
         _sourcecode = sourcecode;
         _state = TokenizerState.None;
     }
