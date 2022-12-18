@@ -66,7 +66,11 @@ public enum DialectOptions : int {
 
 public static class DialectOptionsExtensions {
     public static bool IsValid(this DialectOptions options) {
-        // TODO Implement this
-        return false;
+        if (options.HasFlag(DialectOptions.StrictKeywordEndmacro) &&
+            options.HasFlag(DialectOptions.StrictKeywordMend))
+            // There must be at least one keyword for ending macros.
+            return false;
+        
+        return true;
     }
 }

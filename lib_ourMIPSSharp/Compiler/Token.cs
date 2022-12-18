@@ -5,7 +5,12 @@ public class Token {
     public string Content { get; set; }
     public int Line { get; set; }
     public int Column { get; set; }
+    public DialectOptions Options { get; }
 
+    public Token(DialectOptions opts) {
+        Options = opts;
+    }
+    
     public override string ToString() {
         string s;
         switch (Type) {

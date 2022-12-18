@@ -10,6 +10,7 @@ namespace lib_ourMIPSSharp;
 /// Comments are preserved as Comment tokens so that they may be restored while outputting modified source code.
 /// </summary>
 public class Tokenizer {
+    private DialectOptions options;
     private TokenizerState _state;
     private Token? _current;
     private List<Token> _result;
@@ -20,6 +21,7 @@ public class Tokenizer {
     public Tokenizer(string sourcecode, DialectOptions options) {
         if (!options.IsValid())
             throw new InvalidEnumArgumentException(nameof(options), (int) options, typeof(DialectOptions));
+        this.options = options;
         _sourcecode = sourcecode;
         _state = TokenizerState.None;
     }
@@ -31,7 +33,7 @@ public class Tokenizer {
 
         // Initialize shit
         _state = TokenizerState.Whitespace;
-        _current = new Token();
+        _current = new Token(options);
         _result = new List<Token>();
         _line = 1;
         _col = 1;
@@ -137,7 +139,7 @@ public class Tokenizer {
     }
 
     private void StartToken(TokenType t) {
-        _current = new Token {
+        _current = new Token (options) {
             Line = _line,
             Column = _col,
             Type = t
