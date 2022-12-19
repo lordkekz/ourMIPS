@@ -16,14 +16,14 @@ using lib_ourMIPSSharp;
 // Console.WriteLine(Convert.ToInt16("0FFFF", 16));
 // Console.WriteLine(Convert.ToInt16("10000", 16)); // Overflow
 
-var num = "55h";
-Console.WriteLine(num);
-foreach (var format in NumberLiteralFormat.GetValuesAsUnderlyingType<NumberLiteralFormat>()) {
-    var tmp = new NumberLiteral(new Token(DialectOptions.None) { Content = num });
-    num = tmp.ToString((NumberLiteralFormat)format);
-    Console.WriteLine(num + " " + tmp);
-}
-Console.WriteLine(new NumberLiteral(new Token(DialectOptions.None) { Content = num }));
+// var num = "55h";
+// Console.WriteLine(num);
+// foreach (var format in Enum.GetValues(typeof(NumberLiteralFormat))) {
+//     var tmp = new NumberLiteral(new Token(DialectOptions.None) { Content = num });
+//     num = tmp.ToString((NumberLiteralFormat)format);
+//     Console.WriteLine(num + " " + tmp);
+// }
+// Console.WriteLine(new NumberLiteral(new Token(DialectOptions.None) { Content = num }));
 
 
 // Console.WriteLine(new NumberLiteral(new Token(DialectOptions.None) {Content = "32768"}).Value);
@@ -32,8 +32,10 @@ Console.WriteLine(new NumberLiteral(new Token(DialectOptions.None) { Content = n
 
 // Console.WriteLine(new NumberLiteral("404", DialectOptions.None).ToString(NumberLiteralFormat.Decimal));
 
-// var sourcecode = File.ReadAllText("../../../testscript.ourMIPS");
-// var tokenizer = new Tokenizer(sourcecode, DialectOptions.Philosonline);
-// foreach (var token in tokenizer.Tokenize()) {
-//     Console.Write(token.ToString() + ", ");
-// }
+var sourcecode = File.ReadAllText("../../../testscript.ourMIPS");
+var opts = DialectOptions.None;
+var tokenizer = new Tokenizer(sourcecode, opts);
+var tokens = tokenizer.Tokenize();
+var compiler = new Compiler(tokens, opts);
+compiler.ReadMacros();
+Console.WriteLine(compiler);

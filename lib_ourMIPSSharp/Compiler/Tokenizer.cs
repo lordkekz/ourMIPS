@@ -29,11 +29,11 @@ public class Tokenizer {
     public List<Token> Tokenize() {
         // Don't tokenize for a second time
         if (_state != TokenizerState.None)
-            return null;
+            return _result;
 
         // Initialize shit
         _state = TokenizerState.Whitespace;
-        _current = new Token(options);
+        _current = null;
         _result = new List<Token>();
         _line = 1;
         _col = 1;
@@ -127,7 +127,7 @@ public class Tokenizer {
             StartToken(TokenType.InstructionBreak);
             EndToken();
         }
-        _col = 1;
+        _col = 0;
         _line++;
     }
 

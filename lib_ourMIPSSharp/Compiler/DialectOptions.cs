@@ -1,7 +1,7 @@
 namespace lib_ourMIPSSharp; 
 
 [Flags]
-public enum DialectOptions : int {
+public enum DialectOptions {
     /// <summary>
     /// Standard dialect, allows everything.
     /// </summary>

@@ -1,7 +1,16 @@
-addi r0 r1 7   ; hihi "haha" 
-#
-ldd 99 7666d6d7d77 "loooo"# "oo\""
-;
-;gogssg
+; test
+macro daserste hihihaha
+    sysout "käsesahne"
+    
+    
+    # hihihaha
+    #daserste
+    daszweite
+endmacro
 
-"" äöü
+macro daszweite hb dh
+    #daserste
+    addi hb dh 0
+endmacro
+
+systerm

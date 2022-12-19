@@ -40,7 +40,7 @@ public record NumberLiteral {
         else if (content.EndsWith("h")) {
             if (opts.HasFlag(DialectOptions.StrictNonDecimalNumbers))
                 throw new DialectSyntaxError("Hexadecimal number suffix 'h'",
-                    token, nameof(DialectOptions.StrictNonDecimalNumbers));
+                    token, DialectOptions.StrictNonDecimalNumbers);
 
             SourceFormat = NumberLiteralFormat.HexSuffix;
             InitHex(content.Substring(0, content.Length - 1), signed, sign);
@@ -48,7 +48,7 @@ public record NumberLiteral {
         else if (content.EndsWith("b")) {
             if (opts.HasFlag(DialectOptions.StrictNonDecimalNumbers))
                 throw new DialectSyntaxError("Binary number suffix 'b'",
-                    token, nameof(DialectOptions.StrictNonDecimalNumbers));
+                    token, DialectOptions.StrictNonDecimalNumbers);
 
             SourceFormat = NumberLiteralFormat.BinarySuffix;
             InitBin(content.Substring(0, content.Length - 1), signed, sign);
@@ -66,7 +66,7 @@ public record NumberLiteral {
         if ((sign == 1 && rawValue > short.MaxValue) || (sign == -1 && rawValue > short.MaxValue + 1)) {
             if (SourceToken.Options.HasFlag(DialectOptions.StrictDecimalNumberLengths))
                 throw new DialectSyntaxError("Decimal number (>=2^15) interpreted in two's complement",
-                    SourceToken, nameof(DialectOptions.StrictDecimalNumberLengths));
+                    SourceToken, DialectOptions.StrictDecimalNumberLengths);
 
             if (signed)
                 throw new SyntaxError(
@@ -88,7 +88,7 @@ public record NumberLiteral {
 
         if (digits.Length < 16 && SourceToken.Options.HasFlag(DialectOptions.StrictNonDecimalNumberLengths))
             throw new DialectSyntaxError("Binary number <16 bits",
-                SourceToken, nameof(DialectOptions.StrictNonDecimalNumberLengths));
+                SourceToken, DialectOptions.StrictNonDecimalNumberLengths);
 
         if ((sign == 1 && rawValue > short.MaxValue) || (sign == -1 && rawValue > short.MaxValue + 1)) {
             if (signed)
@@ -109,7 +109,7 @@ public record NumberLiteral {
 
         if (digits.Length < 4 && SourceToken.Options.HasFlag(DialectOptions.StrictNonDecimalNumberLengths))
             throw new DialectSyntaxError("Hexadecimal number <4 digits",
-                SourceToken, nameof(DialectOptions.StrictNonDecimalNumberLengths));
+                SourceToken, DialectOptions.StrictNonDecimalNumberLengths);
 
         if ((sign == 1 && rawValue > short.MaxValue) || (sign == -1 && rawValue > short.MaxValue + 1)) {
             if (signed)
