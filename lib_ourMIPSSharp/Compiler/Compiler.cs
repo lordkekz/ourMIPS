@@ -143,7 +143,7 @@ public class Compiler {
         }
         
         foreach (var macro in _macros.Values) {
-            macro.ValidateNonRecursive(_macros);
+            macro.Validate(_macros);
         }
     }
 

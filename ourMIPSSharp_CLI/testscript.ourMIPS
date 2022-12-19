@@ -1,16 +1,33 @@
 ; test
 macro daserste hihihaha
     sysout "käsesahne"
-    
-    
     # hihihaha
-    #daserste
+    # daserste
     daszweite
 endmacro
 
 macro daszweite hb dh
-    #daserste
     addi hb dh 0
+    dasdritte
+endmacro
+
+macro dasdritte
+    dasvierte
+    nochzweis
+endmacro
+
+macro dasvierte
+    nocheins
+    nochzweis
+    daserste
+endmacro
+
+macro nocheins
+    nochzweis
+endmacro
+
+macro nochzweis
+    daserste
 endmacro
 
 systerm
