@@ -51,7 +51,7 @@ public class Tokenizer {
                         _state = TokenizerState.InNumber;
                         AppendChar(c);
                     }
-                    else if (char.IsLetter(c)) {
+                    else if (char.IsLetter(c) || c == '$') {
                         StartToken(TokenType.Word);
                         _state = TokenizerState.InWord;
                         AppendChar(c);
@@ -64,11 +64,12 @@ public class Tokenizer {
                         HandleLineBreak();
                     }
                     else if (c is ';' or '#') {
-                        EndToken();
                         StartToken(TokenType.Comment);
                         _state = TokenizerState.InComment;
                     }
                     else if (char.IsWhiteSpace(c)) { }
+                    else if (c is ':' or ',')
+                        HandleSingleChar(c);
                     else throw new SyntaxError($"Unexpected character '{c}' at line {_line}, col {_col}!");
                     break;
                 
@@ -76,10 +77,12 @@ public class Tokenizer {
                 case TokenizerState.InWord:
                     if (c == '\n')
                         HandleLineBreak();
-                    else if (char.IsLetterOrDigit(c) || c == '_')
+                    else if (char.IsLetterOrDigit(c) || c is '_' or '[' or ']')
                         AppendChar(c);
-                    else if (char.IsWhiteSpace(c) || c == ':')
+                    else if (char.IsWhiteSpace(c))
                         EndToken();
+                    else if (c is ':' or ',')
+                        HandleSingleChar(c);
                     else if (c is ';' or '#') {
                         EndToken();
                         StartToken(TokenType.Comment);
@@ -104,7 +107,8 @@ public class Tokenizer {
                 
                 case TokenizerState.InStringEscaped:
                     _state = TokenizerState.InString;
-                    AppendChar(c);
+                    // If c is 'n', put a line break, otherwise just put c.
+                    AppendChar(c == 'n' ? '\n' : c);
                     break;
                 
                 case TokenizerState.InComment:
@@ -129,6 +133,13 @@ public class Tokenizer {
         }
         _col = 0;
         _line++;
+    }
+
+    private void HandleSingleChar(char c) {
+        EndToken();
+        StartToken(TokenType.SingleChar);
+        _current.Content = c.ToString();
+        EndToken();
     }
 
     private void EndToken() {

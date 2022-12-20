@@ -1,8 +1,17 @@
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace lib_ourMIPSSharp;
 
-public class Compiler {
+public partial class Compiler {
+
+    [GeneratedRegex("^(const|reg|label)[0-9]+$")]
+    private static partial Regex GetYapjomaParamRegex();
+    public static readonly Regex YapjomaParamRegex = GetYapjomaParamRegex();
+    [GeneratedRegex("^\\w[_\\w\\d]*$")]
+    private static partial Regex GetCustomDescriptorRegex();
+    public static readonly Regex CustomDescriptorRegex = GetCustomDescriptorRegex();
+    
     public List<Token> Tokens { get; }
     public DialectOptions Options { get; }
 
@@ -48,7 +57,11 @@ public class Compiler {
                             current.AddParameter(token);
                             Debug.WriteLine($"Compiler.ReadMacros: Found macro param {token.Content}");
                             break;
-                        // TODO add case for colon once it's implemented
+                        case TokenType.SingleChar:
+                            if (token.Content.Equals(":"))
+                                break;
+                            // TODO eventually add a check to prevent irregular comma-placement in args
+                            break;
                         case TokenType.Comment:
                             _state = CompilerState.MacroDeclarationArgsEnded;
                             break;
@@ -73,39 +86,52 @@ public class Compiler {
                 case CompilerState.MacroInstructionStart:
                     switch (token.Type) {
                         case TokenType.Word:
-                            if (KeywordHelper.FromToken(token) == Keyword.None) {
-                                // Assume instructions that aren't keywords to be macros
-                                // TODO check to make sure this isn't a label definition
-                                current.AddReferenceIfNotExists(token);
-                                Debug.WriteLine($"Compiler.ReadMacros: Found macro reference {token.Content}");
-                            }
+                            switch (KeywordHelper.FromToken(token)) {
+                                case Keyword.None:
+                                    // token doesn't match any keyword
+                                    if (i + 1 < Tokens.Count &&
+                                        Tokens[i + 1].Type == TokenType.SingleChar &&
+                                        Tokens[i + 1].Content.Equals(":")) {
+                                        // This is a label declaration. Skip over the next token.
+                                        i += 1;
+                                        _state = CompilerState.MacroInstructionArgs;
+                                    }
+                                    else {
+                                        // This must be a macro call. Add Reference.
+                                        current.AddReferenceIfNotExists(token);
+                                        Debug.WriteLine($"Compiler.ReadMacros: Found macro reference {token.Content}");
+                                    }
 
-                            if (Keyword.Keyword_Macro.Matches(token.Content))
-                                throw new SyntaxError(
-                                    $"Nested macro definition at line {token.Line}, col {token.Column}!");
-                            
-                            _state = CompilerState.MacroInstructionArgs;
+                                    break;
+                                case Keyword.Keyword_Macro:
+                                    throw new SyntaxError(
+                                        $"Nested macro definition at line {token.Line}, col {token.Column}!");
+                                
+                                case Keyword.Keyword_EndMacro:
+                                    if (Options.HasFlag(DialectOptions.StrictKeywordMend))
+                                        throw new DialectSyntaxError("Keyword 'endmacro'", token,
+                                            DialectOptions.StrictKeywordMend);
 
-                            if (Keyword.Keyword_EndMacro.Matches(token.Content)) {
-                                if (Options.HasFlag(DialectOptions.StrictKeywordMend))
-                                    throw new DialectSyntaxError("Keyword 'endmacro'", token,
-                                        DialectOptions.StrictKeywordMend);
+                                    current.EndIndex = i;
+                                    _macros.Add(current.Name, current);
+                                    _state = CompilerState.MacroEnded;
+                                    Debug.WriteLine($"Compiler.ReadMacros: Found endmacro");
 
-                                current.EndIndex = i;
-                                _macros.Add(current.Name, current);
-                                _state = CompilerState.MacroEnded;
-                                Debug.WriteLine($"Compiler.ReadMacros: Found endmacro");
-                            }
+                                    break;
+                                case Keyword.Keyword_Mend:
+                                    if (Options.HasFlag(DialectOptions.StrictKeywordEndmacro))
+                                        throw new DialectSyntaxError("Keyword 'mend'", token,
+                                            DialectOptions.StrictKeywordEndmacro);
 
-                            if (Keyword.Keyword_Mend.Matches(token.Content)) {
-                                if (Options.HasFlag(DialectOptions.StrictKeywordEndmacro))
-                                    throw new DialectSyntaxError("Keyword 'mend'", token,
-                                        DialectOptions.StrictKeywordEndmacro);
+                                    current.EndIndex = i;
+                                    _macros.Add(current.Name, current);
+                                    _state = CompilerState.MacroEnded;
+                                    Debug.WriteLine($"Compiler.ReadMacros: Found mend");
 
-                                current.EndIndex = i;
-                                _macros.Add(current.Name, current);
-                                _state = CompilerState.MacroEnded;
-                                Debug.WriteLine($"Compiler.ReadMacros: Found mend");
+                                    break;
+                                default:
+                                    _state = CompilerState.MacroInstructionArgs;
+                                    break;
                             }
                             
                             break;

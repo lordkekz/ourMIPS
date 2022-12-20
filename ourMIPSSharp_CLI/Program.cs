@@ -36,6 +36,12 @@ var sourcecode = File.ReadAllText("../../../testscript.ourMIPS");
 var opts = DialectOptions.None;
 var tokenizer = new Tokenizer(sourcecode, opts);
 var tokens = tokenizer.Tokenize();
+
+foreach (var token in tokens) {
+    Console.Write(token + "    ");
+}
+Console.WriteLine();
+
 var compiler = new Compiler(tokens, opts);
 compiler.ReadMacros();
 Console.WriteLine(compiler);

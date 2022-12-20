@@ -29,6 +29,9 @@ public class Token {
             case TokenType.Comment:
                 s = "C";
                 break;
+            case TokenType.SingleChar:
+                s = "O";
+                break;
             default:
             case TokenType.None:
                 s = "?";
@@ -41,5 +44,5 @@ public class Token {
 
 public enum TokenType
 {
-    None, Word, InstructionBreak, Number, String, Comment
+    None, Word, InstructionBreak, Number, String, Comment, SingleChar
 }

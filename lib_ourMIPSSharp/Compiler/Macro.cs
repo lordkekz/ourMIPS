@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 namespace lib_ourMIPSSharp;
 
 public class Macro {
@@ -8,7 +10,7 @@ public class Macro {
 
     private List<string> _params = new();
     private List<Tuple<string, Token>> _references = new();
-    private List<Tuple<string, Token[]>> _all_references;
+    private List<Tuple<string, Token[]>>? _all_references;
 
     public Macro(DialectOptions options) {
         Options = options;
@@ -21,6 +23,10 @@ public class Macro {
             throw new SyntaxError(
                 $"Macro name '{token.Content}' at line {token.Line}, col {token.Column} is illegal since it matches a keyword.");
 
+        if (!Compiler.CustomDescriptorRegex.IsMatch(token.Content))
+            throw new SyntaxError(
+                $"Illegal macro name '{token.Content}' at line {token.Line}, col {token.Column}");
+        
         if (!Options.HasFlag(DialectOptions.StrictCaseSensitiveDescriptors))
             name = name.ToLowerInvariant();
 
@@ -29,7 +35,13 @@ public class Macro {
 
     public void AddParameter(Token token) {
         var name = token.Content;
-        // TODO Add some checks depending on dialect
+
+        if (Options.HasFlag(DialectOptions.StrictMacroArgumentNames) && !Compiler.YapjomaParamRegex.IsMatch(token.Content))
+            throw new DialectSyntaxError("Custom macro argument name", token, DialectOptions.StrictMacroArgumentNames);
+
+        if (!Compiler.CustomDescriptorRegex.IsMatch(token.Content))
+            throw new SyntaxError(
+                $"Illegal macro parameter name '{token.Content}' at line {token.Line}, col {token.Column}");
 
         _params.Add(name);
     }
