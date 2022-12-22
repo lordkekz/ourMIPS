@@ -12,6 +12,7 @@ public enum Keyword : uint {
     Magic_Systerm    = 0b000001_00000_00000_0000000000000000,
     Magic_Str_Sysout  = 0b000001_00000_00000_0000000000000001,
     Magic_Reg_Sysout  = 0b000001_00000_00000_0000000000000010,
+    Magic_Reg_Sysin  = 0b000001_00000_00000_0000000000000011,
     
     // Magic Instructions (ourMIPS-Sharp-Dialect)
     Magic_Mem_Sysout  = 0b000001_00000_00000_0000000000000101,

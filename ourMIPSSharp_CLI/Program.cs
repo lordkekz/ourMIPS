@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.InteropServices;using System.Runtime.InteropServices.JavaScript;
 using lib_ourMIPSSharp;
 
@@ -32,16 +33,14 @@ using lib_ourMIPSSharp;
 
 // Console.WriteLine(new NumberLiteral("404", DialectOptions.None).ToString(NumberLiteralFormat.Decimal));
 
-var sourcecode = File.ReadAllText("../../../testscript.ourMIPS");
-var opts = DialectOptions.None;
-var tokenizer = new Tokenizer(sourcecode, opts);
-var tokens = tokenizer.Tokenize();
+var sourcecode = File.ReadAllText("../../../mult_yapjoma.ourMIPS");
+var builder = new Builder(sourcecode, DialectOptions.None);
+var success = builder.FullBuild();
 
-foreach (var token in tokens) {
-    Console.Write(token + "    ");
+var debugprint = "\n\nDebug stuff:\n";
+foreach (var token in builder.Tokens) {
+    debugprint += token + "    ";
 }
-Console.WriteLine();
+Debug.WriteLine(debugprint);
 
-var compiler = new Compiler(tokens, opts);
-compiler.ReadMacros();
-Console.WriteLine(compiler);
+Console.WriteLine("Terminating.");

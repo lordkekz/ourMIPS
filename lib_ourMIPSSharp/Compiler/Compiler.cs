@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
@@ -13,12 +14,16 @@ public partial class Compiler {
     public static readonly Regex CustomDescriptorRegex = GetCustomDescriptorRegex();
     
     public List<Token> Tokens { get; }
+    public List<Token> ResolvedTokens { get; private set; }
     public DialectOptions Options { get; }
 
     private Dictionary<string, Macro> _macros;
     private CompilerState _state;
 
     public Compiler(List<Token> tokens, DialectOptions options) {
+        if (!options.IsValid())
+            throw new InvalidEnumArgumentException(nameof(options), (int) options, typeof(DialectOptions));
+        
         Tokens = tokens;
         Options = options;
     }
@@ -173,10 +178,22 @@ public partial class Compiler {
         }
     }
 
-    public List<int> GenerateBytecode() {
-        var result = new List<int>();
+    public List<Token> ResolveMacros() {
+        if (_macros is null)
+            throw new Exception("Macros not yet read");
+        ResolvedTokens = new List<Token>();
+        
+        
+        
+        return ResolvedTokens;
+    }
 
-        return null;
+    public void ReadLabels() {
+        
+    }
+
+    public List<int> GenerateBytecode() {
+        return new List<int>();
     }
 
     private enum CompilerState {

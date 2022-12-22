@@ -1,4 +1,8 @@
 ; test
+macro dasnullte
+    dasdritte
+mend
+
 macro daserste hihihaha
     sysout "käsesahne"
     # hihihaha
@@ -27,7 +31,7 @@ macro nocheins
 endmacro
 
 macro nochzweis
-    daserste
+    #daserste
 endmacro
 
 systerm
