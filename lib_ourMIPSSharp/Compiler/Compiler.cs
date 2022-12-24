@@ -84,7 +84,16 @@ public partial class Compiler {
                             // Token could be a valid instruction argument
                             state = handler.OnInstructionArgs(token);
                             break;
+                        case TokenType.SingleChar:
+                            if (!token.Content.Equals(","))
+                                throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} " +
+                                                      $"in State {state} at line {token.Line}, col {token.Column}!");
+
+                            // TODO eventually add a check to prevent irregular comma-placement in args
+                            break;
                         case TokenType.Comment:
+                            // Ignore comments.
+                            break;
                         case TokenType.InstructionBreak:
                             state = CompilerState.InstructionStart;
                             handler.OnInstructionBreak(token);
@@ -114,9 +123,21 @@ public partial class Compiler {
                 case CompilerState.MacroDeclarationArgs:
                     switch (token.Type) {
                         case TokenType.Word:
-                        case TokenType.SingleChar:
                             // Token could be a valid macro name
                             state = handler.OnMacroDeclarationArgs(token);
+                            break;
+                        case TokenType.SingleChar:
+                            switch (token.Content) {
+                                case ",":
+                                    // TODO eventually add a check to prevent irregular comma-placement in args
+                                    break;
+                                case ":":
+                                    state = CompilerState.MacroDeclarationArgsEnded;
+                                    break;
+                                default:
+                                    throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} " +
+                                                          $"in State {state} at line {token.Line}, col {token.Column}!");
+                            }
                             break;
                         case TokenType.InstructionBreak:
                             // Line break always ends macro declaration args
@@ -177,7 +198,16 @@ public partial class Compiler {
                             // Token could be a valid instruction argument
                             state = handler.OnMacroInstructionArgs(token);
                             break;
+                        case TokenType.SingleChar:
+                            if (!token.Content.Equals(","))
+                                throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} " +
+                                                      $"in State {state} at line {token.Line}, col {token.Column}!");
+
+                            // TODO eventually add a check to prevent irregular comma-placement in args
+                            break;
                         case TokenType.Comment:
+                            // Ignore comments.
+                            break;
                         case TokenType.InstructionBreak:
                             state = CompilerState.MacroInstructionStart;
                             handler.OnInstructionBreak(token);
@@ -222,7 +252,7 @@ public partial class Compiler {
 
     public void ReadLabels() {
         var h = new CompilerLabelReader(this);
-        IterateTokens(h, CompilerState.InstructionStart, ResolvedTokens, 0, Tokens.Count);
+        IterateTokens(h, CompilerState.InstructionStart, ResolvedTokens, 0, ResolvedTokens.Count);
     }
 
     public List<int> GenerateBytecode() {

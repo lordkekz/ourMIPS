@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Globalization;
-using System.Runtime.InteropServices;using System.Runtime.InteropServices.JavaScript;
 using lib_ourMIPSSharp;
 
 // Console.WriteLine(Convert.ToInt16("44", 10));
@@ -33,7 +31,7 @@ using lib_ourMIPSSharp;
 
 // Console.WriteLine(new NumberLiteral("404", DialectOptions.None).ToString(NumberLiteralFormat.Decimal));
 
-var sourcecode = File.ReadAllText("../../../mult_philos.ourMIPS");
+var sourcecode = File.ReadAllText("../../../primes_philos.ourMIPS");
 var builder = new Builder(sourcecode, DialectOptions.None);
 var success = builder.FullBuild();
 
@@ -42,14 +40,16 @@ foreach (var token in builder.Tokens) {
     debugprint += token + "    ";
 }
 
-debugprint += "\nResolvedTokens:\n";
+Debug.WriteLine(debugprint);
+debugprint = "ResolvedTokens:\n";
 foreach (var token in builder.ResolvedTokens) {
     debugprint += token.Content + " ";
     if (token.Type == TokenType.InstructionBreak)
         debugprint += "\n";
 }
 
-debugprint += "\nLabels:\n";
+Debug.WriteLine(debugprint);
+debugprint = "Labels:\n";
 foreach (var pair in builder.Labels) {
     debugprint += $"{pair.Value} : {pair.Key}\n";
 }

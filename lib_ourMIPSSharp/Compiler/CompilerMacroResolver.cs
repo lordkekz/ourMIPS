@@ -40,18 +40,20 @@ public class CompilerMacroResolver : ICompilerHandler {
     }
 
     public void OnInstructionBreak(Token token) {
-        if (ResolvedTokens.Count > 0 && ResolvedTokens.Last().Type != TokenType.InstructionBreak)
-            ResolvedTokens.Add(token);
-        if (_current is null) return;
+        if (_current is not null) {
+            var m = _current.Macro;
+            if (!_counters.ContainsKey(m)) _counters[m] = 0;
 
-        var m = _current.Macro;
-        if (!_counters.ContainsKey(m)) _counters[m] = 0;
-        
-        _stack.Push(_current);
-        _current = null;
-        Comp.IterateTokens(this, CompilerState.InstructionStart, Comp.Tokens, m.StartIndex, m.EndIndex);
-        _stack.Pop();
-        _counters[m] += 1;
+            _stack.Push(_current);
+            _current = null;
+            Comp.IterateTokens(this, CompilerState.InstructionStart, Comp.Tokens, m.StartIndex, m.EndIndex);
+            _stack.Pop();
+            _counters[m] += 1;
+        }
+        else {
+            Debug.WriteLine($"[CompilerMacroResolver] Instruction Break. Token: {token}");
+            ResolvedTokens.Add(token);
+        }
     }
 
     /// <summary>

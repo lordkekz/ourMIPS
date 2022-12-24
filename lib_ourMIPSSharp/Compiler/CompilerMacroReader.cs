@@ -29,19 +29,10 @@ public class CompilerMacroReader : ICompilerHandler {
     }
 
     public CompilerState OnMacroDeclarationArgs(Token token) {
-        switch (token.Type) {
-            case TokenType.Word:
-                Debug.WriteLine($"[CompilerMacroReader] Found macro param {token.Content}");
-                _current.AddParameter(token);
-                break;
-            case TokenType.SingleChar:
-                if (token.Content.Equals(":"))
-                    return CompilerState.MacroDeclarationArgsEnded;
-
-                // TODO eventually add a check to prevent irregular comma-placement in args
-                break;
-        }
-
+        if (token.Type != TokenType.Word) return CompilerState.MacroDeclarationArgs;
+        
+        Debug.WriteLine($"[CompilerMacroReader] Found macro param {token.Content}");
+        _current.AddParameter(token);
         return CompilerState.MacroDeclarationArgs;
     }
 
