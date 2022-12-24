@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 
-namespace lib_ourMIPSSharp; 
+namespace lib_ourMIPSSharp;
 
 /// <summary>
 /// Manages the build pipeline.
@@ -11,6 +11,7 @@ public class Builder {
     public DialectOptions Options { get; }
     public ImmutableArray<Token> Tokens { get; private set; }
     public ImmutableArray<Token> ResolvedTokens { get; private set; }
+    public ImmutableDictionary<string, int> Labels { get; private set; }
     public ImmutableArray<int> Bytecode { get; private set; }
 
     private Tokenizer _tokenizer;
@@ -38,9 +39,10 @@ public class Builder {
             var resolvedTokens = _compiler.ResolveMacros();
             ResolvedTokens = resolvedTokens.ToImmutableArray();
             
-            // Console.WriteLine($"[BUILDER] Reading labels (3rd iteration of compiler)...");
-            // _compiler.ReadLabels();
-            //
+            Console.WriteLine($"[BUILDER] Reading labels (3rd iteration of compiler)...");
+            _compiler.ReadLabels();
+            Labels = _compiler.Labels.ToImmutableDictionary();
+            
             // Console.WriteLine($"[BUILDER] Generating Bytecode (4th iteration of compiler)...");
             // var bytecode = _compiler.GenerateBytecode();
             // ResolvedTokens = resolvedTokens.ToImmutableArray();

@@ -48,6 +48,11 @@ foreach (var token in builder.ResolvedTokens) {
     if (token.Type == TokenType.InstructionBreak)
         debugprint += "\n";
 }
+
+debugprint += "\nLabels:\n";
+foreach (var pair in builder.Labels) {
+    debugprint += $"{pair.Value} : {pair.Key}\n";
+}
 Debug.WriteLine(debugprint);
 
 Console.WriteLine("Terminating.");

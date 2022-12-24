@@ -78,8 +78,8 @@ public class CompilerMacroResolver : ICompilerHandler {
 
         ResolvedTokens.Add(new Token(Options) {
             Content = newLabelName,
-            Line = peek.Line,
-            Column = peek.Column,
+            Line = token.Line,
+            Column = token.Column,
             Type = TokenType.Word
         });
     }

@@ -19,6 +19,7 @@ public partial class Compiler {
     public List<Token> Tokens { get; }
     public List<Token> ResolvedTokens { get; } = new();
     public Dictionary<string, Macro> Macros { get; } = new();
+    public Dictionary<string, int> Labels { get; } = new();
 
     public Compiler(List<Token> tokens, DialectOptions options) {
         if (!options.IsValid())
@@ -219,7 +220,10 @@ public partial class Compiler {
         return ResolvedTokens;
     }
 
-    public void ReadLabels() { }
+    public void ReadLabels() {
+        var h = new CompilerLabelReader(this);
+        IterateTokens(h, CompilerState.InstructionStart, ResolvedTokens, 0, Tokens.Count);
+    }
 
     public List<int> GenerateBytecode() {
         return new List<int>();
