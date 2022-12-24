@@ -92,19 +92,34 @@ public static class KeywordHelper {
 
     /// <summary>
     /// Finds matching keyword for a token.
-    /// Does not check if the token type is <c>TokenType.Word</c>.
+    /// Does check that the token type is <c>TokenType.Word</c>.
     /// If no match is found, returns Keyword.None.
     /// </summary>
     /// <param name="token"></param>
     /// <returns></returns>
     public static Keyword FromToken(Token token) {
+        if (token.Content is null || token.Type != TokenType.Word)
+            return Keyword.None;
+        
         foreach (var name in Enum.GetNames(typeof(Keyword)))
             if (name.EndsWith(token.Content, StringComparison.InvariantCultureIgnoreCase))
                 return Enum.Parse<Keyword>(name);
+        
         return Keyword.None;
     }
     
-    public static bool Matches(this Keyword kw, string str) {
-        return kw.ToString().Split('_').Last().Equals(str, StringComparison.InvariantCultureIgnoreCase);
+    /// <summary>
+    /// Checks whether a Keyword matches a Token.
+    /// Does check that the token type is <c>TokenType.Word</c>.
+    /// </summary>
+    /// <param name="kw"></param>
+    /// <param name="token"></param>
+    /// <returns><c>true</c> if the token type is <c>TokenType.Word</c> and the token content matches the keyword;
+    /// <c>false</c> otherwise.</returns>
+    public static bool Matches(this Keyword kw, Token token) {
+        if (token.Content is null || token.Type != TokenType.Word)
+            return false;
+        
+        return kw.ToString().Split('_').Last().Equals(token.Content, StringComparison.InvariantCultureIgnoreCase);
     }
 }

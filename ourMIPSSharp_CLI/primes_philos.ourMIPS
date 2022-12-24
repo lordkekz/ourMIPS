@@ -1,0 +1,59 @@
+# HAUPTPROGRAMM
+main:
+	# Eingabe einer Zahl
+	sysout "Geben Sie eine natuerliche Zahl groesser gleich 2 ein."
+	sysin s0
+
+	addi zero s1 2             # Initialisiere Hilfszahl
+	
+	bgt s1 s0 ausgabe_fehler   # Überprüft, ob n >= 2
+
+	
+teilbar_loop: #Schleife die guckt ob die Hilfszahl ein vielfaches der eingegebenen ist
+	add zero s1 a1	           # schreibt Hilfszahl in a0 fürs Unterprogramm
+	add zero s0 a0             # schreibt die eingegebene Zahl in a1 fürs Unterprogramm
+	beq s0 s1 ausgabe_primzahl # beendet Schleife falls beide Zahlen gleich sind
+
+	
+	ldpc ra                    # speichern von program counter in ra
+	addi ra ra 3               # erhöhe die gespeicherte Adresse um 3, um drei Instruktionen zu überspringen (ldpc, addi, jmp)
+	
+	jmp rest                   # führt Unterprogramm aus
+	
+	addi s1 s1 1               # erhöht Hilfszahl um 1
+	beq v0 r0 teilbar_loop    # überprüft ob die Hilfszahl ein Vielfaches der eingegebenen zahl war
+
+	
+	# Ausgabe
+	sysout "Die Zahl ist keine Primzahl"		
+	systerm
+	
+ausgabe_primzahl:
+	sysout "Die Zahl ist eine Primzahl"	
+	systerm
+	
+ausgabe_fehler:
+	sysout "Die Zahl ist keie natuerliche Zahl groesser gleich 2."
+	systerm
+
+# Unterprogramm rest das prüft, ob n>0 ein Vielfaches von m>0 ist.
+rest:
+	# n = a0, m = a1
+	subi $sp, $sp, 3            # Stack um 3 Einträge erweitern
+	sto $sp, $ra, 3             # Retten der Rücksprungadresse
+	sto $sp, $a0, 2             # Retten der Belegung von a0; a0 wird als Laufvariable umfunktioniert.
+	sto $sp, $a1, 1             # Retten der Belegung von a1
+	addi $zero, $v0, 0          # Initialisiere Rückgabe $v0 auf Standardwert 0
+rest_loop:
+	bgt $a1, $a0, rest_check      # Ist While-Schleife zu Ende
+	sub $a0, $a1, $a0           # a1 von Laufvariable abziehen
+	jmp rest_loop               # Springe zum Schleifenanfang
+rest_check:
+	bneq $a0, $zero, rest_end   # Wenn $a0 != 0, so ist n kein Vielfaches von m
+	addi $zero, $v0, 1          # Rückgabe $v0 := 1, denn n ist Vielfaches von m
+rest_end:
+	ldd $sp, $ra, 3             # Restaurieren der Rücksprungadresse
+	ldd $sp, $a0, 2             # Restaurieren von $a0
+	ldd $sp, $a1, 1             # Restaurieren von $a1
+	addi $sp, $sp, 3            # Verkleinern des Stacks
+	stpc ra                     # Rücksprung aus dem Unterprogramm

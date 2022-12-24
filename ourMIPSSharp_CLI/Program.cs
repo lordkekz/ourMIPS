@@ -33,13 +33,20 @@ using lib_ourMIPSSharp;
 
 // Console.WriteLine(new NumberLiteral("404", DialectOptions.None).ToString(NumberLiteralFormat.Decimal));
 
-var sourcecode = File.ReadAllText("../../../mult_yapjoma.ourMIPS");
+var sourcecode = File.ReadAllText("../../../mult_philos.ourMIPS");
 var builder = new Builder(sourcecode, DialectOptions.None);
 var success = builder.FullBuild();
 
-var debugprint = "\n\nDebug stuff:\n";
+var debugprint = "\n\n### Debug stuff\nTokens:\n";
 foreach (var token in builder.Tokens) {
     debugprint += token + "    ";
+}
+
+debugprint += "\nResolvedTokens:\n";
+foreach (var token in builder.ResolvedTokens) {
+    debugprint += token.Content + " ";
+    if (token.Type == TokenType.InstructionBreak)
+        debugprint += "\n";
 }
 Debug.WriteLine(debugprint);
 

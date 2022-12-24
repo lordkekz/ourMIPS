@@ -5,207 +5,235 @@ using System.Text.RegularExpressions;
 namespace lib_ourMIPSSharp;
 
 public partial class Compiler {
-
-    [GeneratedRegex("^(const|reg|label)[0-9]+$")]
+    [GeneratedRegex(@"^(const|reg|label)[0-9]+$")]
     private static partial Regex GetYapjomaParamRegex();
-    public static readonly Regex YapjomaParamRegex = GetYapjomaParamRegex();
-    [GeneratedRegex("^\\w[_\\w\\d]*$")]
-    private static partial Regex GetCustomDescriptorRegex();
-    public static readonly Regex CustomDescriptorRegex = GetCustomDescriptorRegex();
-    
-    public List<Token> Tokens { get; }
-    public List<Token> ResolvedTokens { get; private set; }
-    public DialectOptions Options { get; }
 
-    private Dictionary<string, Macro> _macros;
-    private CompilerState _state;
+    public static readonly Regex YapjomaParamRegex = GetYapjomaParamRegex();
+
+    [GeneratedRegex(@"^\w[_\w\d]*$")]
+    private static partial Regex GetCustomDescriptorRegex();
+
+    public static readonly Regex CustomDescriptorRegex = GetCustomDescriptorRegex();
+
+    public DialectOptions Options { get; }
+    public List<Token> Tokens { get; }
+    public List<Token> ResolvedTokens { get; } = new();
+    public Dictionary<string, Macro> Macros { get; } = new();
 
     public Compiler(List<Token> tokens, DialectOptions options) {
         if (!options.IsValid())
-            throw new InvalidEnumArgumentException(nameof(options), (int) options, typeof(DialectOptions));
-        
+            throw new InvalidEnumArgumentException(nameof(options), (int)options, typeof(DialectOptions));
+
         Tokens = tokens;
         Options = options;
     }
 
     public void ReadMacros() {
-        _macros = new Dictionary<string, Macro>();
-        _state = CompilerState.InstructionStart;
-        Macro current = null;
+        var h = new CompilerMacroReader(this);
+        IterateTokens(h, CompilerState.InstructionStart, Tokens, 0, Tokens.Count);
+        
+        foreach (var macro in Macros.Values) {
+            macro.Validate(Macros);
+        }
+    }
 
-        Debug.WriteLine("Compiler.ReadMacros running");
-        for (var i = 0; i < Tokens.Count; i++) {
-            var token = Tokens[i];
-            Debug.WriteLine($"Compiler.ReadMacros: State {_state}, Token {token}");
-            switch (_state) {
+    public void IterateTokens(ICompilerHandler handler, CompilerState initialState, IList<Token> tokens,
+        int startIndex, int endIndex) {
+        var state = initialState;
+
+        Debug.WriteLine($"[Compiler.IterateTokens] running from {startIndex} to {endIndex}");
+        for (var i = startIndex; i < endIndex; i++) {
+            var token = tokens[i];
+            Debug.WriteLine($"[Compiler.IterateTokens] State {state}, Token {token}");
+            switch (state) {
                 case CompilerState.InstructionStart:
-                    if (token.Type == TokenType.Word && Keyword.Keyword_Macro.Matches(token.Content)) {
-                        _state = CompilerState.MacroDeclaration;
-                        current = new Macro(Options);
+                    switch (token.Type) {
+                        case TokenType.Word:
+                            if (i < endIndex &&
+                                tokens[i + 1].Type == TokenType.SingleChar &&
+                                tokens[i + 1].Content.Equals(":")) {
+                                // This lookahead may behave unexpectedly compared to a strictly non-lookahead implementation.
+                                // e.g. it isn't be allowed for a comment to appear between label name and colon.
+
+                                // This is a label declaration. Skip over the next token.
+                                i += 1;
+                                state = handler.OnLabelDeclaration(token, tokens[i]);
+                            }
+                            else {
+                                // Token could be a valid instruction
+                                state = handler.OnInstructionStart(token);
+                            }
+
+                            break;
+                        case TokenType.Comment:
+                        case TokenType.InstructionBreak:
+                            // Ignore comments and empty lines.
+                            break;
+                        default:
+                            throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} in " +
+                                                  $"State {state} at line {token.Line}, col {token.Column}!");
+                    }
+
+                    break;
+                case CompilerState.InstructionArgs:
+                    switch (token.Type) {
+                        case TokenType.Word:
+                        case TokenType.Number:
+                        case TokenType.String:
+                            // Token could be a valid instruction argument
+                            state = handler.OnInstructionArgs(token);
+                            break;
+                        case TokenType.Comment:
+                        case TokenType.InstructionBreak:
+                            state = CompilerState.InstructionStart;
+                            handler.OnInstructionBreak(token);
+                            break;
+                        default:
+                            throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} in " +
+                                                  $"State {state} at line {token.Line}, col {token.Column}!");
                     }
 
                     break;
                 case CompilerState.MacroDeclaration:
-                    if (token.Type == TokenType.Word) {
-                        _state = CompilerState.MacroDeclarationArgs;
-                        current.SetName(token);
-                        Debug.WriteLine($"Compiler.ReadMacros: Found macro name {current.Name}");
+                    switch (token.Type) {
+                        case TokenType.Word:
+                            // Token could be a valid macro name
+                            state = handler.OnMacroDeclaration(token);
+                            break;
+                        case TokenType.Comment:
+                            // Just ignore comments, even though they can't appear here.
+                            // We let the Tokenizer take care of that; this way we can easily add inline comments later.
+                            break;
+                        default:
+                            throw new SyntaxError($"Missing macro name at line {token.Line}, col {token.Column}. " +
+                                                  $"Got {token.Type} '{token.Content}' instead.");
                     }
-                    else
-                        throw new SyntaxError(
-                            $"Missing macro name at line {token.Line}, col {token.Column}. Got {token.Type} '{token.Content}' instead.");
 
                     break;
                 case CompilerState.MacroDeclarationArgs:
                     switch (token.Type) {
                         case TokenType.Word:
-                            current.AddParameter(token);
-                            Debug.WriteLine($"Compiler.ReadMacros: Found macro param {token.Content}");
-                            break;
                         case TokenType.SingleChar:
-                            if (token.Content.Equals(":"))
-                                break;
-                            // TODO eventually add a check to prevent irregular comma-placement in args
-                            break;
-                        case TokenType.Comment:
-                            _state = CompilerState.MacroDeclarationArgsEnded;
+                            // Token could be a valid macro name
+                            state = handler.OnMacroDeclarationArgs(token);
                             break;
                         case TokenType.InstructionBreak:
-                            _state = CompilerState.MacroInstructionStart;
+                            // Line break always ends macro declaration args
+                            state = CompilerState.MacroInstructionStart;
+                            handler.OnInstructionBreak(token);
+                            break;
+                        case TokenType.Comment:
+                            // Just ignore comments, even though they can't appear here.
+                            // We let the Tokenizer take care of that; this way we can easily add inline comments later.
                             break;
                         default:
-                            throw new SyntaxError(
-                                $"Unexpected token at line {token.Line}, col {token.Column} of type {token.Type}: '{token.Content}'");
+                            throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} in " +
+                                                  $"State {state} at line {token.Line}, col {token.Column}!");
                     }
 
                     break;
                 case CompilerState.MacroDeclarationArgsEnded:
+                    // This state has no handler method as it only serves syntax purposes.
                     if (token.Type == TokenType.InstructionBreak) {
-                        _state = CompilerState.MacroInstructionStart;
+                        state = CompilerState.MacroInstructionStart;
+                        handler.OnInstructionBreak(token);
                     }
                     else if (token.Type != TokenType.Comment)
-                        throw new SyntaxError(
-                            $"Unexpected token at line {token.Line}, col {token.Column} of type {token.Type}: '{token.Content}'");
+                        throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} in " +
+                                              $"State {state} at line {token.Line}, col {token.Column}!");
 
                     break;
                 case CompilerState.MacroInstructionStart:
                     switch (token.Type) {
                         case TokenType.Word:
-                            switch (KeywordHelper.FromToken(token)) {
-                                case Keyword.None:
-                                    // token doesn't match any keyword
-                                    if (i + 1 < Tokens.Count &&
-                                        Tokens[i + 1].Type == TokenType.SingleChar &&
-                                        Tokens[i + 1].Content.Equals(":")) {
-                                        // This is a label declaration. Skip over the next token.
-                                        i += 1;
-                                        _state = CompilerState.MacroInstructionArgs;
-                                    }
-                                    else {
-                                        // This must be a macro call. Add Reference.
-                                        current.AddReferenceIfNotExists(token);
-                                        Debug.WriteLine($"Compiler.ReadMacros: Found macro reference {token.Content}");
-                                    }
+                            if (i < endIndex &&
+                                tokens[i + 1].Type == TokenType.SingleChar &&
+                                tokens[i + 1].Content.Equals(":")) {
+                                // This lookahead may behave unexpectedly compared to a strictly non-lookahead implementation.
+                                // e.g. it isn't be allowed for a comment to appear between label name and colon.
 
-                                    break;
-                                case Keyword.Keyword_Macro:
-                                    throw new SyntaxError(
-                                        $"Nested macro definition at line {token.Line}, col {token.Column}!");
-                                
-                                case Keyword.Keyword_EndMacro:
-                                    if (Options.HasFlag(DialectOptions.StrictKeywordMend))
-                                        throw new DialectSyntaxError("Keyword 'endmacro'", token,
-                                            DialectOptions.StrictKeywordMend);
-
-                                    current.EndIndex = i;
-                                    _macros.Add(current.Name, current);
-                                    _state = CompilerState.MacroEnded;
-                                    Debug.WriteLine($"Compiler.ReadMacros: Found endmacro");
-
-                                    break;
-                                case Keyword.Keyword_Mend:
-                                    if (Options.HasFlag(DialectOptions.StrictKeywordEndmacro))
-                                        throw new DialectSyntaxError("Keyword 'mend'", token,
-                                            DialectOptions.StrictKeywordEndmacro);
-
-                                    current.EndIndex = i;
-                                    _macros.Add(current.Name, current);
-                                    _state = CompilerState.MacroEnded;
-                                    Debug.WriteLine($"Compiler.ReadMacros: Found mend");
-
-                                    break;
-                                default:
-                                    _state = CompilerState.MacroInstructionArgs;
-                                    break;
+                                // This is a macro label declaration. Skip over the next token.
+                                i += 1;
+                                state = handler.OnMacroLabelDeclaration(token, tokens[i+1]);
                             }
-                            
+                            else {
+                                // Token could be a valid instruction
+                                state = handler.OnMacroInstructionStart(token);
+                            }
+
                             break;
                         case TokenType.InstructionBreak:
-                            _state = CompilerState.MacroInstructionStart;
+                            state = CompilerState.MacroInstructionStart;
                             break;
                     }
 
                     break;
                 case CompilerState.MacroInstructionArgs:
-                    if (token.Type == TokenType.InstructionBreak)
-                        _state = CompilerState.MacroInstructionStart;
+                    switch (token.Type) {
+                        case TokenType.Word:
+                        case TokenType.Number:
+                        case TokenType.String:
+                            // Token could be a valid instruction argument
+                            state = handler.OnMacroInstructionArgs(token);
+                            break;
+                        case TokenType.Comment:
+                        case TokenType.InstructionBreak:
+                            state = CompilerState.MacroInstructionStart;
+                            handler.OnInstructionBreak(token);
+                            break;
+                        default:
+                            throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} in " +
+                                                  $"State {state} at line {token.Line}, col {token.Column}!");
+                    }
 
                     break;
                 case CompilerState.MacroEnded:
+                    // This state has no handler method as it only serves syntax purposes.
                     switch (token.Type) {
                         case TokenType.InstructionBreak:
-                            _state = CompilerState.InstructionStart;
+                            state = CompilerState.InstructionStart;
+                            handler.OnInstructionBreak(token);
                             break;
                         case TokenType.Comment:
                             break;
                         default:
-                            throw new SyntaxError(
-                                $"Unexpected token at line {token.Line}, col {token.Column} of type {token.Type}: '{token.Content}'");
+                            throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} in " +
+                                                  $"State {state} at line {token.Line}, col {token.Column}!");
                     }
 
                     break;
                 case CompilerState.None:
-                case CompilerState.LabelDeclaration:
-                case CompilerState.InstructionArgs:
-                    if (token.Type == TokenType.InstructionBreak)
-                        _state = CompilerState.InstructionStart;
+                    if (token.Type == TokenType.InstructionBreak) {
+                        state = CompilerState.InstructionStart;
+                        handler.OnInstructionBreak(token);
+                    }
                     break;
             }
         }
-        
-        foreach (var macro in _macros.Values) {
-            macro.Validate(_macros);
-        }
+        Debug.WriteLine("[Compiler.IterateTokens] ended");
     }
 
-    public List<Token> ResolveMacros() {
-        if (_macros is null)
-            throw new Exception("Macros not yet read");
-        ResolvedTokens = new List<Token>();
-        
-        
-        
+    public IList<Token> ResolveMacros() {
+        var h = new CompilerMacroResolver(this);
+        IterateTokens(h, CompilerState.InstructionStart, Tokens, 0, Tokens.Count);
         return ResolvedTokens;
     }
 
-    public void ReadLabels() {
-        
-    }
+    public void ReadLabels() { }
 
     public List<int> GenerateBytecode() {
         return new List<int>();
     }
+}
 
-    private enum CompilerState {
-        None,
-        InstructionStart,
-        InstructionArgs,
-        LabelDeclaration,
-        MacroDeclaration,
-        MacroDeclarationArgs,
-        MacroDeclarationArgsEnded,
-        MacroInstructionStart,
-        MacroInstructionArgs,
-        MacroEnded
-    }
+public enum CompilerState {
+    None,
+    InstructionStart,
+    InstructionArgs,
+    MacroDeclaration,
+    MacroDeclarationArgs,
+    MacroDeclarationArgsEnded,
+    MacroInstructionStart,
+    MacroInstructionArgs,
+    MacroEnded
 }

@@ -4,11 +4,12 @@ namespace lib_ourMIPSSharp;
 
 public class Macro {
     public DialectOptions Options { get; }
-    public string Name { get; private set; }
-    public int StartIndex;
-    public int EndIndex;
+    public string? Name { get; private set; }
+    public int StartIndex = -1;
+    public int EndIndex = -1;
+    public List<string> Params { get; } = new();
+    public List<string> Labels { get; } = new();
 
-    private List<string> _params = new();
     private List<Tuple<string, Token>> _references = new();
     private List<Tuple<string, Token[]>>? _all_references;
 
@@ -40,10 +41,18 @@ public class Macro {
             throw new DialectSyntaxError("Custom macro argument name", token, DialectOptions.StrictMacroArgumentNames);
 
         if (!Compiler.CustomDescriptorRegex.IsMatch(token.Content))
-            throw new SyntaxError(
-                $"Illegal macro parameter name '{token.Content}' at line {token.Line}, col {token.Column}");
+            throw new SyntaxError($"Illegal macro parameter name '{token.Content}' at line {token.Line}, col {token.Column}");
 
-        _params.Add(name);
+        Params.Add(name);
+    }
+
+    public void AddLabel(Token token) {
+        var name = token.Content;
+
+        if (!Compiler.CustomDescriptorRegex.IsMatch(token.Content))
+            throw new SyntaxError($"Illegal label name '{token.Content}' at line {token.Line}, col {token.Column}");
+
+        Labels.Add(name);
     }
 
     public void AddReferenceIfNotExists(Token token) {
@@ -93,4 +102,26 @@ public class Macro {
 
         return _all_references;
     }
+
+    public override string ToString() {
+        return $"macro {Name}({string.Join(", ", Params)})";
+    }
+
+    public int GetMatchingParamIndex(string pName) {
+        if (!Options.HasFlag(DialectOptions.StrictCaseSensitiveDescriptors))
+            pName = pName.ToLowerInvariant();
+
+        return Params.IndexOf(pName);
+    }
+    
+    public int GetMatchingParamIndex(Token token) => token.Type == TokenType.Word ? GetMatchingParamIndex(token.Content) : -1;
+
+    public int GetMatchingLabelIndex(string lName) {
+        if (!Options.HasFlag(DialectOptions.StrictCaseSensitiveDescriptors))
+            lName = lName.ToLowerInvariant();
+
+        return Labels.IndexOf(lName);
+    }
+    
+    public int GetMatchingLabelIndex(Token token) => token.Type == TokenType.Word ? GetMatchingLabelIndex(token.Content) : -1;
 }
