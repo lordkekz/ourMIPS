@@ -20,6 +20,8 @@ public partial class Compiler {
     public List<Token> ResolvedTokens { get; } = new();
     public Dictionary<string, Macro> Macros { get; } = new();
     public Dictionary<string, int> Labels { get; } = new();
+    public List<uint> Bytecode { get; } = new();
+    public string StringConstants { get; set; } = "";
 
     public Compiler(List<Token> tokens, DialectOptions options) {
         if (!options.IsValid())
@@ -255,8 +257,10 @@ public partial class Compiler {
         IterateTokens(h, CompilerState.InstructionStart, ResolvedTokens, 0, ResolvedTokens.Count);
     }
 
-    public List<int> GenerateBytecode() {
-        return new List<int>();
+    public IList<uint> GenerateBytecode() {
+        var h = new CompilerBytecodeEmitter(this);
+        IterateTokens(h, CompilerState.InstructionStart, ResolvedTokens, 0, ResolvedTokens.Count);
+        return Bytecode;
     }
 }
 

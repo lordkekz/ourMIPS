@@ -33,7 +33,7 @@ ausgabe_primzahl:
 	systerm
 	
 ausgabe_fehler:
-	sysout "Die Zahl ist keie natuerliche Zahl groesser gleich 2."
+	sysout "Die Zahl ist keine natuerliche Zahl groesser gleich 2."
 	systerm
 
 # Unterprogramm rest das prüft, ob n>0 ein Vielfaches von m>0 ist.

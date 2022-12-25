@@ -34,7 +34,10 @@ public class CompilerMacroResolver : ICompilerHandler {
                 if (!Options.HasFlag(DialectOptions.StrictCaseSensitiveDescriptors))
                     mName = mName.ToLowerInvariant();
 
-                _current = new StackEntry(Macros[mName], token.Line, token.Column, new List<Token>());
+                if (!Macros.TryGetValue(mName, out Macro m))
+                    throw new SyntaxError(
+                        $"Unknown macro or instruction '{token.Content}' at line {token.Line}, col {token.Column}!");
+                _current = new StackEntry(m, token.Line, token.Column, new List<Token>());
                 return CompilerState.InstructionArgs;
         }
     }

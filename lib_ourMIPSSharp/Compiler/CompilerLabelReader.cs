@@ -7,6 +7,7 @@ public class CompilerLabelReader : ICompilerHandler {
     public DialectOptions Options => Comp.Options;
     public IList<Token> ResolvedTokens => Comp.ResolvedTokens;
     public Dictionary<string, int> Labels => Comp.Labels;
+    private int _instructionCounter = 0;
 
     public CompilerLabelReader(Compiler comp) {
         Comp = comp;
@@ -18,16 +19,14 @@ public class CompilerLabelReader : ICompilerHandler {
         if (!Options.HasFlag(DialectOptions.StrictCaseSensitiveDescriptors))
             lName = lName.ToLowerInvariant();
 
-        var index = ResolvedTokens.IndexOf(token);
-
         if (Labels.TryGetValue(lName, out var value))
             throw new SyntaxError(
-                $"Duplicate label declaration for '{lName}'! Original declaration at index {value} (corresponds " +
-                $"to line {ResolvedTokens[value].Line}, col {ResolvedTokens[value].Column}). Duplicate declaration at " +
-                $"index {index} (corresponds to line {token.Line}, col {token.Column}).");
-        
-        Debug.WriteLine($"[CompilerLabelReader] Found label '{lName}' at index {index}!");
-        Labels[lName] = index;
+                $"Duplicate label declaration for '{lName}'! Original declaration at instruction {value} " +
+                $"(corresponds to line {ResolvedTokens[value].Line}, col {ResolvedTokens[value].Column}). Duplicate " +
+                $"declaration at instruction {_instructionCounter} (corresponds to line {token.Line}, col {token.Column}).");
+
+        Debug.WriteLine($"[CompilerLabelReader] Found label '{lName}' at index {_instructionCounter}!");
+        Labels[lName] = _instructionCounter;
         return CompilerState.InstructionArgs;
     }
 
@@ -38,6 +37,8 @@ public class CompilerLabelReader : ICompilerHandler {
                 $"There should not be any macros in ResolvedTokens. Read token '{token.Content}' of type {token.Type};" +
                 $"corresponding to line {token.Line}, col {token.Column}.");
 
+
+        _instructionCounter++;
         // Assume instruction is ok. Will be checked in Compiler.GenerateBytecode.
         return CompilerState.InstructionArgs;
     }

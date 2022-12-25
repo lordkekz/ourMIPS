@@ -1,0 +1,7 @@
+sysout "test1"
+sysout "test2"
+sysout "test2"
+sysout r0
+sysout r30
+sysin r0
+sysin r30

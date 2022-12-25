@@ -24,6 +24,7 @@ using lib_ourMIPSSharp;
 // }
 // Console.WriteLine(new NumberLiteral(new Token(DialectOptions.None) { Content = num }));
 
+// Console.WriteLine(RegisterHelper.FromString("r9"));
 
 // Console.WriteLine(new NumberLiteral(new Token(DialectOptions.None) {Content = "32768"}).Value);
 
@@ -31,7 +32,12 @@ using lib_ourMIPSSharp;
 
 // Console.WriteLine(new NumberLiteral("404", DialectOptions.None).ToString(NumberLiteralFormat.Decimal));
 
-var sourcecode = File.ReadAllText("../../../primes_philos.ourMIPS");
+// var reg = Register.Zero;
+// var reg2 = RegisterHelper.FromString("zero");
+//
+// Console.WriteLine(reg + " " + reg2);
+
+var sourcecode = File.ReadAllText("../../../test_sysout.ourMIPS");
 var builder = new Builder(sourcecode, DialectOptions.None);
 var success = builder.FullBuild();
 
@@ -39,19 +45,27 @@ var debugprint = "\n\n### Debug stuff\nTokens:\n";
 foreach (var token in builder.Tokens) {
     debugprint += token + "    ";
 }
-
 Debug.WriteLine(debugprint);
+
 debugprint = "ResolvedTokens:\n";
 foreach (var token in builder.ResolvedTokens) {
     debugprint += token.Content + " ";
     if (token.Type == TokenType.InstructionBreak)
         debugprint += "\n";
 }
-
 Debug.WriteLine(debugprint);
+
 debugprint = "Labels:\n";
 foreach (var pair in builder.Labels) {
     debugprint += $"{pair.Value} : {pair.Key}\n";
+}
+Debug.WriteLine(debugprint);
+
+Debug.WriteLine($"StringConstants: '{builder.StringConstants.Replace("\0", "\\0")}'");
+
+debugprint = $"Bytecode: (length: {builder.Bytecode.Length})\n";
+foreach (var instruction in builder.Bytecode) {
+    debugprint += $"{Convert.ToString(instruction, 2).PadLeft(32, '0')}\n";
 }
 Debug.WriteLine(debugprint);
 

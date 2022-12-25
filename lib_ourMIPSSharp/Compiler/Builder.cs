@@ -12,7 +12,8 @@ public class Builder {
     public ImmutableArray<Token> Tokens { get; private set; }
     public ImmutableArray<Token> ResolvedTokens { get; private set; }
     public ImmutableDictionary<string, int> Labels { get; private set; }
-    public ImmutableArray<int> Bytecode { get; private set; }
+    public ImmutableArray<uint> Bytecode { get; private set; }
+    public string StringConstants { get; private set; }
 
     private Tokenizer _tokenizer;
     private Compiler _compiler;
@@ -43,9 +44,10 @@ public class Builder {
             _compiler.ReadLabels();
             Labels = _compiler.Labels.ToImmutableDictionary();
             
-            // Console.WriteLine($"[BUILDER] Generating Bytecode (4th iteration of compiler)...");
-            // var bytecode = _compiler.GenerateBytecode();
-            // ResolvedTokens = resolvedTokens.ToImmutableArray();
+            Console.WriteLine($"[BUILDER] Generating Bytecode (4th iteration of compiler)...");
+            var bytecode = _compiler.GenerateBytecode();
+            Bytecode = bytecode.ToImmutableArray();
+            StringConstants = _compiler.StringConstants;
             
             stopwatch.Stop();
             Console.WriteLine($"[BUILDER] Build succeeded after {stopwatch.ElapsedMilliseconds}ms.");
