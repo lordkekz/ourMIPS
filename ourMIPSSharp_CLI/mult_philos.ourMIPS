@@ -1,7 +1,7 @@
 ; Skript zum Testen von Makros und so
 
 ; Makro erfragt positive Zahlen bis eine korrekte Zahl eingegeben wird.
-macro eingabe_positive_zahl zielregister:
+macro eingabe_positive_zahl zielregister::
 	sysout "Bitte geben Sie eine positive Zahl ein:"
 	jmp eingabe
 	fehler:

@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace lib_ourMIPSSharp;
 
 public interface ICompilerHandler {
@@ -23,4 +25,8 @@ public interface ICompilerHandler {
     /// Should not be called for macro declarations or macro ended.
     /// </summary>
     public void OnMacroInstructionBreak(Token token) { }
+    
+    public static UnreachableException MakeUnreachableStateException(Token t, string className) => 
+        new($"[Line {t.Line}, Col {t.Column}] Illegal state for {className}. There should " +
+            $"not be any macros in ResolvedTokens. Read token '{t.Content}' of type {t.Type}.");
 }

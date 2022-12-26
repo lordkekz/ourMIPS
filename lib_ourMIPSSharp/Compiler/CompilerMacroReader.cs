@@ -50,7 +50,7 @@ public class CompilerMacroReader : ICompilerHandler {
                 
                 return CompilerState.MacroInstructionArgs;
             case Keyword.Keyword_Macro:
-                throw new SyntaxError($"Nested macro definition at line {token.Line}, col {token.Column}!");
+                throw new SyntaxError(token, $"Nested macro definition.");
 
             case Keyword.Keyword_EndMacro:
                 Debug.WriteLine($"[CompilerMacroReader] Found endmacro");

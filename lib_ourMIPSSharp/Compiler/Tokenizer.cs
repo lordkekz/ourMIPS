@@ -70,7 +70,7 @@ public class Tokenizer {
                     else if (char.IsWhiteSpace(c)) { }
                     else if (c is ':' or ',')
                         HandleSingleChar(c);
-                    else throw new SyntaxError($"Unexpected character '{c}' at line {_line}, col {_col}!");
+                    else throw new SyntaxError(_line, _col, $"Unexpected character '{c}'!");
                     break;
                 
                 case TokenizerState.InNumber:
@@ -88,7 +88,7 @@ public class Tokenizer {
                         StartToken(TokenType.Comment);
                         _state = TokenizerState.InComment;
                     }
-                    else throw new SyntaxError($"Unexpected character '{c}' at line {_line}, col {_col}!");
+                    else throw new SyntaxError(_line, _col, $"Unexpected character '{c}'!");
                     break;
                 
                 case TokenizerState.InString:
@@ -100,7 +100,7 @@ public class Tokenizer {
                         _state = TokenizerState.Whitespace;
                     }
                     else if (c == '\n')
-                        throw new SyntaxError($"Illegal line break during string literal at line {_line}, col {_col}!");
+                        throw new SyntaxError(_line, _col, $"Unexpected line break during string!");
                     else
                         AppendChar(c);
                     break;

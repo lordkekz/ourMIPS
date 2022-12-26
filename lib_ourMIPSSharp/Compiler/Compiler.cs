@@ -73,8 +73,7 @@ public partial class Compiler {
                             // Ignore comments and empty lines.
                             break;
                         default:
-                            throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} in " +
-                                                  $"State {state} at line {token.Line}, col {token.Column}!");
+                            throw new UnexpectedTokenError(token, state);
                     }
 
                     break;
@@ -88,8 +87,7 @@ public partial class Compiler {
                             break;
                         case TokenType.SingleChar:
                             if (!token.Content.Equals(","))
-                                throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} " +
-                                                      $"in State {state} at line {token.Line}, col {token.Column}!");
+                                throw new UnexpectedTokenError(token, state);
 
                             // TODO eventually add a check to prevent irregular comma-placement in args
                             break;
@@ -101,8 +99,7 @@ public partial class Compiler {
                             handler.OnInstructionBreak(token);
                             break;
                         default:
-                            throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} in " +
-                                                  $"State {state} at line {token.Line}, col {token.Column}!");
+                            throw new UnexpectedTokenError(token, state);
                     }
 
                     break;
@@ -117,8 +114,7 @@ public partial class Compiler {
                             // We let the Tokenizer take care of that; this way we can easily add inline comments later.
                             break;
                         default:
-                            throw new SyntaxError($"Missing macro name at line {token.Line}, col {token.Column}. " +
-                                                  $"Got {token.Type} '{token.Content}' instead.");
+                                throw new UnexpectedTokenError(token, state, "Expected macro name.");
                     }
 
                     break;
@@ -137,8 +133,7 @@ public partial class Compiler {
                                     state = CompilerState.MacroDeclarationArgsEnded;
                                     break;
                                 default:
-                                    throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} " +
-                                                          $"in State {state} at line {token.Line}, col {token.Column}!");
+                                    throw new UnexpectedTokenError(token, state);
                             }
                             break;
                         case TokenType.InstructionBreak:
@@ -151,8 +146,7 @@ public partial class Compiler {
                             // We let the Tokenizer take care of that; this way we can easily add inline comments later.
                             break;
                         default:
-                            throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} in " +
-                                                  $"State {state} at line {token.Line}, col {token.Column}!");
+                            throw new UnexpectedTokenError(token, state);
                     }
 
                     break;
@@ -162,8 +156,7 @@ public partial class Compiler {
                         state = CompilerState.MacroInstructionStart;
                     }
                     else if (token.Type != TokenType.Comment)
-                        throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} in " +
-                                              $"State {state} at line {token.Line}, col {token.Column}!");
+                        throw new UnexpectedTokenError(token, state);
 
                     break;
                 case CompilerState.MacroInstructionStart:
@@ -201,8 +194,7 @@ public partial class Compiler {
                             break;
                         case TokenType.SingleChar:
                             if (!token.Content.Equals(","))
-                                throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} " +
-                                                      $"in State {state} at line {token.Line}, col {token.Column}!");
+                                throw new UnexpectedTokenError(token, state);
 
                             // TODO eventually add a check to prevent irregular comma-placement in args
                             break;
@@ -214,8 +206,7 @@ public partial class Compiler {
                             handler.OnMacroInstructionBreak(token);
                             break;
                         default:
-                            throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} in " +
-                                                  $"State {state} at line {token.Line}, col {token.Column}!");
+                            throw new UnexpectedTokenError(token, state);
                     }
 
                     break;
@@ -228,8 +219,7 @@ public partial class Compiler {
                         case TokenType.Comment:
                             break;
                         default:
-                            throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} in " +
-                                                  $"State {state} at line {token.Line}, col {token.Column}!");
+                            throw new UnexpectedTokenError(token, state);
                     }
 
                     break;

@@ -35,8 +35,7 @@ public class CompilerMacroResolver : ICompilerHandler {
                     mName = mName.ToLowerInvariant();
 
                 if (!Macros.TryGetValue(mName, out Macro m))
-                    throw new SyntaxError(
-                        $"Unknown macro or instruction '{token.Content}' at line {token.Line}, col {token.Column}!");
+                    throw new UndefinedSymbolError(token);
                 _current = new StackEntry(m, token.Line, token.Column, new List<Token>());
                 return CompilerState.InstructionArgs;
         }
@@ -118,7 +117,7 @@ public class CompilerMacroResolver : ICompilerHandler {
     public CompilerState OnMacroInstructionStart(Token token) {
         switch (KeywordHelper.FromToken(token)) {
             case Keyword.Keyword_Macro:
-                throw new SyntaxError($"Nested macro definition at line {token.Line}, col {token.Column}!");
+                throw new SyntaxError(token, $"Nested macro definition.");
             case Keyword.Keyword_EndMacro:
             case Keyword.Keyword_Mend:
                 return CompilerState.MacroEnded;

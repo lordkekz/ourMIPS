@@ -21,12 +21,10 @@ public class Macro {
         var name = token.Content;
 
         if (KeywordHelper.FromToken(token) != Keyword.None)
-            throw new SyntaxError(
-                $"Macro name '{token.Content}' at line {token.Line}, col {token.Column} is illegal since it matches a keyword.");
+            throw new SyntaxError(token, $"Illegal macro name '{token.Content}' (matches keyword).");
 
         if (!Compiler.CustomDescriptorRegex.IsMatch(token.Content))
-            throw new SyntaxError(
-                $"Illegal macro name '{token.Content}' at line {token.Line}, col {token.Column}");
+            throw new SyntaxError(token, $"Illegal macro name '{token.Content}'.");
         
         if (!Options.HasFlag(DialectOptions.StrictCaseSensitiveDescriptors))
             name = name.ToLowerInvariant();
@@ -41,7 +39,7 @@ public class Macro {
             throw new DialectSyntaxError("Custom macro argument name", token, DialectOptions.StrictMacroArgumentNames);
 
         if (!Compiler.CustomDescriptorRegex.IsMatch(token.Content))
-            throw new SyntaxError($"Illegal macro parameter name '{token.Content}' at line {token.Line}, col {token.Column}");
+            throw new SyntaxError(token, $"Illegal macro parameter name '{token.Content}'");
 
         Params.Add(name);
     }
@@ -50,7 +48,7 @@ public class Macro {
         var name = token.Content;
 
         if (!Compiler.CustomDescriptorRegex.IsMatch(token.Content))
-            throw new SyntaxError($"Illegal label name '{token.Content}' at line {token.Line}, col {token.Column}");
+            throw new SyntaxError(token, $"Illegal label name '{token.Content}'");
 
         Labels.Add(name);
     }

@@ -29,39 +29,49 @@ public record NumberLiteral {
             signed = true;
         }
 
-        if (content.StartsWith("0x")) {
-            SourceFormat = NumberLiteralFormat.BinaryPrefix;
-            InitHex(content.Substring(2), signed, sign);
-        }
-        else if (content.StartsWith("0b")) {
-            SourceFormat = NumberLiteralFormat.BinarySuffix;
-            InitBin(content.Substring(2), signed, sign);
-        }
-        else if (content.EndsWith("h")) {
-            if (opts.HasFlag(DialectOptions.StrictNonDecimalNumbers))
-                throw new DialectSyntaxError("Hexadecimal number suffix 'h'",
-                    token, DialectOptions.StrictNonDecimalNumbers);
+        try {
+            if (content.StartsWith("0x")) {
+                SourceFormat = NumberLiteralFormat.BinaryPrefix;
+                InitHex(content.Substring(2), signed, sign);
+            }
+            else if (content.StartsWith("0b")) {
+                SourceFormat = NumberLiteralFormat.BinarySuffix;
+                InitBin(content.Substring(2), signed, sign);
+            }
+            else if (content.EndsWith("h")) {
+                if (opts.HasFlag(DialectOptions.StrictNonDecimalNumbers))
+                    throw new DialectSyntaxError("Hexadecimal number suffix 'h'",
+                        token, DialectOptions.StrictNonDecimalNumbers);
 
-            SourceFormat = NumberLiteralFormat.HexSuffix;
-            InitHex(content.Substring(0, content.Length - 1), signed, sign);
-        }
-        else if (content.EndsWith("b")) {
-            if (opts.HasFlag(DialectOptions.StrictNonDecimalNumbers))
-                throw new DialectSyntaxError("Binary number suffix 'b'",
-                    token, DialectOptions.StrictNonDecimalNumbers);
+                SourceFormat = NumberLiteralFormat.HexSuffix;
+                InitHex(content.Substring(0, content.Length - 1), signed, sign);
+            }
+            else if (content.EndsWith("b")) {
+                if (opts.HasFlag(DialectOptions.StrictNonDecimalNumbers))
+                    throw new DialectSyntaxError("Binary number suffix 'b'",
+                        token, DialectOptions.StrictNonDecimalNumbers);
 
-            SourceFormat = NumberLiteralFormat.BinarySuffix;
-            InitBin(content.Substring(0, content.Length - 1), signed, sign);
+                SourceFormat = NumberLiteralFormat.BinarySuffix;
+                InitBin(content.Substring(0, content.Length - 1), signed, sign);
+            }
+            else {
+                SourceFormat = NumberLiteralFormat.Decimal;
+                InitDec(content, signed, sign);
+            }
         }
-        else {
-            SourceFormat = NumberLiteralFormat.Decimal;
-            InitDec(content, signed, sign);
+        catch (ArgumentOutOfRangeException ex) {
+            throw new NumberFormatError(SourceToken, "Doesn't contain digits.");
+        }
+        catch (FormatException ex) {
+            throw new NumberFormatError(SourceToken, "Contains illegal digits.");
+        }
+        catch (OverflowException ex) {
+            throw new NumberFormatError(SourceToken, "Too big.");
         }
     }
 
     private void InitDec(string digits, bool signed, short sign) {
         var rawValue = Convert.ToUInt16(digits, 10);
-        // TODO deal with Exceptions from Conversion (such as overflow)
 
         if ((sign == 1 && rawValue > short.MaxValue) || (sign == -1 && rawValue > short.MaxValue + 1)) {
             if (SourceToken.Options.HasFlag(DialectOptions.StrictDecimalNumberLengths))
@@ -69,8 +79,7 @@ public record NumberLiteral {
                     SourceToken, DialectOptions.StrictDecimalNumberLengths);
 
             if (signed)
-                throw new SyntaxError(
-                    $"Explicitly signed number exceeding max value at line {SourceToken.Line}, col {SourceToken.Column}.");
+                throw new NumberFormatError(SourceToken, "Explicitly signed number exceeds max value.");
 
             // Interpret raw value in two's complement
             Value = (short)(short.MaxValue - rawValue);
@@ -84,7 +93,6 @@ public record NumberLiteral {
 
     private void InitBin(string digits, bool signed, short sign) {
         var rawValue = Convert.ToUInt16(digits, 2);
-        // TODO deal with Exceptions from Conversion (such as overflow)
 
         if (digits.Length < 16 && SourceToken.Options.HasFlag(DialectOptions.StrictNonDecimalNumberLengths))
             throw new DialectSyntaxError("Binary number <16 bits",
@@ -92,8 +100,7 @@ public record NumberLiteral {
 
         if ((sign == 1 && rawValue > short.MaxValue) || (sign == -1 && rawValue > short.MaxValue + 1)) {
             if (signed)
-                throw new SyntaxError(
-                    $"Explicitly signed number exceeding max value at line {SourceToken.Line}, col {SourceToken.Column}.");
+                throw new NumberFormatError(SourceToken, "Explicitly signed number exceeds max value.");
 
             // Interpret raw value in two's complement
             Value = (short)(rawValue - ushort.MaxValue - 1);
@@ -105,7 +112,6 @@ public record NumberLiteral {
 
     private void InitHex(string digits, bool signed, short sign) {
         var rawValue = Convert.ToUInt16(digits, 16);
-        // TODO deal with Exceptions from Conversion (such as overflow)
 
         if (digits.Length < 4 && SourceToken.Options.HasFlag(DialectOptions.StrictNonDecimalNumberLengths))
             throw new DialectSyntaxError("Hexadecimal number <4 digits",
@@ -113,8 +119,7 @@ public record NumberLiteral {
 
         if ((sign == 1 && rawValue > short.MaxValue) || (sign == -1 && rawValue > short.MaxValue + 1)) {
             if (signed)
-                throw new SyntaxError(
-                    $"Explicitly signed number exceeding max value at line {SourceToken.Line}, col {SourceToken.Column}.");
+                throw new NumberFormatError(SourceToken, "Explicitly signed number exceeds max value.");
 
             // Interpret raw value in two's complement
             Value = (short)(rawValue - ushort.MaxValue - 1);

@@ -76,7 +76,7 @@ public static class KeywordHelper {
     /// </summary>
     /// <param name="instruction">a 32-bit sequence representing an instruction</param>
     /// <returns></returns>
-    public static Keyword ExtractInstruction(int instruction) {
+    public static Keyword ExtractInstruction(this int instruction) {
         var kw = (Keyword)instruction & (Keyword)MaskBase;
 
         if (kw == Keyword.Instruction_Or)

@@ -5,7 +5,6 @@ namespace lib_ourMIPSSharp;
 public class CompilerLabelReader : ICompilerHandler {
     public Compiler Comp { get; }
     public DialectOptions Options => Comp.Options;
-    public IList<Token> ResolvedTokens => Comp.ResolvedTokens;
     public Dictionary<string, int> Labels => Comp.Labels;
     private int _instructionCounter = 0;
 
@@ -20,10 +19,8 @@ public class CompilerLabelReader : ICompilerHandler {
             lName = lName.ToLowerInvariant();
 
         if (Labels.TryGetValue(lName, out var value))
-            throw new SyntaxError(
-                $"Duplicate label declaration for '{lName}'! Original declaration at instruction {value} " +
-                $"(corresponds to line {ResolvedTokens[value].Line}, col {ResolvedTokens[value].Column}). Duplicate " +
-                $"declaration at instruction {_instructionCounter} (corresponds to line {token.Line}, col {token.Column}).");
+            throw new CompilerError(token, $"Duplicate label declaration for '{lName}'! Original declaration at " +
+                                         $"instruction {value}, duplicate at {_instructionCounter}.");
 
         Debug.WriteLine($"[CompilerLabelReader] Found label '{lName}' at index {_instructionCounter}!");
         Labels[lName] = _instructionCounter;
@@ -32,10 +29,7 @@ public class CompilerLabelReader : ICompilerHandler {
 
     public CompilerState OnInstructionStart(Token token) {
         if (Keyword.Keyword_Macro.Matches(token))
-            throw new UnreachableException(
-                $"Illegal macro keyword for CompilerLabelReader. " +
-                $"There should not be any macros in ResolvedTokens. Read token '{token.Content}' of type {token.Type};" +
-                $"corresponding to line {token.Line}, col {token.Column}.");
+            throw ICompilerHandler.MakeUnreachableStateException(token, nameof(CompilerLabelReader));
 
 
         _instructionCounter++;
@@ -44,26 +38,14 @@ public class CompilerLabelReader : ICompilerHandler {
     }
 
     public CompilerState OnMacroDeclaration(Token token) =>
-        throw new UnreachableException(
-            "Illegal state MacroDeclaration for CompilerLabelReader. " +
-            $"There should not be any macros in ResolvedTokens. Read token '{token.Content}' of type {token.Type};" +
-            $"corresponding to line {token.Line}, col {token.Column}.");
+        throw ICompilerHandler.MakeUnreachableStateException(token, nameof(CompilerLabelReader));
 
     public CompilerState OnMacroDeclarationArgs(Token token) =>
-        throw new UnreachableException(
-            "Illegal state MacroDeclarationArgs for CompilerLabelReader. " +
-            $"There should not be any macros in ResolvedTokens. Read token '{token.Content}' of type {token.Type};" +
-            $"corresponding to line {token.Line}, col {token.Column}.");
+        throw ICompilerHandler.MakeUnreachableStateException(token, nameof(CompilerLabelReader));
 
     public CompilerState OnMacroInstructionStart(Token token) =>
-        throw new UnreachableException(
-            "Illegal state MacroInstructionStart for CompilerLabelReader. " +
-            $"There should not be any macros in ResolvedTokens. Read token '{token.Content}' of type {token.Type};" +
-            $"corresponding to line {token.Line}, col {token.Column}.");
+        throw ICompilerHandler.MakeUnreachableStateException(token, nameof(CompilerLabelReader));
 
     public CompilerState OnMacroLabelDeclaration(Token token, Token colon) =>
-        throw new UnreachableException(
-            "Illegal MacroLabelDeclaration for CompilerLabelReader. " +
-            $"There should not be any macros in ResolvedTokens. Read token '{token.Content}' of type {token.Type};" +
-            $"corresponding to line {token.Line}, col {token.Column}.");
+        throw ICompilerHandler.MakeUnreachableStateException(token, nameof(CompilerLabelReader));
 }

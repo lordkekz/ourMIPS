@@ -12,5 +12,5 @@ public class DialectSyntaxError : SyntaxError {
     /// <param name="t">Token that uses the feature</param>
     /// <param name="flag">Name of the Flag that forbids the feature</param>
     public DialectSyntaxError(string feature, Token t, DialectOptions flag) :
-        base($"{feature} at line {t.Line}, col {t.Column} is not allowed due to DialectOption {flag}.") { }
+        base(t, $"{feature} is not allowed due to DialectOption {flag}.") { }
 }

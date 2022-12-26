@@ -20,10 +20,7 @@ public class CompilerBytecodeEmitter : ICompilerHandler {
 
     public CompilerState OnInstructionStart(Token token) {
         if (Keyword.Keyword_Macro.Matches(token))
-            throw new UnreachableException(
-                $"Illegal macro keyword for CompilerBytecodeEmitter. " +
-                $"There should not be any macros in ResolvedTokens. Read token '{token.Content}' of type {token.Type};" +
-                $"corresponding to line {token.Line}, col {token.Column}.");
+            throw ICompilerHandler.MakeUnreachableStateException(token, nameof(CompilerBytecodeEmitter));
 
         _current = KeywordHelper.FromToken(token);
         if (_current is Keyword.None)
@@ -53,8 +50,7 @@ public class CompilerBytecodeEmitter : ICompilerHandler {
 
         if (_current.IsParamsRegRegReg()) {
             if (_tokens.Count != 4)
-                throw new SyntaxError(
-                    $"Instruction '{_current}' at line {tKw.Line}, col {tKw.Column} expects exactly three parameters; got {_tokens.Count - 1}!");
+                throw new InstructionParameterCountError(tKw, _current, 3, _tokens.Count - 1);
 
             instruction = PutRegister(instruction, 1);
             instruction = PutRegister(instruction, 2);
@@ -62,8 +58,7 @@ public class CompilerBytecodeEmitter : ICompilerHandler {
         }
         else if (_current.IsParamsRegRegImm()) {
             if (_tokens.Count != 4)
-                throw new SyntaxError(
-                    $"Instruction '{_current}' at line {tKw.Line}, col {tKw.Column} expects exactly three parameters; got {_tokens.Count - 1}!");
+                throw new InstructionParameterCountError(tKw, _current, 3, _tokens.Count - 1);
 
             instruction = PutRegister(instruction, 1);
             instruction = PutRegister(instruction, 2);
@@ -74,8 +69,7 @@ public class CompilerBytecodeEmitter : ICompilerHandler {
         }
         else if (_current.IsParamsRegRegLabel()) {
             if (_tokens.Count != 4)
-                throw new SyntaxError(
-                    $"Instruction '{_current}' at line {tKw.Line}, col {tKw.Column} expects exactly three parameters; got {_tokens.Count - 1}!");
+                throw new InstructionParameterCountError(tKw, _current, 3, _tokens.Count - 1);
 
             instruction = PutRegister(instruction, 1);
             instruction = PutRegister(instruction, 2);
@@ -86,7 +80,7 @@ public class CompilerBytecodeEmitter : ICompilerHandler {
                 lName = lName.ToLowerInvariant();
 
             if (!Labels.TryGetValue(lName, out var lInstruction))
-                throw new SyntaxError($"Unknown label '{lName}' at line {token.Line}, col {token.Column}!");
+                throw new UndefinedSymbolError(_tokens[3]);
 
             // Cast to ushort to prevent sign extension
             instruction |= (ushort)(lInstruction - _instructionCounter);
@@ -95,15 +89,14 @@ public class CompilerBytecodeEmitter : ICompilerHandler {
             switch (_current) {
                 case Keyword.Instruction_Jmp:
                     if (_tokens.Count != 2)
-                        throw new SyntaxError(
-                            $"Instruction '{_current}' at line {tKw.Line}, col {tKw.Column} expects exactly one parameter; got {_tokens.Count - 1}!");
+                        throw new InstructionParameterCountError(tKw, _current, 1, _tokens.Count - 1);
 
                     var lName = _tokens[1].Content;
                     if (!Options.HasFlag(DialectOptions.StrictCaseSensitiveDescriptors))
                         lName = lName.ToLowerInvariant();
 
                     if (!Labels.TryGetValue(lName, out var lInstruction))
-                        throw new SyntaxError($"Unknown label '{lName}' at line {token.Line}, col {token.Column}!");
+                        throw new UndefinedSymbolError(_tokens[1]);
 
                     // Cast to ushort to prevent sign extension
                     instruction |= (ushort)(lInstruction - _instructionCounter);
@@ -111,8 +104,7 @@ public class CompilerBytecodeEmitter : ICompilerHandler {
                 case Keyword.Instruction_Ldpc:
                 case Keyword.Instruction_Stpc:
                     if (_tokens.Count != 2)
-                        throw new SyntaxError(
-                            $"Instruction '{_current}' at line {tKw.Line}, col {tKw.Column} expects exactly one parameter; got {_tokens.Count - 1}!");
+                        throw new InstructionParameterCountError(tKw, _current, 1, _tokens.Count - 1);
 
                     instruction = PutRegister(instruction, 1);
                     break;
@@ -120,8 +112,7 @@ public class CompilerBytecodeEmitter : ICompilerHandler {
                     break;
                 case Keyword.Magic_Reg_Sysin:
                     if (_tokens.Count != 2)
-                        throw new SyntaxError(
-                            $"Instruction '{_current}' at line {tKw.Line}, col {tKw.Column} expects exactly one parameter; got {_tokens.Count - 1}!");
+                        throw new InstructionParameterCountError(tKw, _current, 1, _tokens.Count - 1);
 
                     instruction = PutRegister(instruction, 1);
                     break;
@@ -129,8 +120,8 @@ public class CompilerBytecodeEmitter : ICompilerHandler {
                 case Keyword.Magic_Str_Sysout:
                     // Overloaded keyword; can't immediately be parsed correctly.
                     if (_tokens.Count != 2)
-                        throw new SyntaxError(
-                            $"Instruction '{_current}' at line {tKw.Line}, col {tKw.Column} expects exactly one parameter; got {_tokens.Count - 1}!");
+                        throw new InstructionParameterCountError(tKw, _current, 1, _tokens.Count - 1);
+                    
                     var tParam = _tokens[1];
                     if (tParam.Type == TokenType.String) {
                         instruction |= (uint) (ushort)Comp.StringConstants.Length << 10; 
@@ -152,32 +143,20 @@ public class CompilerBytecodeEmitter : ICompilerHandler {
         var tReg = _tokens[index];
         var reg = RegisterHelper.FromString(tReg.Content);
         if (reg == Register.None)
-            throw new SyntaxError($"Unknown register '{tReg.Content}' at line {tReg.Line}, col {tReg.Column}");
+            throw new UndefinedSymbolError(tReg, "register");
 
         return instruction | ((uint)reg << (11 + 5 * (3 - index)));
     }
 
     public CompilerState OnMacroDeclaration(Token token) =>
-        throw new UnreachableException(
-            "Illegal state MacroDeclaration for CompilerBytecodeEmitter. " +
-            $"There should not be any macros in ResolvedTokens. Read token '{token.Content}' of type {token.Type};" +
-            $"corresponding to line {token.Line}, col {token.Column}.");
+        throw ICompilerHandler.MakeUnreachableStateException(token, nameof(CompilerBytecodeEmitter));
 
     public CompilerState OnMacroDeclarationArgs(Token token) =>
-        throw new UnreachableException(
-            "Illegal state MacroDeclarationArgs for CompilerBytecodeEmitter. " +
-            $"There should not be any macros in ResolvedTokens. Read token '{token.Content}' of type {token.Type};" +
-            $"corresponding to line {token.Line}, col {token.Column}.");
+        throw ICompilerHandler.MakeUnreachableStateException(token, nameof(CompilerBytecodeEmitter));
 
     public CompilerState OnMacroInstructionStart(Token token) =>
-        throw new UnreachableException(
-            "Illegal state MacroInstructionStart for CompilerBytecodeEmitter. " +
-            $"There should not be any macros in ResolvedTokens. Read token '{token.Content}' of type {token.Type};" +
-            $"corresponding to line {token.Line}, col {token.Column}.");
+        throw ICompilerHandler.MakeUnreachableStateException(token, nameof(CompilerBytecodeEmitter));
 
     public CompilerState OnMacroLabelDeclaration(Token token, Token colon) =>
-        throw new UnreachableException(
-            "Illegal MacroLabelDeclaration for CompilerBytecodeEmitter. " +
-            $"There should not be any macros in ResolvedTokens. Read token '{token.Content}' of type {token.Type};" +
-            $"corresponding to line {token.Line}, col {token.Column}.");
+        throw ICompilerHandler.MakeUnreachableStateException(token, nameof(CompilerBytecodeEmitter));
 }
