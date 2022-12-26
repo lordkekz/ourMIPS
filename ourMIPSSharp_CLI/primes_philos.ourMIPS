@@ -21,7 +21,7 @@ teilbar_loop: #Schleife die guckt ob die Hilfszahl ein vielfaches der eingegeben
 	jmp rest                   # führt Unterprogramm aus
 	
 	addi s1 s1 1               # erhöht Hilfszahl um 1
-	beq v0 r0 teilbar_loop    # überprüft ob die Hilfszahl ein Vielfaches der eingegebenen zahl war
+	beq v0 r0 teilbar_loop     # überprüft ob die Hilfszahl ein Vielfaches der eingegebenen zahl war
 
 	
 	# Ausgabe
@@ -45,7 +45,7 @@ rest:
 	sto $sp, $a1, 1             # Retten der Belegung von a1
 	addi $zero, $v0, 0          # Initialisiere Rückgabe $v0 auf Standardwert 0
 rest_loop:
-	bgt $a1, $a0, rest_check      # Ist While-Schleife zu Ende
+	bgt $a1, $a0, rest_check    # Ist While-Schleife zu Ende
 	sub $a0, $a1, $a0           # a1 von Laufvariable abziehen
 	jmp rest_loop               # Springe zum Schleifenanfang
 rest_check:

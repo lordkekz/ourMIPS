@@ -144,7 +144,7 @@ public partial class Compiler {
                         case TokenType.InstructionBreak:
                             // Line break always ends macro declaration args
                             state = CompilerState.MacroInstructionStart;
-                            handler.OnInstructionBreak(token);
+                            handler.OnMacroInstructionBreak(token);
                             break;
                         case TokenType.Comment:
                             // Just ignore comments, even though they can't appear here.
@@ -160,7 +160,6 @@ public partial class Compiler {
                     // This state has no handler method as it only serves syntax purposes.
                     if (token.Type == TokenType.InstructionBreak) {
                         state = CompilerState.MacroInstructionStart;
-                        handler.OnInstructionBreak(token);
                     }
                     else if (token.Type != TokenType.Comment)
                         throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} in " +
@@ -212,7 +211,7 @@ public partial class Compiler {
                             break;
                         case TokenType.InstructionBreak:
                             state = CompilerState.MacroInstructionStart;
-                            handler.OnInstructionBreak(token);
+                            handler.OnMacroInstructionBreak(token);
                             break;
                         default:
                             throw new SyntaxError($"Unexpected Token '{token.Content}' of Type {token.Type} in " +
@@ -225,7 +224,6 @@ public partial class Compiler {
                     switch (token.Type) {
                         case TokenType.InstructionBreak:
                             state = CompilerState.InstructionStart;
-                            handler.OnInstructionBreak(token);
                             break;
                         case TokenType.Comment:
                             break;

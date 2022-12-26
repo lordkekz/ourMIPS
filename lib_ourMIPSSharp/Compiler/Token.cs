@@ -2,7 +2,7 @@ namespace lib_ourMIPSSharp;
 
 public class Token {
     public TokenType Type { get; set; } = TokenType.None;
-    public string Content { get; set; }
+    public string? Content { get; set; }
     public int Line { get; set; } = -1;
     public int Column { get; set; } = -1;
     public DialectOptions Options { get; }

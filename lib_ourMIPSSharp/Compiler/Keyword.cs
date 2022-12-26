@@ -69,6 +69,7 @@ public static class KeywordHelper {
     private const uint MaskExtended = 0b111111_00000_00000_0000000000000011;
     // Mask to differentiate magic instructions (after initial check found Magic_Systerm)
     private const uint MaskMagic = 0b111111_00000_00000_0000000000000111;
+    
     /// <summary>
     /// Extracts the Instruction Keyword from the given instruction.
     /// Does not check if the resulting Keyword actually represents an instruction.

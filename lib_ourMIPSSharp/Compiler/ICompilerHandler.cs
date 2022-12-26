@@ -17,4 +17,10 @@ public interface ICompilerHandler {
     /// Should not be called for macro declarations or macro ended.
     /// </summary>
     public void OnInstructionBreak(Token token) { }
+
+    /// <summary>
+    /// Special method to be called whenever a macro instruction is complete. This occurs at the InstructionBreak that ends the instruction.
+    /// Should not be called for macro declarations or macro ended.
+    /// </summary>
+    public void OnMacroInstructionBreak(Token token) { }
 }
