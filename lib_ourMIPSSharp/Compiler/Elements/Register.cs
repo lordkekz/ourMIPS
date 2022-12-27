@@ -19,8 +19,12 @@ public static class RegisterHelper {
         if (Register.TryParse(str, true, out Register result))
             return result;
 
-        if (str.StartsWith("r["))
-            str = str.Substring(2, str.Length - 3);
+        if (str.StartsWith("r[")) {
+            if (str.EndsWith("]"))
+                str = str.Substring(2, str.Length - 3);
+            else
+                return Register.None;
+        }
         if (str.StartsWith("r"))
             str = str.Substring(1);
         

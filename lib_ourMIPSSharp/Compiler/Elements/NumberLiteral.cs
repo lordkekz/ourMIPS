@@ -30,21 +30,17 @@ public record NumberLiteral {
         }
 
         try {
-            if (content.StartsWith("0x")) {
-                SourceFormat = NumberLiteralFormat.BinaryPrefix;
-                InitHex(content.Substring(2), signed, sign);
-            }
-            else if (content.StartsWith("0b")) {
-                SourceFormat = NumberLiteralFormat.BinarySuffix;
-                InitBin(content.Substring(2), signed, sign);
-            }
-            else if (content.EndsWith("h")) {
+            if (content.EndsWith("h")) {
                 if (opts.HasFlag(DialectOptions.StrictNonDecimalNumbers))
                     throw new DialectSyntaxError("Hexadecimal number suffix 'h'",
                         token, DialectOptions.StrictNonDecimalNumbers);
 
                 SourceFormat = NumberLiteralFormat.HexSuffix;
                 InitHex(content.Substring(0, content.Length - 1), signed, sign);
+            }
+            else if (content.StartsWith("0x")) {
+                SourceFormat = NumberLiteralFormat.HexPrefix;
+                InitHex(content.Substring(2), signed, sign);
             }
             else if (content.EndsWith("b")) {
                 if (opts.HasFlag(DialectOptions.StrictNonDecimalNumbers))
@@ -53,6 +49,10 @@ public record NumberLiteral {
 
                 SourceFormat = NumberLiteralFormat.BinarySuffix;
                 InitBin(content.Substring(0, content.Length - 1), signed, sign);
+            }
+            else if (content.StartsWith("0b")) {
+                SourceFormat = NumberLiteralFormat.BinaryPrefix;
+                InitBin(content.Substring(2), signed, sign);
             }
             else {
                 SourceFormat = NumberLiteralFormat.Decimal;
@@ -82,13 +82,11 @@ public record NumberLiteral {
                 throw new NumberFormatError(SourceToken, "Explicitly signed number exceeds max value.");
 
             // Interpret raw value in two's complement
-            Value = (short)(short.MaxValue - rawValue);
-        }
-        else {
             Value = (short)rawValue;
         }
-
-        Value *= sign;
+        else {
+            Value = (short)(sign * (short)rawValue);
+        }
     }
 
     private void InitBin(string digits, bool signed, short sign) {
@@ -103,7 +101,7 @@ public record NumberLiteral {
                 throw new NumberFormatError(SourceToken, "Explicitly signed number exceeds max value.");
 
             // Interpret raw value in two's complement
-            Value = (short)(rawValue - ushort.MaxValue - 1);
+            Value = (short)rawValue;
         }
         else {
             Value = (short)(sign * (short)rawValue);
@@ -122,7 +120,7 @@ public record NumberLiteral {
                 throw new NumberFormatError(SourceToken, "Explicitly signed number exceeds max value.");
 
             // Interpret raw value in two's complement
-            Value = (short)(rawValue - ushort.MaxValue - 1);
+            Value = (short)rawValue;
         }
         else {
             Value = (short)(sign * (short)rawValue);
