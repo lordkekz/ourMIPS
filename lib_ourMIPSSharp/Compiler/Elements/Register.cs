@@ -27,9 +27,13 @@ public static class RegisterHelper {
         }
         if (str.StartsWith("r"))
             str = str.Substring(1);
-        
-        result = (Register)int.Parse(str);
-        if (!Enum.IsDefined(result)) result = Register.None;
+
+
+        result = Register.None;
+        int ival = -1;
+        if (int.TryParse(str, out ival))
+            if (Enum.IsDefined((Register) ival))
+                result = (Register)ival;
         return result;
     }
 }

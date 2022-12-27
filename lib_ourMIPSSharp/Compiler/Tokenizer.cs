@@ -27,10 +27,6 @@ public class Tokenizer {
     }
 
     public List<Token> Tokenize() {
-        // Don't tokenize for a second time
-        if (_state != TokenizerState.None)
-            return _result;
-
         // Initialize shit
         _state = TokenizerState.Whitespace;
         _current = null;

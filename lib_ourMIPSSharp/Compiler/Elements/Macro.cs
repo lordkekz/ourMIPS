@@ -109,6 +109,9 @@ public class Macro {
         if (!Options.HasFlag(DialectOptions.StrictCaseSensitiveDescriptors))
             pName = pName.ToLowerInvariant();
 
+        if (pName.StartsWith('$'))
+            pName = pName.Substring(1);
+
         return Params.IndexOf(pName);
     }
     
