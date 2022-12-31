@@ -115,7 +115,7 @@ public static class KeywordHelper {
         if (token.Content is null || token.Type != TokenType.Word)
             return Keyword.None;
 
-        return Keyword.GetValuesAsUnderlyingType<Keyword>().Cast<Keyword>().FirstOrDefault(kw =>
+        return Enum.GetValues<Keyword>().FirstOrDefault(kw =>
             kw.ToString().Split('_').Last().Equals(token.Content, StringComparison.InvariantCultureIgnoreCase));
     }
 
