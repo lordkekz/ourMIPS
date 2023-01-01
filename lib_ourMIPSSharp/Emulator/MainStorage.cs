@@ -17,7 +17,7 @@ public class MainStorage : Dictionary<int, int> {
     }
 
     private void InitializeWord(int index) {
-        base[index] = _random.Next();
+        base[index] = _random.Next(int.MinValue, int.MaxValue);
     }
 
     public static MainStorage InitializePhilos(string inputString) {

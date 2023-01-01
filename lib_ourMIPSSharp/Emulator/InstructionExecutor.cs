@@ -137,7 +137,10 @@ public class InstructionExecutor {
     private void ExecuteRegSysin(Instruction i) {
         // TODO improve exception handling
         // TODO add a way to interface with UI
-        Registers[i.Registers[0]] = int.Parse(Console.In.ReadLine());
+        int val;
+        while (!int.TryParse(Console.In.ReadLine(), out val)) { }
+
+        Registers[i.Registers[0]] = val;
     }
 
     private void ExecuteLdd(Instruction i) {
