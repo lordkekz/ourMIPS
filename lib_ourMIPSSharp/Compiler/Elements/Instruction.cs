@@ -28,22 +28,14 @@ public class Instruction {
                 case Keyword.Instruction_Ldpc:
                 case Keyword.Instruction_Stpc:
                 case Keyword.Magic_Reg_Sysin:
-                    ExtractRegister(3);
+                    ExtractRegister(1);
                     break;
                 case Keyword.Magic_Reg_Sysout:
+                    ExtractRegister(1);
+                    break;
                 case Keyword.Magic_Str_Sysout:
                     // Overloaded keyword; can't immediately be parsed correctly.
-
-                    var tParam = _tokens[1];
-                    if (tParam.Type == TokenType.String) {
-                        // sysout with string
-                        Immediate = (short)(Bytecode >> 10);
-                    }
-                    else {
-                        // sysout with register decimal value
-                        ExtractRegister(1);
-                    }
-
+                    Immediate = (short)(Bytecode >> 10);
                     break;
                 case Keyword.Magic_Systerm:
                     break;
@@ -101,12 +93,22 @@ public class Instruction {
                     var tParam = _tokens[1];
                     if (tParam.Type == TokenType.String) {
                         // sysout with string
+                        // update with correct Command
+                        Command = Keyword.Magic_Str_Sysout;
+                        Bytecode = (uint) Command;
+                        
+                        // Put immediate to point to string constant
                         Immediate = (short)cbe.Comp.StringConstants.Length;
                         Bytecode |= (uint)(ushort)Immediate << 10;
                         cbe.Comp.StringConstants += tParam.Content + '\0';
                     }
                     else {
                         // sysout with register decimal value
+                        // update with correct Command
+                        Command = Keyword.Magic_Reg_Sysout;
+                        Bytecode = (uint) Command;
+                        
+                        // Put register to output
                         PutRegister(1);
                     }
 

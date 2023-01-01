@@ -97,7 +97,7 @@ public static class KeywordHelper {
             // Could be any Magic Instruction
             kw = (Keyword)instruction & (Keyword)MaskMagic;
 
-        if (!Enum.IsDefined(kw) || (int)kw < 5)
+        if (!Enum.IsDefined(kw) || (uint)kw < 5)
             kw = Keyword.None;
         return kw;
     }

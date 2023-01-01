@@ -40,6 +40,6 @@ using ourMIPSSharp_CLI;
 
 // Prints the tokens of the MIPS program to the debug output
 
-// new CompilerDebug().Main();
-new EmulatorDebug().Main();
+var b = new CompilerDebug().Main();
+new EmulatorDebug().Main(b);
 Console.WriteLine("Terminating.");

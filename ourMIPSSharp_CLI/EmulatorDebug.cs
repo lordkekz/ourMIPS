@@ -5,8 +5,8 @@ using lib_ourMIPSSharp.Emulator;
 namespace ourMIPSSharp_CLI;
 
 public class EmulatorDebug {
-    public void Main()
-    {
-        
+    public void Main(Builder b) {
+        var e = new Emulator(b.Bytecode, b.StringConstants);
+        e.RunUntilTerminated();
     }
 }

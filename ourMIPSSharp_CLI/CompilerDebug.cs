@@ -52,9 +52,9 @@ public class CompilerDebug {
     }
 
     /// Main program
-    public void Main() {
+    public Builder Main() {
         // Read the source code
-        var sourceCode = File.ReadAllText("../../../mult_philos.ourMIPS");
+        var sourceCode = File.ReadAllText("../../../primes_philos.ourMIPS");
 
         // Build the MIPS program
         var builder = new Builder(sourceCode, DialectOptions.None);
@@ -78,10 +78,7 @@ public class CompilerDebug {
                 Debug.WriteLine("\n\n(Build failed; end of Debug)");
             }
         }
-        
-        // for (var i = 0; i < 10000; i++) {
-        //     builder = new Builder(sourceCode, DialectOptions.None);
-        //     success = builder.FullBuild();
-        // }
+
+        return builder;
     }
 }

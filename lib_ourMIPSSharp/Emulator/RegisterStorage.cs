@@ -1,10 +1,8 @@
 namespace lib_ourMIPSSharp.Emulator;
 
 public class RegisterStorage {
-    public int ProgramCounter { get; set; }
-    public bool FlagNull { get; private set; }
-    public bool FlagOverflow { get; private set; }
-    public bool FlagNegative { get; private set; }
+    public short ProgramCounter { get; set; }
+    public bool FlagOverflow { get; set; }
     private readonly int[] _registers;
 
     public RegisterStorage() {
