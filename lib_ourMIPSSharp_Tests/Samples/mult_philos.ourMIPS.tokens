@@ -1,0 +1,96 @@
+C  Skript zum Testen von Makros und so
+B 
+C  Makro erfragt positive Zahlen bis eine korrekte Zahl eingegeben wird.
+B 
+W macro
+W eingabe_positive_zahl
+W zielregister
+O :
+B 
+W sysout
+S Bitte geben Sie eine positive Zahl ein:
+B 
+W jmp
+W eingabe
+B 
+W fehler
+O :
+C  Nochmal fragen
+B 
+W sysout
+S Die Zahl geht nicht! Versuch's nochmal:
+B 
+W eingabe
+O :
+B 
+W sysin
+W $zielregister
+B 
+W subi
+W zielregister
+W zielregister
+N 1
+B 
+W bgt
+W zero
+W $zielregister
+W fehler
+B 
+W addi
+W zielregister
+W zielregister
+N 1
+B 
+W sysout
+S Die Zahl ist okay!
+B 
+W endmacro
+C  Makro beenden
+B 
+C  Hauptprogramm
+B 
+W eingabe_positive_zahl
+W r1
+B 
+W eingabe_positive_zahl
+W r2
+B 
+C  Schleife für Multiplikation
+B 
+W addi
+W r0
+W r3
+N 0
+B 
+W schleife
+O :
+B 
+W add
+W r[1]
+W r[3]
+W r[3]
+B 
+W subi
+W $r[2]
+W r[2]
+N 1
+B 
+W bgt
+W $r[2]
+W zero
+W schleife
+B 
+C  Schlussausgabe
+B 
+W sysout
+S Produkt der beiden Zahlen:
+B 
+W sysout
+W $r3
+B 
+W sysout
+S Hier kommt
+Ein Zeilenumbruch
+B 
+W systerm
+B 

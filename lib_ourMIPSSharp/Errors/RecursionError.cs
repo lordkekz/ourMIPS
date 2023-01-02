@@ -1,4 +1,6 @@
-namespace lib_ourMIPSSharp;
+using lib_ourMIPSSharp.CompilerComponents.Elements;
+
+namespace lib_ourMIPSSharp.Errors;
 
 public class RecursionError : CompilerError {
     public RecursionError(Macro m1, Token t1) :

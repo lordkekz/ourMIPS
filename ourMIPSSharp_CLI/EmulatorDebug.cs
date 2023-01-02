@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using lib_ourMIPSSharp;
-using lib_ourMIPSSharp.Emulator;
+using lib_ourMIPSSharp.CompilerComponents;
+using lib_ourMIPSSharp.EmulatorComponents;
 
 namespace ourMIPSSharp_CLI;
 

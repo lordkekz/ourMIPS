@@ -1,4 +1,6 @@
-namespace lib_ourMIPSSharp; 
+using lib_ourMIPSSharp.CompilerComponents.Elements;
+
+namespace lib_ourMIPSSharp.Errors; 
 
 /// <summary>
 /// Error to signal that a known syntax feature is unavailable due to the given DialectOptions.
