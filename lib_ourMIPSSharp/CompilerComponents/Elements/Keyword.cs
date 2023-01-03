@@ -157,7 +157,7 @@ public static class KeywordHelper {
     /// <param name="kw"></param>
     /// <returns>Whether the keyword params are two registers and a label</returns>
     public static bool IsParamsRegRegLabel(this Keyword kw) =>
-        kw is >= Keyword.Instruction_Beq and <= Keyword.Instruction_Bo;
+        kw is >= Keyword.Instruction_Beq and < Keyword.Instruction_Bo;
 
     /// <summary>
     /// 

@@ -145,6 +145,16 @@ public record NumberLiteral {
                 return Convert.ToString(Value, 16).PadLeft(4, '0') + "h";
         }
     }
+
+    /// <summary>
+    /// Get the value of the given string.
+    /// Shorthand for creating a temporary Token and NumberLiteral.
+    /// Allows all formats.
+    /// </summary>
+    /// <param name="str"></param>
+    /// <returns>value of given string</returns>
+    public static int ParseString(string str)
+        => new NumberLiteral(new Token(DialectOptions.None) { Content = str }).Value;
 }
 
 public enum NumberLiteralFormat {

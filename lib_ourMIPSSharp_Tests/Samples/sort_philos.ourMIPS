@@ -1,0 +1,37 @@
+# Bubblesort-Algorithmus
+# Verwendungen:
+# s0 := Länge der Liste
+# s1 := Aktueller Listenindex
+# s2 := Element A
+# s3 := Element B
+# s4 := Anzahl unsortierter Eintragspaare
+
+ldd zero s0 0 # Lade Listenlänge aus RAM
+
+iterate_list:
+  addi zero s1 2 # Beginne bei zweitem Element, weil Paare
+  addi zero s4 0
+    compare:
+      ldd s1 s2 -1
+      ldd s1 s3  0
+      # Nur vertauschen, wenn  s2 > s3
+      bgt s2 s3 compare_vertauschen
+      jmp compare_ende
+    compare_vertauschen:
+      sto s1 s3 -1 # s3 an Stelle von s2 in RAM speichern
+      sto s1 s2  0 # s2 an Stelle von s3 in RAM speichern
+      addi s4 s4 1 # Mitzählen, dass etwas vertauscht wurde
+    compare_ende:
+      addi s1 s1 1
+      bgt s0 s1 compare
+  bneq zero s4 iterate_list
+
+
+sysout "Sortierte Liste:"
+addi zero s1 1
+print_loop:                             # Schleife zum Ausgeben
+  ldd s1 t0  0
+  sysout t0
+  addi s1 s1 1
+  bgt s0 s1 print_loop
+systerm

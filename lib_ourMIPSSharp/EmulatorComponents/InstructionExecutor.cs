@@ -130,18 +130,18 @@ public class InstructionExecutor {
     }
 
     private void ExecuteStrSysout(Instruction i) {
-        Console.WriteLine(Program.GetStringConstant(i.Immediate));
+        EmulatorInstance.TextOut.WriteLine(Program.GetStringConstant(i.Immediate));
     }
 
     private void ExecuteRegSysout(Instruction i) {
-        Console.WriteLine(Registers[i.Registers[0]].ToString());
+        EmulatorInstance.TextOut.WriteLine(Registers[i.Registers[0]].ToString());
     }
 
     private void ExecuteRegSysin(Instruction i) {
         // TODO improve exception handling
         // TODO add a way to interface with UI
         int val;
-        while (!int.TryParse(Console.In.ReadLine(), out val)) { }
+        while (!int.TryParse(EmulatorInstance.TextIn.ReadLine(), out val)) { }
 
         Registers[i.Registers[0]] = val;
     }
@@ -188,8 +188,13 @@ public class InstructionExecutor {
 
     private void ExecuteSubi(Instruction i) {
         var valRi = Registers[i.Registers[0]];
+        
+        // Extract signs; treat zero as positive (since 0 has sign 0 in two's complement)
         var signRi = Math.Sign(valRi);
+        signRi = signRi == 0 ? +1 : signRi;
         var signV = Math.Sign(i.Immediate);
+        signV = signV == 0 ? +1 : signV;
+        
         // Actual operation
         Registers[i.Registers[1]] = valRi - i.Immediate;
         // Set Overflow if sign changed even though it shouldn't have
@@ -199,8 +204,13 @@ public class InstructionExecutor {
 
     private void ExecuteAddi(Instruction i) {
         var valRi = Registers[i.Registers[0]];
+        
+        // Extract signs; treat zero as positive (since 0 has sign 0 in two's complement)
         var signRi = Math.Sign(valRi);
+        signRi = signRi == 0 ? +1 : signRi;
         var signV = Math.Sign(i.Immediate);
+        signV = signV == 0 ? +1 : signV;
+        
         // Actual operation
         Registers[i.Registers[1]] = valRi + i.Immediate;
         // Set Overflow if sign changed even though it shouldn't have
@@ -239,8 +249,13 @@ public class InstructionExecutor {
     private void ExecuteSub(Instruction i) {
         var valRi = Registers[i.Registers[0]];
         var valRj = Registers[i.Registers[1]];
+        
+        // Extract signs; treat zero as positive (since 0 has sign 0 in two's complement)
         var signRi = Math.Sign(valRi);
-        var signRj = Math.Sign(i.Immediate);
+        signRi = signRi == 0 ? +1 : signRi;
+        var signRj = Math.Sign(valRj);
+        signRj = signRj == 0 ? +1 : signRj;
+        
         // Actual operation
         Registers[i.Registers[2]] = valRi - valRj;
         // Set Overflow if sign changed even though it shouldn't have
@@ -251,37 +266,42 @@ public class InstructionExecutor {
     private void ExecuteAdd(Instruction i) {
         var valRi = Registers[i.Registers[0]];
         var valRj = Registers[i.Registers[1]];
+        
+        // Extract signs; treat zero as positive (since 0 has sign 0 in two's complement)
         var signRi = Math.Sign(valRi);
-        var signRj = Math.Sign(i.Immediate);
+        signRi = signRi == 0 ? +1 : signRi;
+        var signRj = Math.Sign(valRj);
+        signRj = signRj == 0 ? +1 : signRj;
+        
         // Actual operation
         Registers[i.Registers[2]] = valRi + valRj;
         // Set Overflow if sign changed even though it shouldn't have
         var signResult = Math.Sign(valRi + valRj);
-        Registers.FlagOverflow = signRi != signRj && signRi != signResult;
+        Registers.FlagOverflow = signRi == signRj && signRi != signResult;
     }
 
     private void ExecuteOr(Instruction i) {
-        var valRi = Registers[i.Registers[0]];
-        var valRj = Registers[i.Registers[1]];
-        Registers[i.Registers[2]] = valRi | valRj;
+        var valRi = (uint)Registers[i.Registers[0]];
+        var valRj = (uint)Registers[i.Registers[1]];
+        Registers[i.Registers[2]] = (int)(valRi | valRj);
     }
 
     private void ExecuteAnd(Instruction i) {
-        var valRi = Registers[i.Registers[0]];
-        var valRj = Registers[i.Registers[1]];
-        Registers[i.Registers[2]] = valRi & valRj;
+        var valRi = (uint)Registers[i.Registers[0]];
+        var valRj = (uint)Registers[i.Registers[1]];
+        Registers[i.Registers[2]] = (int)(valRi & valRj);
     }
 
     private void ExecuteXor(Instruction i) {
-        var valRi = Registers[i.Registers[0]];
-        var valRj = Registers[i.Registers[1]];
-        Registers[i.Registers[2]] = valRi ^ valRj;
+        var valRi = (uint)Registers[i.Registers[0]];
+        var valRj = (uint)Registers[i.Registers[1]];
+        Registers[i.Registers[2]] = (int)(valRi ^ valRj);
     }
 
     private void ExecuteXnor(Instruction i) {
-        var valRi = Registers[i.Registers[0]];
-        var valRj = Registers[i.Registers[1]];
-        Registers[i.Registers[2]] = ~(valRi | valRj);
+        var valRi = (uint)Registers[i.Registers[0]];
+        var valRj = (uint)Registers[i.Registers[1]];
+        Registers[i.Registers[2]] = (int)~(valRi ^ valRj);
     }
 
     private void ExecuteJmp(Instruction i) {
@@ -327,6 +347,6 @@ public class InstructionExecutor {
         // -1 to account for the incrementation of ProgramCounter in ExecuteInstruction
         Registers.ProgramCounter = (short)(Registers[i.Registers[0]] - 1);
     }
-    
+
     // TODO implement custom ourMIPSSharp instructions
 }

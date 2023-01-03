@@ -1,0 +1,89 @@
+# s0 := A
+# s1 := B
+# t0 := temp
+# s2 := number of operands beyond 0x0000
+# s3 := address of current B
+
+ldd zero s2 0
+addi zero s3 1
+
+test_ausgabe:
+	bgt s3 s2 ende
+	
+	ldd s3 s0 -1
+	ldd s3 s1 0
+	
+	sysout "####"
+	sysout "A:"
+	sysout s0
+	sysout "B:"
+	sysout s1
+	
+	sysout "## Arithmetische Operationen mit direktem Wert"
+	shli s0 t0 123
+	sysout t0
+	shri s1 t0 456
+	sysout t0
+	roli s1 t0 12
+	sysout t0
+	rori s0 t0 -21
+	sysout t0
+	subi s0 t0 385
+	sysout t0
+	addi s1 t0 4545
+	
+	sysout "## Arithmetische Operationen mit Registern"
+	shl s1 s0 t0
+	sysout t0
+	shr s0 s1 t0
+	sysout t0
+	rol s0 s1 t0
+	sysout t0
+	ror s1 s0 t0
+	sysout t0
+	sub s1 s0 t0
+	sysout t0
+	add s0 s1 t0
+	sysout t0
+	
+	sysout "## Bitweise Operationen"
+	or s0 s1 t0
+	sysout t0
+	and s1 s0 t0
+	sysout t0
+	xor s1 s0 t0
+	sysout t0
+	xnor s0 s1 t0
+	sysout t0
+	
+	sysout "## Sprungbefehle"
+	beq s0 s1 gleich
+	sysout "nicht gleich"
+	jmp weiter_beq
+gleich:
+	sysout "gleich"
+weiter_beq:
+	bneq s1 s0 ungleich
+	sysout "nicht ungleich"
+	jmp weiter_bneq
+ungleich:
+	sysout "ungleich"
+weiter_bneq:
+	bgt s1 s0 groessergleich
+	sysout "nicht groessergleich"
+	jmp weiter_bgt
+groessergleich:
+	sysout "groessergleich"
+weiter_bgt:
+	add s0 s1 zero
+	bo overflow
+	sysout "kein overflow"
+	jmp weiter
+overflow:
+	sysout "overflow"
+weiter:
+	addi s3 s3 1
+	jmp test_ausgabe
+
+ende:
+	systerm

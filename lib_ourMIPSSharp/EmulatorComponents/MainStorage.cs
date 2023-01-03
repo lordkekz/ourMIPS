@@ -1,4 +1,7 @@
-namespace lib_ourMIPSSharp.EmulatorComponents; 
+using System.Text.Json.Nodes;
+using lib_ourMIPSSharp.CompilerComponents.Elements;
+
+namespace lib_ourMIPSSharp.EmulatorComponents;
 
 /// <summary>
 /// Represents tha main storage (or RAM) of the VM.
@@ -6,7 +9,7 @@ namespace lib_ourMIPSSharp.EmulatorComponents;
 /// </summary>
 public class MainStorage : Dictionary<int, int> {
     private Random _random = new Random();
-    
+
     public int this[int index] {
         get {
             if (!ContainsKey(index))
@@ -20,12 +23,42 @@ public class MainStorage : Dictionary<int, int> {
         base[index] = _random.Next(int.MinValue, int.MaxValue);
     }
 
-    public static MainStorage InitializePhilos(string inputString) {
-        /// TODO Implement
-        throw new NotImplementedException();
+    /// <summary>
+    /// Initializes the MainStorage with the values from the given test environment using the given id.
+    /// If no id is given and the json string contains only one environment, that environment is used.
+    /// Otherwise the id is mandatory.
+    /// </summary>
+    /// <param name="inputString"></param>
+    /// <param name="id"></param>
+    /// <returns>whether initialization was successful</returns>
+    public bool InitializePhilos(string inputString, string? id = null) {
+        // TODO add/improve exception handling
+
+        var rootNode = JsonNode.Parse(inputString)!.AsObject();
+        JsonObject testEnv;
+        if (id is null) {
+            if (rootNode.Count != 1)
+                return false;
+            testEnv = rootNode.First().Value.AsObject();
+        }
+        else
+            testEnv = rootNode[id].AsObject();
+
+        try {
+            var mem_init = testEnv["entry_mem"].AsObject();
+            foreach (var pair in mem_init) {
+                var address = NumberLiteral.ParseString(pair.Key);
+                this[address] = pair.Value.GetValue<int>();
+            }
+        }
+        catch (Exception ex) {
+            return false;
+        }
+
+        return true;
     }
 
-    public static MainStorage InitializeYapjoma(string inputString) {
+    public void InitializeYapjoma(string inputString) {
         /// TODO Implement
         throw new NotImplementedException();
     }

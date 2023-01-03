@@ -22,6 +22,7 @@ public class Instruction {
         }
         else {
             switch (Command) {
+                case Keyword.Instruction_Bo:
                 case Keyword.Instruction_Jmp:
                     ExtractImmediate();
                     break;
@@ -78,6 +79,7 @@ public class Instruction {
                 throw new InstructionParameterCountError(tKw, kw, 1, _tokens.Length - 1);
 
             switch (kw) {
+                case Keyword.Instruction_Bo:
                 case Keyword.Instruction_Jmp:
                     PutLabel(1, cbe);
                     break;

@@ -10,6 +10,9 @@ public class Emulator {
     public MainStorage Memory { get; } = new();
     public InstructionExecutor Executor { get; }
     public bool Terminated { get; set; } = false;
+    public TextWriter TextErr { get; set; } = Console.Error;
+    public TextWriter TextOut { get; set; } = Console.Out;
+    public TextReader TextIn { get; set; } = Console.In;
 
     public Emulator(IEnumerable<uint> instructions, string stringConstants) {
         Executor = new InstructionExecutor(this);
