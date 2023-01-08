@@ -9,7 +9,8 @@ public class Emulator {
     public ProgramStorage Program { get; }
     public MainStorage Memory { get; } = new();
     public InstructionExecutor Executor { get; }
-    public bool Terminated { get; set; } = false;
+    public bool Terminated { get; set; }
+    public bool ForceTerminated { get; set; }
     public TextWriter TextErr { get; set; } = Console.Error;
     public TextWriter TextOut { get; set; } = Console.Out;
     public TextReader TextIn { get; set; } = Console.In;
@@ -34,7 +35,7 @@ public class Emulator {
         var s = new Stopwatch();
         s.Start();
 
-        for (int i = 0; i < timeout && !Terminated; i++) {
+        for (int i = 0; i < timeout && !Terminated && !ForceTerminated; i++) {
             ExecuteNext();
         }
 

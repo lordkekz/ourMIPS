@@ -3,7 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:ourMIPSSharp_App.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="450"
              x:Class="ourMIPSSharp_App.Views.MainView">
     <Design.DataContext>
     <!-- This only sets the DataContext for the previewer in an IDE,
@@ -36,8 +36,70 @@
                 <RowDefinition Height="*" MinHeight="200"/>
             </Grid.RowDefinitions>
             <Rectangle Grid.Row="0" Fill="Red"/>
+            <TabControl Grid.Row="0">
+                <TabItem Header="Registers">
+                    <DataGrid Grid.Row="2" Items="{Binding  InstructionList}" AutoGenerateColumns="False"
+                              CanUserReorderColumns="True" CanUserResizeColumns="False" CanUserSortColumns="False"
+                              SelectionChanged="DataGrid_OnSelectionChanged">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Address"
+                                                Binding="{Binding AddressDecimal}"
+                                                FontFamily="Courier New"/>
+                            <DataGridTextColumn Header="Address (Hex)"
+                                                Binding="{Binding AddressHex}"
+                                                FontFamily="Courier New"/>
+                            <DataGridTextColumn Header="Bytecode"
+                                                Binding="{Binding Bytecode}"
+                                                FontFamily="Courier New"/>
+                            <DataGridTextColumn Header="Interpreted as"
+                                                Width="*"
+                                                Binding="{Binding InstructionString}"
+                                                FontFamily="Courier New"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </TabItem>
+                <TabItem Header="Memory">
+                    <DataGrid Grid.Row="2" Items="{Binding  InstructionList}" AutoGenerateColumns="False"
+                              CanUserReorderColumns="True" CanUserResizeColumns="False" CanUserSortColumns="False"
+                              SelectionChanged="DataGrid_OnSelectionChanged">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Address"
+                                                Binding="{Binding AddressDecimal}"
+                                                FontFamily="Courier New"/>
+                            <DataGridTextColumn Header="Address (Hex)"
+                                                Binding="{Binding AddressHex}"
+                                                FontFamily="Courier New"/>
+                            <DataGridTextColumn Header="Bytecode"
+                                                Binding="{Binding Bytecode}"
+                                                FontFamily="Courier New"/>
+                            <DataGridTextColumn Header="Interpreted as"
+                                                Width="*"
+                                                Binding="{Binding InstructionString}"
+                                                FontFamily="Courier New"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </TabItem>
+            </TabControl>
             <GridSplitter Grid.Row="1" Background="Black" ResizeDirection="Rows"/>
-            <Rectangle Grid.Row="2" Fill="Pink"/>
+            <DataGrid Grid.Row="2" Items="{Binding  InstructionList}" AutoGenerateColumns="False"
+                      CanUserReorderColumns="True" CanUserResizeColumns="False" CanUserSortColumns="False"
+                      SelectionChanged="DataGrid_OnSelectionChanged">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Address"
+                                        Binding="{Binding AddressDecimal}"
+                                        FontFamily="Courier New"/>
+                    <DataGridTextColumn Header="Address (Hex)"
+                                        Binding="{Binding AddressHex}"
+                                        FontFamily="Courier New"/>
+                    <DataGridTextColumn Header="Bytecode"
+                                        Binding="{Binding Bytecode}"
+                                        FontFamily="Courier New"/>
+                    <DataGridTextColumn Header="Interpreted as"
+                                        Width="*"
+                                        Binding="{Binding InstructionString}"
+                                        FontFamily="Courier New"/>
+                </DataGrid.Columns>
+            </DataGrid>
         </Grid>
     </Grid>
 </UserControl>

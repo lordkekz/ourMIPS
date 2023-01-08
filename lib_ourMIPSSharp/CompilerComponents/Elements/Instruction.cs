@@ -5,7 +5,8 @@ namespace lib_ourMIPSSharp.CompilerComponents.Elements;
 public class Instruction {
     public Keyword Command { get; }
     public List<Register> Registers { get; } = new();
-    public short Immediate { get; private set; }
+    public short? Immediate { get; private set; }
+    public short ImmVal => Immediate ?? default;
     public uint Bytecode { get; private set; }
     private Token[]? _tokens;
 
@@ -101,7 +102,7 @@ public class Instruction {
                         
                         // Put immediate to point to string constant
                         Immediate = (short)cbe.Comp.StringConstants.Length;
-                        Bytecode |= (uint)(ushort)Immediate << 10;
+                        Bytecode |= (uint)(ushort)ImmVal << 10;
                         cbe.Comp.StringConstants += tParam.Content + '\0';
                     }
                     else {
@@ -140,5 +141,15 @@ public class Instruction {
         var imm = cbe.ResolveRelativeLabel(_tokens[index]);
         Immediate = imm;
         Bytecode |= (ushort)imm;
+    }
+
+    public string ToString() {
+        var result = Command.ToString().Split('_').Last().ToLower();
+        result = Registers.Aggregate(result, (current, reg) => current + $" r{(int)reg}");
+        if (Immediate is not null) {
+            result += " " + ImmVal.ToString(NumberLiteralFormat.Decimal);
+        }
+
+        return result;
     }
 }

@@ -12,6 +12,7 @@
 
     <ItemGroup>
         <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
+        <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.0.0-preview4" />
         <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
         <PackageReference Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
@@ -21,9 +22,5 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\lib_ourMIPSSharp\lib_ourMIPSSharp.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Styles" />
     </ItemGroup>
 </Project>

@@ -1,0 +1,21 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <TabControl>
+                <TabItem Header="Dasersteitem">
+                    <Rectangle Width="800" Height="300" Fill="Red" Opacity=".3"/>
+                </TabItem>
+                <TabItem Header="Das Zweite">
+                    <Rectangle Width="800" Height="300" Fill="Green" Opacity=".3"/>
+                </TabItem>
+                <TabItem Header="Item 3">
+                    <Rectangle Width="800" Height="300" Fill="Blue" Opacity=".3"/>
+                </TabItem>
+                <TabItem Header="Item 4">
+                    <Rectangle Width="800" Height="300" Fill="Yellow" Opacity=".3"/>
+                </TabItem>
+            </TabControl>
+        </Border>
+    </Design.PreviewWith>
+</Styles>

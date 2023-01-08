@@ -128,23 +128,9 @@ public record NumberLiteral {
         }
     }
 
-    public override string ToString() => ToString(NumberLiteralFormat.Decimal);
+    public override string ToString() => Value.ToString(NumberLiteralFormat.Decimal);
 
-    public string ToString(NumberLiteralFormat format) {
-        switch (format) {
-            default:
-            case NumberLiteralFormat.Decimal:
-                return Value.ToString();
-            case NumberLiteralFormat.BinaryPrefix:
-                return "0b" + Convert.ToString(Value, 2).PadLeft(16, '0');
-            case NumberLiteralFormat.BinarySuffix:
-                return Convert.ToString(Value, 2).PadLeft(16, '0') + "b";
-            case NumberLiteralFormat.HexPrefix:
-                return "0x" + Convert.ToString(Value, 16).PadLeft(4, '0');
-            case NumberLiteralFormat.HexSuffix:
-                return Convert.ToString(Value, 16).PadLeft(4, '0') + "h";
-        }
-    }
+    public string ToString(NumberLiteralFormat f) => Value.ToString(f);
 
     /// <summary>
     /// Get the value of the given string.
@@ -155,6 +141,40 @@ public record NumberLiteral {
     /// <returns>value of given string</returns>
     public static int ParseString(string str)
         => new NumberLiteral(new Token(DialectOptions.None) { Content = str }).Value;
+}
+
+public static class NumberLiteralExtensions {
+    public static string ToString(this short val, NumberLiteralFormat format) {
+        switch (format) {
+            default:
+            case NumberLiteralFormat.Decimal:
+                return val.ToString();
+            case NumberLiteralFormat.BinaryPrefix:
+                return "0b" + Convert.ToString(val, 2).PadLeft(16, '0');
+            case NumberLiteralFormat.BinarySuffix:
+                return Convert.ToString(val, 2).PadLeft(16, '0') + "b";
+            case NumberLiteralFormat.HexPrefix:
+                return "0x" + Convert.ToString(val, 16).PadLeft(4, '0');
+            case NumberLiteralFormat.HexSuffix:
+                return Convert.ToString(val, 16).PadLeft(4, '0') + "h";
+        }
+    }
+    
+    public static string ToString(this int val, NumberLiteralFormat format) {
+        switch (format) {
+            default:
+            case NumberLiteralFormat.Decimal:
+                return val.ToString();
+            case NumberLiteralFormat.BinaryPrefix:
+                return "0b" + Convert.ToString(val, 2).PadLeft(32, '0');
+            case NumberLiteralFormat.BinarySuffix:
+                return Convert.ToString(val, 2).PadLeft(32, '0') + "b";
+            case NumberLiteralFormat.HexPrefix:
+                return "0x" + Convert.ToString(val, 16).PadLeft(8, '0');
+            case NumberLiteralFormat.HexSuffix:
+                return Convert.ToString(val, 16).PadLeft(8, '0') + "h";
+        }
+    }
 }
 
 public enum NumberLiteralFormat {

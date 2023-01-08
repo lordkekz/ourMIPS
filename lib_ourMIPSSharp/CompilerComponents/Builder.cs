@@ -20,9 +20,9 @@ public class Builder {
     private Tokenizer _tokenizer;
     private Compiler _compiler;
 
-    public Builder(string sourcecode, DialectOptions? opts) {
+    public Builder(string sourcecode, DialectOptions opts = DialectOptions.None) {
         SourceCode = sourcecode;
-        Options = opts ?? DialectOptions.None;
+        Options = opts;
     }
 
     public bool FullBuild() {
