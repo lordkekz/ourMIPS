@@ -4,14 +4,40 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:ourMIPSSharp_App.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="ourMIPSSharp_App.Views.MainView"
-             Foreground="White"
-             Background="#171C2C">
-  <Design.DataContext>
+             x:Class="ourMIPSSharp_App.Views.MainView">
+    <Design.DataContext>
     <!-- This only sets the DataContext for the previewer in an IDE,
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
     <viewModels:MainViewModel />
   </Design.DataContext>
-
-  <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="48"/>
+            <ColumnDefinition Width="*" MinWidth="200"/>
+            <ColumnDefinition Width="{StaticResource GridSplitterThickness}"/>
+            <ColumnDefinition Width="*" MinWidth="200"/>
+        </Grid.ColumnDefinitions>
+        <Rectangle Grid.Column="0" Grid.RowSpan="3" Fill="Green"></Rectangle>
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" MinHeight="200"/>
+                <RowDefinition Height="{StaticResource GridSplitterThickness}"/>
+                <RowDefinition Height="*" MinHeight="200"/>
+            </Grid.RowDefinitions>
+            <Rectangle Grid.Row="0" Fill="Blue"/>
+            <GridSplitter Grid.Row="1" Background="Black" ResizeDirection="Rows"/>
+            <Rectangle Grid.Row="2" Fill="Skyblue"/>
+        </Grid>
+        <GridSplitter Grid.Column="2" Grid.RowSpan="3" Background="Black" ResizeDirection="Columns"/>
+        <Grid Grid.Column="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" MinHeight="200"/>
+                <RowDefinition Height="{StaticResource GridSplitterThickness}"/>
+                <RowDefinition Height="*" MinHeight="200"/>
+            </Grid.RowDefinitions>
+            <Rectangle Grid.Row="0" Fill="Red"/>
+            <GridSplitter Grid.Row="1" Background="Black" ResizeDirection="Rows"/>
+            <Rectangle Grid.Row="2" Fill="Pink"/>
+        </Grid>
+    </Grid>
 </UserControl>

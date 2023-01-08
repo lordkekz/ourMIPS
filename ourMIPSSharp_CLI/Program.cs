@@ -1,45 +1,39 @@
-﻿using System.Diagnostics;
-using lib_ourMIPSSharp;
-using ourMIPSSharp_CLI;
+﻿using System.CommandLine;
 
-// Console.WriteLine(Convert.ToInt16("44", 10));
-// Console.WriteLine(Convert.ToInt16("-44", 10));
-// Console.WriteLine(Convert.ToInt16("101100", 2));
-// Console.WriteLine(Convert.ToInt16("1111111111010100", 2));
-// Console.WriteLine(Convert.ToInt16("2C", 16));
-// Console.WriteLine(Convert.ToInt16("FFD4", 16));
+namespace ourMIPSSharp_CLI;
 
-// Console.WriteLine(Convert.ToInt16("32767", 10));
-// Console.WriteLine(Convert.ToInt16("32768", 10)); // Overflow
-// Console.WriteLine(Convert.ToInt16("1111111111111111", 2));
-// Console.WriteLine(Convert.ToInt16("10000000000000000", 2)); // Overflow
-// Console.WriteLine(Convert.ToInt16("0FFFF", 16));
-// Console.WriteLine(Convert.ToInt16("10000", 16)); // Overflow
+class Program
+{
+    // TODO all of it
+    static async Task<int> Main(string[] args)
+    {
+        var fileOptionC = new Option<FileInfo?>(
+            new []{"-c", "-compile"},
+            "The source file to compile.");
+        
+        var fileOptionO = new Option<FileInfo?>(
+            new []{"-o", "-output"},
+            "The output file write the bytecode to.");
+        
+        var fileOptionR = new Option<FileInfo?>(
+            new []{"-", "-output"},
+            "The output file write the bytecode to.");
 
-// var num = "55h";
-// Console.WriteLine(num);
-// foreach (var format in Enum.GetValues(typeof(NumberLiteralFormat))) {
-//     var tmp = new NumberLiteral(new Token(DialectOptions.None) { Content = num });
-//     num = tmp.ToString((NumberLiteralFormat)format);
-//     Console.WriteLine(num + " " + tmp);
-// }
-// Console.WriteLine(new NumberLiteral(new Token(DialectOptions.None) { Content = num }));
+        var rootCommand = new RootCommand("Sample app for System.CommandLine");
+        rootCommand.AddOption(fileOption);
 
-// Console.WriteLine(RegisterHelper.FromString("r9"));
+        rootCommand.SetHandler((file) => 
+            { 
+                ReadFile(file!); 
+            },
+            fileOption);
 
-// Console.WriteLine(new NumberLiteral(new Token(DialectOptions.None) {Content = "32768"}).Value);
+        return await rootCommand.InvokeAsync(args);
+    }
 
-// Console.WriteLine(Convert.ToString(12, 2));
-
-// Console.WriteLine(new NumberLiteral("404", DialectOptions.None).ToString(NumberLiteralFormat.Decimal));
-
-// var reg = Register.Zero;
-// var reg2 = RegisterHelper.FromString("zero");
-//
-// Console.WriteLine(reg + " " + reg2);
-
-// Prints the tokens of the MIPS program to the debug output
-
-var b = new CompilerDebug().Main();
-new EmulatorDebug().Main(b);
-Console.WriteLine("Terminating.");
+    static void ReadFile(FileInfo file)
+    {
+        File.ReadLines(file.FullName).ToList()
+            .ForEach(line => Console.WriteLine(line));
+    }
+}

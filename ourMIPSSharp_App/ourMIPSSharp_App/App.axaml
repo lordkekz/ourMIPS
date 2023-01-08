@@ -3,10 +3,14 @@
              xmlns:local="using:ourMIPSSharp_App"
              x:Class="ourMIPSSharp_App.App">
     <Application.DataTemplates>
-        <local:ViewLocator/>
+        <local:ViewLocator />
     </Application.DataTemplates>
 
     <Application.Styles>
-        <FluentTheme Mode="Dark"/>
+        <FluentTheme Mode="Dark" />
     </Application.Styles>
+
+    <Application.Resources>
+        <GridLength x:Key="GridSplitterThickness">4</GridLength>
+    </Application.Resources>
 </Application>

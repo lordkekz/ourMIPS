@@ -1,6 +1,8 @@
-﻿namespace ourMIPSSharp_App.ViewModels;
+﻿using ourMIPSSharp_App.Models;
+using ReactiveUI;
 
-public class MainViewModel : ViewModelBase
-{
-    public string Greeting => "Welcome to Avalonia!";
+namespace ourMIPSSharp_App.ViewModels;
+
+public class MainViewModel : ViewModelBase {
+    
 }

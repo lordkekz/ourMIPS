@@ -7,6 +7,8 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="ourMIPSSharp_App.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
-        Title="ourMIPSSharp_App">
+        Title="OurMIPS"
+        ExtendClientAreaToDecorationsHint="False"
+        ExtendClientAreaChromeHints="SystemChrome">
         <views:MainView />
 </Window>
