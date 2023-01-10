@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Threading.Tasks;
 using lib_ourMIPSSharp.CompilerComponents;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
 using lib_ourMIPSSharp.EmulatorComponents;
@@ -11,46 +10,40 @@ namespace ourMIPSSharp_App.Models;
 public class OpenScriptBackend {
     public string FilePath { get; }
 
-    public string? SourceCode => CurrentBuilder?.SourceCode;
+    public string SourceCode { get; set; } = "";
     public DialectOptions? DialectOpts => CurrentBuilder?.Options;
 
     public Builder? CurrentBuilder { get; private set; }
     public Emulator? CurrentEmulator { get; private set; }
     public bool Ready { get; private set; }
 
-    public TextWriter TextInWriter { get; private set; }
+    public NotifyingTextWriter TextInWriter { get; } = new();
     public TextReader TextInReader { get; private set; }
-    
-    public TextWriter TextOutWriter { get; private set; }
-    public TextReader TextOutReader { get; private set; }
-    
-    public TextWriter TextErrWriter { get; private set; }
-    public TextReader TextErrReader { get; private set; }
+
+    public NotifyingTextWriter TextInfoWriter { get; private set; } = new();
+    public NotifyingTextWriter TextOutWriter { get; private set; } = new();
+    public NotifyingTextWriter TextErrWriter { get; private set; } = new();
 
     public OpenScriptBackend(string path) {
         FilePath = path;
-        
-        var s = new MemoryStream();
-        TextInWriter = new StreamWriter(s);
-        TextInReader = new StreamReader(s);
-        //
-        // s = new MemoryStream();
-        // TextErrWriter = TextOutWriter = new StreamWriter(s);
-        // TextErrReader = TextOutReader = new StreamReader(s);
-        TextErrWriter = TextOutWriter = new StringWriter();
 
-        Rebuild(File.ReadAllText(FilePath));
+        TextInReader = new StringReader("");
+        TextInWriter.LineWritten += (sender, args) => {
+            var unreadTextIn = TextInReader!.ReadToEnd() + args.Content;
+            TextInReader = new StringReader(unreadTextIn);
+            if (CurrentEmulator != null) CurrentEmulator.TextIn = TextInReader;
+        };
+
+        SourceCode = File.ReadAllText(FilePath);
     }
 
     public void SaveFile() {
         File.WriteAllText(FilePath, SourceCode);
     }
 
-    public bool Rebuild(string sourceCode, DialectOptions opts = DialectOptions.None) {
-        TextErrWriter = TextOutWriter = new StringWriter();
-        
-        CurrentBuilder = new Builder(sourceCode, opts) {
-            TextOut = TextOutWriter,
+    public bool Rebuild(DialectOptions opts = DialectOptions.None) {
+        CurrentBuilder = new Builder(SourceCode, opts) {
+            TextOut = TextInfoWriter,
             TextErr = TextErrWriter
         };
         if (!CurrentBuilder.FullBuild())

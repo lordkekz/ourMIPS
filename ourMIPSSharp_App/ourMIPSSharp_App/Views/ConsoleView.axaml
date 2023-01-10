@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
+             xmlns:ourMipsSharpApp="clr-namespace:ourMIPSSharp_App"
+             xmlns:viewModels="clr-namespace:ourMIPSSharp_App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="ourMIPSSharp_App.Views.ConsoleView">
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <viewModels:ConsoleViewModel />
+    </Design.DataContext>
+    <Grid RowDefinitions="Auto,*"
+          HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch">
+        <TextBox Grid.Row="0"
+                 Name="InputBox"
+                 HorizontalAlignment="Stretch"
+                 MaxLines="1"
+                 Text="{Binding InputString, Mode=TwoWay}"/>
+        <avaloniaEdit:TextEditor Grid.Row="1"
+                                 Name="Editor"
+                                 HorizontalScrollBarVisibility="Auto"
+                                 VerticalScrollBarVisibility="Visible"
+                                 HorizontalAlignment="Stretch"
+                                 VerticalAlignment="Stretch"
+                                 ShowLineNumbers="False"
+                                 Document="{Binding Document}"
+                                 WordWrap="True"
+                                 IsReadOnly="True"
+                                 FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+                                 FontWeight="Light" />
+    </Grid>
+</UserControl>

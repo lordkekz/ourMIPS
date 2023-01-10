@@ -10,7 +10,7 @@ using ourMIPSSharp_App.Views;
 namespace ourMIPSSharp_App;
 
 public partial class App : Application {
-    public new App Current => Application.Current as App;
+    public new static App Current => Application.Current as App;
     public AppSettings? Settings { get; private set; }
 
     public override void Initialize() {
@@ -19,7 +19,7 @@ public partial class App : Application {
 
     public override void OnFrameworkInitializationCompleted() {
         Settings = AppSettings.MakeInstance();
-        
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
             desktop.MainWindow = new MainWindow {
                 DataContext = new MainViewModel()
@@ -32,6 +32,7 @@ public partial class App : Application {
             };
             singleViewPlatform.MainView.Unloaded += (_, _) => Settings?.SaveSettings();
         }
+
         base.OnFrameworkInitializationCompleted();
     }
 }

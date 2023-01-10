@@ -3,11 +3,13 @@ using lib_ourMIPSSharp.CompilerComponents.Elements;
 namespace lib_ourMIPSSharp.EmulatorComponents;
 
 public class RegisterStorage {
+    public Emulator Owner { get; }
     public short ProgramCounter { get; set; }
     public bool FlagOverflow { get; set; }
     private readonly int[] _registers;
 
-    public RegisterStorage() {
+    public RegisterStorage(Emulator owner) {
+        Owner = owner;
         _registers = new int[32];
 
         var r = new Random();
@@ -24,7 +26,7 @@ public class RegisterStorage {
         get => _registers[(int)reg];
         set {
             if (reg == Register.Zero)
-                Console.WriteLine("Warning! Writes to zero register have no effect!");
+                Owner.TextInfo.WriteLine("Warning! Writes to zero register have no effect!");
             else
                 _registers[(int)reg] = value;
         }

@@ -5,9 +5,9 @@
              xmlns:viewModels="clr-namespace:ourMIPSSharp_App.ViewModels"
              xmlns:i="clr-namespace:Projektanker.Icons.Avalonia;assembly=Projektanker.Icons.Avalonia"
              xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
+             xmlns:views="clr-namespace:ourMIPSSharp_App.Views"
              mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="450"
              x:Class="ourMIPSSharp_App.Views.MainView">
-    <!--Background="#1E1E1E"-->
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
@@ -20,7 +20,7 @@
             <ColumnDefinition Width="{StaticResource GridSplitterThickness}" />
             <ColumnDefinition Width="*" MinWidth="200" />
         </Grid.ColumnDefinitions>
-        <StackPanel Grid.Column="0" Grid.RowSpan="3" Orientation="Vertical">
+        <StackPanel Grid.Column="0" Grid.RowSpan="3" Orientation="Vertical" Background="{DynamicResource SystemBaseLowColor}">
             <Button i:Attached.Icon="fa-solid fa-sd-card"
                     Command="{Binding MemInitCommand}" />
             <Button i:Attached.Icon="fa-solid fa-screwdriver-wrench"
@@ -47,10 +47,9 @@
                                    FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
                                    FontWeight="Light" />
             <GridSplitter Grid.Row="1" ResizeDirection="Rows" />
-            <TextBox Grid.Row="2" Text="{Binding ConsoleOut}" IsReadOnly="True"
-                     FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
-                     FontWeight="Light"
-                     BorderThickness="0" />
+            <views:ConsoleView Grid.Row="2"
+                               Name="ConView"
+                               DataContext="{Binding Console}" />
         </Grid>
         <GridSplitter ZIndex="1" Grid.Column="2" Grid.RowSpan="3" ResizeDirection="Columns" />
         <Grid Grid.Column="3">

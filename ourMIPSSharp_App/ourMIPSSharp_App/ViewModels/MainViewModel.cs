@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
+using Avalonia.Controls.Documents;
 using Avalonia.Media.Transformation;
 using AvaloniaEdit.Document;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
@@ -19,22 +20,19 @@ public class MainViewModel : ViewModelBase {
     public ObservableCollection<RegisterEntry> RegisterList { get; } = new();
     public ObservableCollection<MemoryEntry> MemoryList { get; } = new();
 
-    private string _consoleOut = "";
-
-    public string ConsoleOut {
-        get => _consoleOut;
-        set => this.RaiseAndSetIfChanged(ref _consoleOut, value);
+    private ConsoleViewModel _console;
+    public ConsoleViewModel Console {
+        get => _console;
+        set => this.RaiseAndSetIfChanged(ref _console, value);
     }
 
     private int _overflowFlag;
-
     public int OverflowFlag {
         get => _overflowFlag;
         set => this.RaiseAndSetIfChanged(ref _overflowFlag, value);
     }
 
     private int _programCounter;
-
     public int ProgramCounter {
         get => _programCounter;
         set => this.RaiseAndSetIfChanged(ref _programCounter, value);
@@ -57,13 +55,16 @@ public class MainViewModel : ViewModelBase {
         Backend = new OpenScriptBackend(
             "../../../../../lib_ourMIPSSharp_Tests/Samples/instructiontests_philos.ourMIPS");
         Document = new TextDocument(Backend.SourceCode);
+        Console = new ConsoleViewModel(Backend);
         UpdateData();
     }
 
     private async Task ExecuteRebuildCommand() {
+        Console.Clear();
         var str = Document.Text;
         await Task.Run(() => {
-            Backend.Rebuild(str);
+            Backend.SourceCode = str;
+            Backend.Rebuild();
         });
         UpdateData();
     }
@@ -76,15 +77,33 @@ public class MainViewModel : ViewModelBase {
     }
 
     private async Task ExecuteRunCommand() {
-        await Task.Run(() => {
-            Backend.CurrentEmulator.RunUntilTerminated();
-        });
+        if (!Backend.Ready)
+            return;
+        if (Backend.CurrentEmulator!.EffectivelyTerminated)
+            Backend.MakeEmulator();
+        
+        Console.Clear();
+        
+        var em = Backend.CurrentEmulator;
+        Backend.TextInfoWriter.WriteLine("[EMULATOR] Running program.");
+        var s = new Stopwatch();
+        s.Start();
+
+        while (!em.EffectivelyTerminated) {
+            await Task.Run(() => {
+                em.TryExecuteNext();
+            });
+            Console.FlushNewLines();
+        }
+
+        s.Stop();
+        Backend.TextInfoWriter.WriteLine($"[EMULATOR] Program terminated after {s.ElapsedMilliseconds}ms");
+        
         UpdateData();
     }
 
     public void UpdateData() {
-        ConsoleOut = Backend.TextOutWriter.ToString();
-
+        Console.FlushNewLines();
         if (!Backend.Ready)
             return;
 
