@@ -18,6 +18,8 @@ public partial class App : Application {
     }
 
     public override void OnFrameworkInitializationCompleted() {
+        Settings = AppSettings.MakeInstance();
+        
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
             desktop.MainWindow = new MainWindow {
                 DataContext = new MainViewModel()
@@ -30,8 +32,6 @@ public partial class App : Application {
             };
             singleViewPlatform.MainView.Unloaded += (_, _) => Settings?.SaveSettings();
         }
-
-        Settings = AppSettings.MakeInstance();
         base.OnFrameworkInitializationCompleted();
     }
 }

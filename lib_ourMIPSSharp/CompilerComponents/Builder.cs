@@ -16,6 +16,9 @@ public class Builder {
     public ImmutableDictionary<string, int> Labels { get; private set; }
     public ImmutableArray<uint> Bytecode { get; private set; }
     public string StringConstants { get; private set; }
+    
+    public TextWriter TextErr { get; set; } = Console.Error;
+    public TextWriter TextOut { get; set; } = Console.Out;
 
     private Tokenizer _tokenizer;
     private Compiler _compiler;
@@ -26,44 +29,44 @@ public class Builder {
     }
 
     public bool FullBuild() {
-        Console.WriteLine("[BUILDER] Starting build...");
+        TextOut.WriteLine("[BUILDER] Starting build...");
         var stopwatch = Stopwatch.StartNew();
         try {
-            Console.WriteLine($"[BUILDER] Tokenizing source code...");
+            TextOut.WriteLine($"[BUILDER] Tokenizing source code...");
             _tokenizer = new Tokenizer(SourceCode, Options);
             var tokens = _tokenizer.Tokenize();
             Tokens = tokens.ToImmutableArray();
             
-            Console.WriteLine($"[BUILDER] Reading macros (1st iteration of compiler)...");
+            TextOut.WriteLine($"[BUILDER] Reading macros (1st iteration of compiler)...");
             _compiler = new Compiler(tokens, Options);
             _compiler.ReadMacros();
             
-            Console.WriteLine($"[BUILDER] Resolving macros (2nd iteration of compiler)...");
+            TextOut.WriteLine($"[BUILDER] Resolving macros (2nd iteration of compiler)...");
             var resolvedTokens = _compiler.ResolveMacros();
             ResolvedTokens = resolvedTokens.ToImmutableArray();
             
-            Console.WriteLine($"[BUILDER] Reading labels (3rd iteration of compiler)...");
+            TextOut.WriteLine($"[BUILDER] Reading labels (3rd iteration of compiler)...");
             _compiler.ReadLabels();
             Labels = _compiler.Labels.ToImmutableDictionary();
             
-            Console.WriteLine($"[BUILDER] Generating Bytecode (4th iteration of compiler)...");
+            TextOut.WriteLine($"[BUILDER] Generating Bytecode (4th iteration of compiler)...");
             var bytecode = _compiler.GenerateBytecode();
             Bytecode = bytecode.ToImmutableArray();
             StringConstants = _compiler.StringConstants;
             
             stopwatch.Stop();
-            Console.WriteLine($"[BUILDER] Build succeeded after {stopwatch.ElapsedMilliseconds}ms.");
+            TextOut.WriteLine($"[BUILDER] Build succeeded after {stopwatch.ElapsedMilliseconds}ms.");
             return true;
         }
         catch (CompilerError err) {
             stopwatch.Stop();
-            Console.WriteLine($"[BUILDER] Build failed after {stopwatch.ElapsedMilliseconds}ms: ");
-            Console.Error.WriteLine(err);
+            TextOut.WriteLine($"[BUILDER] Build failed after {stopwatch.ElapsedMilliseconds}ms: ");
+            TextErr.WriteLine(err);
         }
         catch (Exception err) {
             stopwatch.Stop();
-            Console.WriteLine($"[BUILDER] Build failed with internal exception after {stopwatch.ElapsedMilliseconds}ms!");
-            Console.Error.WriteLine(err);
+            TextOut.WriteLine($"[BUILDER] Build failed with internal exception after {stopwatch.ElapsedMilliseconds}ms!");
+            TextErr.WriteLine(err);
         }
 
         return false;

@@ -7,14 +7,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <WasmExtraFilesToDeploy Include="AppBundle\**"/>
+        <WasmExtraFilesToDeploy Include="AppBundle\**" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia.Web" Version="$(AvaloniaVersion)"/>
+        <PackageReference Include="Avalonia.Web" Version="11.0.0-preview3" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\ourMIPSSharp_App\ourMIPSSharp_App.csproj"/>
+        <ProjectReference Include="..\ourMIPSSharp_App\ourMIPSSharp_App.csproj" />
     </ItemGroup>
 </Project>
