@@ -5,11 +5,12 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using ourMIPSSharp_App.ViewModels;
 
 namespace ourMIPSSharp_App.Views;
 
-public partial class MainView : UserControl
-{
+public partial class MainView : UserControl {
+    public MainViewModel? ViewModel => DataContext as MainViewModel;
     public MainView()
     {
         InitializeComponent();
@@ -35,9 +36,13 @@ public partial class MainView : UserControl
         ConView.LineBrushes = new List<IBrush>() {
             new SolidColorBrush(infoColor),
             new SolidColorBrush(normalColor),
-            Brushes.Red,
-            Brushes.Green
+            Brushes.OrangeRed,
+            Brushes.LimeGreen
         };
+        // Write ready text to console (immediately applies colors)
+        ViewModel.Console.Clear();
+        ViewModel.Backend.TextInfoWriter.WriteLine("Ready.");
+        ViewModel.Console.FlushNewLines();
     }
 
     private void DataGrid_OnSelectionChanged(object? sender, SelectionChangedEventArgs e) {

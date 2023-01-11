@@ -19,7 +19,9 @@
                  Name="InputBox"
                  HorizontalAlignment="Stretch"
                  MaxLines="1"
-                 Text="{Binding InputString, Mode=TwoWay}"/>
+                 Watermark="Console Input..."
+                 Text="{Binding InputString, Mode=TwoWay}"
+                 KeyDown="InputBox_OnKeyDown" />
         <avaloniaEdit:TextEditor Grid.Row="1"
                                  Name="Editor"
                                  HorizontalScrollBarVisibility="Auto"

@@ -91,7 +91,10 @@ public class MainViewModel : ViewModelBase {
 
         while (!em.EffectivelyTerminated) {
             await Task.Run(() => {
-                em.TryExecuteNext();
+                // Keep running in parallel until ui thread is needed for console output
+                while (!em.EffectivelyTerminated && !Console.HasNewLines) {
+                    em.TryExecuteNext();
+                }
             });
             Console.FlushNewLines();
         }

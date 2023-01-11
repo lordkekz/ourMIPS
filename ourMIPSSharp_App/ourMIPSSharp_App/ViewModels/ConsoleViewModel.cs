@@ -32,7 +32,6 @@ public class ConsoleViewModel : ViewModelBase {
     public ConsoleViewModel(OpenScriptBackend backend) {
         Backend = backend;
         Backend.TextInfoWriter.LineWritten += TextInfoWriterOnLineWritten;
-        Backend.TextInfoWriter.WriteLine("Shit happens");
         Backend.TextOutWriter.LineWritten += TextOutWriterOnLineWritten;
         Backend.TextErrWriter.LineWritten += TextErrWriterOnLineWritten;
         Backend.TextInWriter.LineWritten += TextInWriterOnLineWritten;
@@ -58,6 +57,8 @@ public class ConsoleViewModel : ViewModelBase {
         _newLines.Enqueue("Input: " + e.Content);
     }
 
+    public bool HasNewLines => !_newLines.IsEmpty;
+    
     public void FlushNewLines() {
         foreach (var line in _newLines)
             Document.Insert(Document.TextLength, line);
@@ -77,5 +78,11 @@ public class ConsoleViewModel : ViewModelBase {
         Document.Text = "";
         _newLines.Clear();
         ColorHints.Clear();
+    }
+
+    public void SubmitInput() {
+        Backend.TextInWriter.WriteLine(InputString);
+        FlushNewLines();
+        InputString = "";
     }
 }
