@@ -136,6 +136,10 @@
                       CanUserReorderColumns="True" CanUserResizeColumns="False" CanUserSortColumns="False"
                       SelectionChanged="DataGrid_OnSelectionChanged">
                 <DataGrid.Columns>
+                    <DataGridTextColumn Header="Line"
+                                        Binding="{Binding LineNumber}"
+                                        FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+                                        FontWeight="ExtraLight" />
                     <DataGridTextColumn Header="Address"
                                         Binding="{Binding AddressDecimal}"
                                         FontFamily="Courier New" />

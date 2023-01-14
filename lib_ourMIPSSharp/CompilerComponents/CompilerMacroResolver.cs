@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
 using lib_ourMIPSSharp.Errors;
@@ -9,6 +10,7 @@ public class CompilerMacroResolver : ICompilerHandler {
     public DialectOptions Options => Comp.Options;
     public IDictionary<string, Macro> Macros => Comp.Macros;
     public List<Token> ResolvedTokens => Comp.ResolvedTokens;
+    public List<SymbolPosition[]> SymbolStackTable => Comp.SymbolStackTable;
 
     private readonly Dictionary<Macro, int> _counters = new();
     private readonly Stack<StackEntry> _stack = new();
@@ -25,6 +27,14 @@ public class CompilerMacroResolver : ICompilerHandler {
             default:
                 // This is a keyword instruction.
                 ResolvedTokens.Add(token);
+
+                // Export current stack
+                SymbolStackTable.Add(_stack
+                    .Select(e => new SymbolPosition(e.Line, e.Column))
+                    .Append(new SymbolPosition(token.Line, token.Column))
+                    .ToArray()
+                );
+
                 return CompilerState.InstructionArgs;
             case Keyword.Keyword_Macro:
                 return CompilerState.MacroDeclaration;
@@ -127,4 +137,14 @@ public class CompilerMacroResolver : ICompilerHandler {
                 return CompilerState.MacroInstructionArgs;
         }
     }
+}
+
+public struct SymbolPosition {
+    public SymbolPosition(int line, int column) {
+        Line = line;
+        Column = column;
+    }
+
+    public int Line { get; }
+    public int Column { get; }
 }

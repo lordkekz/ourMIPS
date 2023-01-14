@@ -116,7 +116,8 @@ public class MainViewModel : ViewModelBase {
         InstructionList.Clear();
         var prog = Backend.CurrentEmulator!.Program;
         for (var i = 0; i < prog.Count; i++) {
-            InstructionList.Add(new InstructionEntry(i, prog));
+            var line = Backend.CurrentBuilder!.SymbolStacks[i].Last().Line;
+            InstructionList.Add(new InstructionEntry(i, line, prog));
         }
 
         RegisterList.Clear();

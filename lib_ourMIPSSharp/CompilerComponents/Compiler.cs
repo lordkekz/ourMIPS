@@ -24,6 +24,7 @@ public partial class Compiler {
     public Dictionary<string, int> Labels { get; } = new();
     public List<uint> Bytecode { get; } = new();
     public string StringConstants { get; set; } = "";
+    public List<SymbolPosition[]> SymbolStackTable { get; } = new();
 
     public Compiler(List<Token> tokens, DialectOptions options) {
         if (!options.IsValid())

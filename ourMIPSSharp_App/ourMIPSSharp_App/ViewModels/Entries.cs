@@ -6,13 +6,16 @@ namespace ourMIPSSharp_App.ViewModels;
 
 public class InstructionEntry {
     private int _address;
+    private int _line;
     private ProgramStorage _program;
 
-    public InstructionEntry(int address, ProgramStorage program) {
+    public InstructionEntry(int address, int line, ProgramStorage program) {
         _address = address;
+        _line = line;
         _program = program;
     }
 
+    public string LineNumber => _line.ToString();
     public string AddressDecimal => _address.ToString();
     public string AddressHex => _address.ToString(NumberLiteralFormat.HexPrefix);
     public string Bytecode => Convert.ToString(_program[_address].Bytecode, 2).PadLeft(32, '0');

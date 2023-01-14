@@ -16,6 +16,7 @@ public class Builder {
     public ImmutableDictionary<string, int> Labels { get; private set; }
     public ImmutableArray<uint> Bytecode { get; private set; }
     public string StringConstants { get; private set; }
+    public ImmutableArray<SymbolPosition[]> SymbolStacks { get; private set; }
     
     public TextWriter TextErr { get; set; } = Console.Error;
     public TextWriter TextOut { get; set; } = Console.Out;
@@ -53,6 +54,7 @@ public class Builder {
             var bytecode = _compiler.GenerateBytecode();
             Bytecode = bytecode.ToImmutableArray();
             StringConstants = _compiler.StringConstants;
+            SymbolStacks = _compiler.SymbolStackTable.ToImmutableArray();
             
             stopwatch.Stop();
             TextOut.WriteLine($"[BUILDER] Build succeeded after {stopwatch.ElapsedMilliseconds}ms.");
