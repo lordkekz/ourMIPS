@@ -34,7 +34,12 @@ public class OpenScriptBackend {
             if (CurrentEmulator != null) CurrentEmulator.TextIn = TextInReader;
         };
 
-        SourceCode = File.ReadAllText(FilePath);
+        try {
+            SourceCode = File.ReadAllText(FilePath);
+        }
+        catch (IOException ex) {
+            Console.Error.WriteLine(ex);
+        }
     }
 
     public void SaveFile() {
@@ -65,7 +70,7 @@ public class OpenScriptBackend {
         };
         
         for (int i = 0; i < 1000; i++) {
-            CurrentEmulator.Memory[2 * i] = 504 + 2 * i;
+            CurrentEmulator.Memory[2 * i] = 104 + 2 * i;
             _ = CurrentEmulator.Memory[2 * i + 1];
         }
     }

@@ -4,11 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
-using Avalonia.Controls.Documents;
-using Avalonia.Media.Transformation;
 using AvaloniaEdit.Document;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
-using lib_ourMIPSSharp.EmulatorComponents;
 using ourMIPSSharp_App.Models;
 using ReactiveUI;
 
@@ -21,18 +18,21 @@ public class MainViewModel : ViewModelBase {
     public ObservableCollection<MemoryEntry> MemoryList { get; } = new();
 
     private ConsoleViewModel _console;
+
     public ConsoleViewModel Console {
         get => _console;
         set => this.RaiseAndSetIfChanged(ref _console, value);
     }
 
     private int _overflowFlag;
+
     public int OverflowFlag {
         get => _overflowFlag;
         set => this.RaiseAndSetIfChanged(ref _overflowFlag, value);
     }
 
     private int _programCounter;
+
     public int ProgramCounter {
         get => _programCounter;
         set => this.RaiseAndSetIfChanged(ref _programCounter, value);
@@ -70,9 +70,7 @@ public class MainViewModel : ViewModelBase {
     }
 
     private async Task ExecuteDebugCommand() {
-        await Task.Run(() => {
-            Backend.CurrentEmulator.TryExecuteNext();
-        });
+        await Task.Run(() => { Backend.CurrentEmulator.TryExecuteNext(); });
         UpdateData();
     }
 
@@ -81,18 +79,20 @@ public class MainViewModel : ViewModelBase {
             return;
         if (Backend.CurrentEmulator!.EffectivelyTerminated)
             Backend.MakeEmulator();
-        
+
         Console.Clear();
-        
+
         var em = Backend.CurrentEmulator;
         Backend.TextInfoWriter.WriteLine("[EMULATOR] Running program.");
         var s = new Stopwatch();
         s.Start();
 
         while (!em.EffectivelyTerminated) {
+            var last = s.ElapsedMilliseconds;
             await Task.Run(() => {
                 // Keep running in parallel until ui thread is needed for console output
-                while (!em.EffectivelyTerminated && !Console.HasNewLines) {
+                while (!em.EffectivelyTerminated &&
+                       !ShouldUpdateConsole(s.ElapsedMilliseconds - last, em.Program[em.ProgramCounter].Command)) {
                     em.TryExecuteNext();
                 }
             });
@@ -101,9 +101,14 @@ public class MainViewModel : ViewModelBase {
 
         s.Stop();
         Backend.TextInfoWriter.WriteLine($"[EMULATOR] Program terminated after {s.ElapsedMilliseconds}ms");
-        
+
         UpdateData();
     }
+
+    // Force pauses between console updates to keep UI responsive
+    // except when there's a sysin coming up (otherwise prompts are not shown in time)
+    private bool ShouldUpdateConsole(long msSinceUpdate, Keyword nextCommand)
+        => Console.HasNewLines && (100 < msSinceUpdate || nextCommand == Keyword.Magic_Reg_Sysin);
 
     public void UpdateData() {
         Console.FlushNewLines();

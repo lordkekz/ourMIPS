@@ -1,0 +1,107 @@
+<SyntaxDefinition name="OurMIPS"
+        xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+    <Color name="Comment" foreground="LightGreen" />
+    <Color name="String" foreground="#ffdb8181" />
+    <Color name="Number" foreground="Aqua" />
+    <Color name="Register" foreground="#81a3d1" fontStyle="italic" />
+    <Color name="Instruction" foreground="Orange" />
+    <Color name="Label" foreground="LightYellow" fontWeight="light" />
+
+    <!-- Ruleset for keywords and registers -->
+    <RuleSet name="rules_kw_reg" ignoreCase="true">
+        <Keywords color="Instruction">
+            <Word>systerm</Word>
+            <Word>sysout</Word>
+            <Word>sysin</Word>
+            
+            <Word>ldd</Word>
+            <Word>sto</Word>
+            
+            <Word>shli</Word>
+            <Word>shri</Word>
+            <Word>roli</Word>
+            <Word>rori</Word>
+            <Word>subi</Word>
+            <Word>addi</Word>
+            
+            <Word>shl</Word>
+            <Word>shr</Word>
+            <Word>rol</Word>
+            <Word>ror</Word>
+            <Word>sub</Word>
+            <Word>add</Word>
+            
+            <Word>or</Word>
+            <Word>and</Word>
+            <Word>xor</Word>
+            <Word>xnor</Word>
+            
+            <Word>jmp</Word>
+            <Word>beq</Word>
+            <Word>bneq</Word>
+            <Word>bgt</Word>
+            <Word>bo</Word>
+            
+            <Word>ldpc</Word>
+            <Word>stpc</Word>
+            
+            <Word>macro</Word>
+            <Word>endmacro</Word>
+            <Word>mend</Word>
+        </Keywords>
+
+        <Keywords color="Register">
+            <Word>zero</Word>
+            <Word>at</Word>
+            <Word>gp</Word>
+            <Word>sp</Word>
+            <Word>ra</Word>
+        </Keywords>
+        
+        <!-- Named Registers with numbers -->
+        <Rule color="Register">
+            \b[vV][0-1]
+        |   \b[aA][0-3]
+        |   \b[tT][0-9]
+        |   \b[sS][0-8]
+        |   \b[kK][0-1]
+        </Rule>
+        
+        <!-- Leading Register Dollar -->
+        <Rule color="Register">
+            \$
+        </Rule>
+        
+        <!-- Numbered Register -->
+        <Rule color="Register">
+            \b[rR](?:(?:1\d)|(?:2\d)|(?:30)|(?:31)|\d)
+        </Rule>
+    </RuleSet>
+    
+    <!-- Main ruleset -->
+    <RuleSet>
+        <Import ruleSet="rules_kw_reg" />
+    
+        <Span color="Comment" begin="#" />
+        <Span color="Comment" begin=";" />
+
+        <Span color="String">
+            <Begin>"</Begin>
+            <End>"</End>
+        </Span>
+
+        <!-- Digits -->
+        <Rule color="Number">
+            \b[+-]?0[xX][0-9a-fA-F]+  # hex number with prefix
+        |   \b[+-]?[0-9a-fA-F]+h      # hex number with suffix
+        |   \b[+-]?0[bB][0-1]+        # bin number with prefix
+        |   \b[+-]?[0-1]+b            # bin number with suffix
+        |   \b[+-]?\d+                # decimal number
+        </Rule>
+
+        <!-- Label Declarations -->
+        <Rule color="Label">
+            \b\w+\:  # letters
+        </Rule>
+    </RuleSet>
+</SyntaxDefinition>

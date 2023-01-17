@@ -13,14 +13,15 @@
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <viewModels:MainViewModel />
     </Design.DataContext>
-    <Grid>
+    <Grid Background="{DynamicResource SystemChromeBlackMediumColor}">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="48" />
+            <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" MinWidth="200" />
             <ColumnDefinition Width="{StaticResource GridSplitterThickness}" />
             <ColumnDefinition Width="*" MinWidth="200" />
         </Grid.ColumnDefinitions>
-        <StackPanel Grid.Column="0" Grid.RowSpan="3" Orientation="Vertical" Background="{DynamicResource SystemBaseLowColor}">
+        <StackPanel Grid.Column="0" Grid.RowSpan="3" Orientation="Vertical"
+                    Classes="Menu_Sidebar">
             <Button i:Attached.Icon="fa-solid fa-sd-card"
                     Command="{Binding MemInitCommand}" />
             <Button i:Attached.Icon="fa-solid fa-screwdriver-wrench"

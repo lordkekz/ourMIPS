@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Xml;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using AvaloniaEdit.Highlighting;
+using AvaloniaEdit.Highlighting.Xshd;
 using ourMIPSSharp_App.ViewModels;
 
 namespace ourMIPSSharp_App.Views;
@@ -20,6 +24,12 @@ public partial class MainView : UserControl {
         Editor.Options.ShowTabs = false;
         Editor.Options.ShowEndOfLine = false;
         Editor.Options.HighlightCurrentLine = true;
+
+        using (var reader = new XmlTextReader("../../../../ourMIPSSharp_App/Assets/ourMIPS.xshd")) {
+            Editor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
+        }
+        
+        Editor.
         
         Editor.AddHandler(PointerWheelChangedEvent, (o, i) => {
             if (i.KeyModifiers != KeyModifiers.Control) return;
