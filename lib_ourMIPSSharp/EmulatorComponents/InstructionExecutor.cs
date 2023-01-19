@@ -141,7 +141,9 @@ public class InstructionExecutor {
         // TODO improve exception handling
         // TODO add a way to interface with UI
         int val;
-        while (!int.TryParse(EmulatorInstance.TextIn.ReadLine(), out val)) { }
+        while (!int.TryParse(EmulatorInstance.TextIn.ReadLine(), out val))
+            if (EmulatorInstance.ForceTerminated)
+                return;
 
         Registers[i.Registers[0]] = val;
     }

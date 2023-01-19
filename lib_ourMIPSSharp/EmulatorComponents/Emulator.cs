@@ -6,6 +6,7 @@ namespace lib_ourMIPSSharp.EmulatorComponents;
 public class Emulator {
     public RegisterStorage Registers { get; }
     public short ProgramCounter => Registers.ProgramCounter;
+    public short PreviousProgramCounter => Registers.PreviousProgramCounter;
     public ProgramStorage Program { get; }
     public MainStorage Memory { get; } = new();
     public InstructionExecutor Executor { get; }
@@ -22,8 +23,15 @@ public class Emulator {
         Registers = new RegisterStorage(this);
         Executor = new InstructionExecutor(this);
         Program = new ProgramStorage(instructions, stringConstants);
+        try {
+            // Catch exception since Console.In is unsupported in WASM
+            TextIn = Console.In;
+        }
+        catch (Exception ex) {
+            Console.Error.WriteLine(ex);
+        }
     }
-    
+
     public void ExecuteNext() {
         if (EffectivelyTerminated)
             throw new EmulatorException("Cannot execute next instruction because program has terminated.");

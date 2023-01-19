@@ -13,7 +13,7 @@
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <viewModels:MainViewModel />
     </Design.DataContext>
-    <Grid Background="{DynamicResource SystemChromeBlackMediumColor}">
+    <Grid Background="{DynamicResource SystemChromeBlackMediumColor}" RowDefinitions="*, Auto">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" MinWidth="200" />
@@ -22,16 +22,27 @@
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0" Grid.RowSpan="3" Orientation="Vertical"
                     Classes="Menu_Sidebar">
-            <Button i:Attached.Icon="fa-solid fa-sd-card"
+            <Button i:Attached.Icon="fa-solid fa-floppy-disk"
+                    Command="{Binding SaveCommand}" />
+            <Button i:Attached.Icon="fa-solid fa-memory"
                     Command="{Binding MemInitCommand}" />
             <Button i:Attached.Icon="fa-solid fa-screwdriver-wrench"
                     Command="{Binding RebuildCommand}" />
-            <Button i:Attached.Icon="fa-solid fa-bug"
-                    Command="{Binding DebugCommand}" />
             <Button i:Attached.Icon="fa-solid fa-play"
                     Command="{Binding RunCommand}" />
+            <Button i:Attached.Icon="fa-solid fa-bug"
+                    Command="{Binding DebugCommand}" />
+            <Button i:Attached.Icon="fa-solid fa-forward-step"
+                    Command="{Binding StepCommand}"
+                    IsVisible="{Binding IsDebugging}" />
+            <Button i:Attached.Icon="fa-solid fa-forward"
+                    Command="{Binding ForwardCommand}"
+                    IsVisible="{Binding IsDebugging}" />
+            <Button i:Attached.Icon="fa-solid fa-stop"
+                    Command="{Binding StopCommand}"
+                    IsVisible="{Binding IsDebugging}" />
         </StackPanel>
-        <Grid Grid.Column="1">
+        <Grid Grid.Row="0" Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" MinHeight="200" />
                 <RowDefinition Height="{StaticResource GridSplitterThickness}" />
@@ -46,14 +57,15 @@
                                    Document="{Binding Document}"
                                    WordWrap="False"
                                    FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
-                                   FontWeight="Light" />
+                                   FontWeight="Light"
+                                   IsReadOnly="{Binding IsEditorReadonly}" />
             <GridSplitter Grid.Row="1" ResizeDirection="Rows" />
             <views:ConsoleView Grid.Row="2"
                                Name="ConView"
                                DataContext="{Binding Console}" />
         </Grid>
-        <GridSplitter ZIndex="1" Grid.Column="2" Grid.RowSpan="3" ResizeDirection="Columns" />
-        <Grid Grid.Column="3">
+        <GridSplitter Grid.Row="0" ZIndex="1" Grid.Column="2" ResizeDirection="Columns" />
+        <Grid Grid.Row="0" Grid.Column="3">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" MinHeight="200" />
                 <RowDefinition Height="{StaticResource GridSplitterThickness}" />
@@ -158,5 +170,8 @@
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>
+        <StackPanel Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="4" Classes="Status_Bar">
+            <Label Content="{Binding State}" />
+        </StackPanel>
     </Grid>
 </UserControl>

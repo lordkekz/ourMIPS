@@ -4,8 +4,19 @@ namespace lib_ourMIPSSharp.EmulatorComponents;
 
 public class RegisterStorage {
     public Emulator? Owner { get; }
-    public short ProgramCounter { get; set; }
+    public short PreviousProgramCounter { get; private set; }
+
+    private short _programCounter;
+    public short ProgramCounter {
+        get => _programCounter;
+        set {
+            PreviousProgramCounter = ProgramCounter;
+            _programCounter = value;
+        }
+    }
+
     public bool FlagOverflow { get; set; }
+
     private readonly int[] _registers;
 
     public RegisterStorage(Emulator? owner = null) {

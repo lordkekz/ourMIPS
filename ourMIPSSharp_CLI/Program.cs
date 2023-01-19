@@ -19,16 +19,17 @@ class Program
             new []{"-", "-output"},
             "The output file write the bytecode to.");
 
-        var rootCommand = new RootCommand("Sample app for System.CommandLine");
-        rootCommand.AddOption(fileOption);
-
-        rootCommand.SetHandler((file) => 
-            { 
-                ReadFile(file!); 
-            },
-            fileOption);
-
-        return await rootCommand.InvokeAsync(args);
+        // var rootCommand = new RootCommand("Sample app for System.CommandLine");
+        // rootCommand.AddOption(fileOption);
+        //
+        // rootCommand.SetHandler((file) => 
+        //     { 
+        //         ReadFile(file!); 
+        //     },
+        //     fileOption);
+        //
+        // return await rootCommand.InvokeAsync(args);
+        return 0;
     }
 
     static void ReadFile(FileInfo file)
