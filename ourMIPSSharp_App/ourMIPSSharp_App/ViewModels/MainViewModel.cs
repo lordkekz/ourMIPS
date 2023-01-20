@@ -82,9 +82,12 @@ public class MainViewModel : ViewModelBase {
 
     private readonly ObservableAsPropertyHelper<bool> _isEditorReadonly;
     public bool IsEditorReadonly => _isEditorReadonly.Value;
-    
+
     private readonly ObservableAsPropertyHelper<bool> _isDebugging;
     public bool IsDebugging => _isDebugging.Value;
+    
+    private readonly ObservableAsPropertyHelper<bool> _isEmulatorActive;
+    public bool IsEmulatorActive => _isEmulatorActive.Value;
 
     public MainViewModel() {
         var canExecuteNever = new[] { false }.ToObservable();
@@ -111,6 +114,8 @@ public class MainViewModel : ViewModelBase {
 
         this.WhenAnyValue(x => x.State, s => s == ApplicationState.Debugging)
             .ToProperty(this, x => x.IsDebugging, out _isDebugging);
+        
+        isEmulatorActive.ToProperty(this, x => x.IsEmulatorActive, out _isEmulatorActive);
 
         // Load mult_philos sample from unit tests
         Backend = new OpenScriptBackend(
@@ -164,7 +169,7 @@ public class MainViewModel : ViewModelBase {
                 do {
                     em.TryExecuteNext();
                 } while (!em.EffectivelyTerminated &&
-                         !ShouldUpdateConsole(s.ElapsedMilliseconds - last, em.Program[em.ProgramCounter].Command));
+                         !ShouldUpdateConsole(s.ElapsedMilliseconds - last, em.ProgramCounter));
             });
             Console.FlushNewLines();
         }
@@ -178,8 +183,10 @@ public class MainViewModel : ViewModelBase {
 
     // Force pauses between console updates to keep UI responsive
     // except when there's a sysin coming up (otherwise prompts are not shown in time)
-    private bool ShouldUpdateConsole(long msSinceUpdate, Keyword nextCommand)
-        => Console.HasNewLines && (100 < msSinceUpdate || nextCommand == Keyword.Magic_Reg_Sysin);
+    private bool ShouldUpdateConsole(long msSinceUpdate, short pc)
+        => Console.HasNewLines && (100 < msSinceUpdate ||
+            (Backend.CurrentBuilder!.SymbolStacks.Length > pc &&
+             Backend.CurrentEmulator!.Program[pc].Command == Keyword.Magic_Reg_Sysin));
 
     private async Task ExecuteDebugCommand() {
         if (!Backend.Ready)
@@ -227,13 +234,13 @@ public class MainViewModel : ViewModelBase {
                 do {
                     em.TryExecuteNext();
                 } while (!em.EffectivelyTerminated &&
-                         !ShouldUpdateConsole(s.ElapsedMilliseconds - last, em.Program[em.ProgramCounter].Command) &&
-                         !IsAtBreakpoint(Backend.CurrentEmulator!.ProgramCounter));
+                         !ShouldUpdateConsole(s.ElapsedMilliseconds - last, em.ProgramCounter) &&
+                         !IsAtBreakpoint(em.ProgramCounter));
             });
             Console.FlushNewLines();
 
             // Pause at breakpoints; but only after at least one instruction was executed.
-            if (IsAtBreakpoint(Backend.CurrentEmulator!.ProgramCounter)) break;
+            if (IsAtBreakpoint(em.ProgramCounter)) break;
         }
 
         IsBackgroundBusy = false;

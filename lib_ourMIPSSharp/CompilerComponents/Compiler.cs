@@ -63,6 +63,7 @@ public partial class Compiler {
 
                                 // This is a label declaration. Skip over the next token.
                                 i += 1;
+                                Debug.WriteLine($"[Compiler.IterateTokens] Skipping colon Token {tokens[i + 1]}");
                                 state = handler.OnLabelDeclaration(token, tokens[i]);
                             }
                             else {
@@ -173,6 +174,7 @@ public partial class Compiler {
 
                                 // This is a macro label declaration. Skip over the next token.
                                 i += 1;
+                                Debug.WriteLine($"[Compiler.IterateTokens] Skipping colon Token {tokens[i + 1]}");
                                 state = handler.OnMacroLabelDeclaration(token, tokens[i+1]);
                             }
                             else {

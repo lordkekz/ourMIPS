@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -37,18 +39,21 @@ public partial class ConsoleView : UserControl {
 
     public IList<IBrush> LineBrushes { get; set; }
 
+    private bool _autoScrollActive;
+
     public ConsoleView() {
         InitializeComponent();
 
-        _editor = this.FindControl<TextEditor>("Editor");
+        _editor = this.FindControl<TextEditor>("Editor")!;
         _editor.Options.ShowBoxForControlCharacters = true;
         _editor.Options.ShowSpaces = false;
         _editor.Options.ShowTabs = false;
-        _editor.Options.ShowEndOfLine = true;
+        _editor.Options.ShowEndOfLine = false;
         // _editor.Options.EndOfLineCRLFGlyph =
         //     _editor.Options.EndOfLineCRGlyph =
         //         _editor.Options.EndOfLineLFGlyph = "*";
         _editor.Options.HighlightCurrentLine = false;
+        _editor.Options.AllowScrollBelowDocument = false;
 
         _editor.Background = Brushes.Transparent;
         _editor.ContextMenu = new ContextMenu {
@@ -69,6 +74,26 @@ public partial class ConsoleView : UserControl {
             if (i.Delta.Y > 0) _editor.FontSize++;
             else _editor.FontSize = _editor.FontSize > 1 ? _editor.FontSize - 1 : 1;
         }, RoutingStrategies.Bubble, true);
+
+
+        // Autoscroll behavior
+        _editor.TextArea.Caret.PositionChanged += (sender, args) => {
+            _autoScrollActive = _editor.CaretOffset >= _editor.Document.TextLength;
+            Debug.WriteLine(_autoScrollActive);
+        };
+        _editor.TextChanged += (sender, args) => {
+            if (!_autoScrollActive) return;
+            _editor.CaretOffset = _editor.Document.TextLength;
+        };
+    }
+
+    protected override void OnDataContextChanged(EventArgs e) {
+        base.OnDataContextChanged(e);
+        if (ViewModel is null) return;
+        ViewModel!.LinesFlushed += (sender, args) => {
+            Debug.WriteLine(_editor.TextArea.Caret.Line);
+            _editor.TextArea.Caret.BringCaretToView();
+        };
     }
 
     private void InitializeComponent() {
@@ -83,17 +108,17 @@ public partial class ConsoleView : UserControl {
                 MyConsoleView.ViewModel.Document.LineCount <= line.LineNumber ||
                 MyConsoleView.LineBrushes is null)
                 return;
-            
+
             // try {
             var colorHint = MyConsoleView.ViewModel.GetColorHint(line.LineNumber);
-                var brush = MyConsoleView.LineBrushes[colorHint];
-                // Debug.WriteLine($"{line.LineNumber} : {colorHint} => {brush}");
+            var brush = MyConsoleView.LineBrushes[colorHint];
+            // Debug.WriteLine($"{line.LineNumber} : {colorHint} => {brush}");
 
-                ChangeLinePart(
-                    line.Offset,
-                    line.EndOffset,
-                    visualLine => visualLine.TextRunProperties.SetForegroundBrush(brush)
-                );
+            ChangeLinePart(
+                line.Offset,
+                line.EndOffset,
+                visualLine => visualLine.TextRunProperties.SetForegroundBrush(brush)
+            );
             // }
             // catch (NullReferenceException) { }
             // catch (ArgumentOutOfRangeException) { }

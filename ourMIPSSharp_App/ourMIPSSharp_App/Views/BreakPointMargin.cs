@@ -1,12 +1,14 @@
 using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using AvaloniaEdit;
 using AvaloniaEdit.Editing;
+using lib_ourMIPSSharp.CompilerComponents.Elements;
 using ourMIPSSharp_App.ViewModels;
 
 namespace ourMIPSSharp_App.Views;
@@ -30,11 +32,14 @@ public class BreakPointMargin : AbstractMargin {
     public BreakPointMargin(TextEditor editor, MainView mv) {
         _editor = editor;
         _mv = mv;
+        Cursor = new Cursor(StandardCursorType.Hand);
     }
 
     public override void Render(DrawingContext context) {
         if (!TextView.VisualLinesValid) return;
-        context.FillRectangle(Brushes.Black, Bounds);
+
+        this.TryFindColor("SystemChromeBlackHighColor", out var bgColor);
+        context.FillRectangle(new SolidColorBrush(bgColor), Bounds);
         context.DrawLine(new Pen(Brushes.White, 0.5), Bounds.TopRight, Bounds.BottomRight);
 
         if (TextView.VisualLines.Count <= 0) return;
@@ -72,8 +77,6 @@ public class BreakPointMargin : AbstractMargin {
     }
 
     protected override void OnPointerMoved(PointerEventArgs e) {
-        previewPointVisible = true;
-
         var textView = TextView;
 
         var textViewPosition = _editor.GetPositionFromPoint(e.GetPosition(this));
@@ -84,14 +87,13 @@ public class BreakPointMargin : AbstractMargin {
         if (offset != -1) {
             previewLine =
                 textView.Document.GetLineByOffset(offset).LineNumber; // convert from text line to visual line.
+            previewPointVisible = LineHasInstruction(previewLine);
         }
 
         InvalidateVisual();
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e) {
-        previewPointVisible = true;
-
         var textView = TextView;
 
         var textViewPosition = _editor.GetPositionFromPoint(e.GetPosition(this));
@@ -110,9 +112,10 @@ public class BreakPointMargin : AbstractMargin {
             if (currentBreakPoint != null) {
                 ViewModel.UIBreakpoints.Remove(currentBreakPoint);
                 currentBreakPoint.IsDeleted = true;
+                previewPointVisible = true;
             }
             else {
-                if (!string.IsNullOrEmpty(_editor.Text)) {
+                if (LineHasInstruction(lineClicked)) {
                     var a = Document.CreateAnchor(offset);
                     var bp = new Breakpoint(x => {
                         x.Line = a.Line;
@@ -126,8 +129,22 @@ public class BreakPointMargin : AbstractMargin {
         InvalidateVisual();
     }
 
+    private bool LineHasInstruction(int lineClicked) {
+        var line = TextView.Document.GetLineByNumber(lineClicked);
+        var lineStr = TextView.Document.GetText(line.Offset, line.EndOffset-line.Offset);
+        var instructionWord = lineStr.Trim().Split(' ', 2)[0];
+        if (string.IsNullOrWhiteSpace(instructionWord)) return false;
+        var keyword = KeywordHelper.FromToken(new Token(DialectOptions.None)
+            { Type = TokenType.Word, Content = instructionWord });
+        return (uint)keyword > 4;
+    }
+
     protected override Size MeasureOverride(Size availableSize) {
-        return TextView != null ? new Size(TextView.DefaultLineHeight, 0) : new Size(0, 0);
+        if (TextView is null) return new Size(0, 0);
+
+        var width = TextView.VisualLinesValid ? TextView.VisualLines.FirstOrDefault()?.Height : null;
+        width ??= TextView.DefaultLineHeight;
+        return new Size(width.Value, 0);
     }
 
     protected override void OnPointerExited(PointerEventArgs e) {

@@ -91,13 +91,15 @@ public class CompilerMacroResolver : ICompilerHandler {
     private void AddUniqueLabelName(Token token) {
         var peek = _stack.Peek();
         var newLabelName = $"@{peek.Macro.Name}[{_counters.GetValueOrDefault(peek.Macro)}]_{token.Content}";
-
-        ResolvedTokens.Add(new Token(Options) {
+        var newToken = new Token(Options) {
             Content = newLabelName,
             Line = token.Line,
             Column = token.Column,
             Type = TokenType.Word
-        });
+        };
+
+        ResolvedTokens.Add(newToken);
+        Debug.WriteLine($"[CompilerMacroResolver] Label {token}   ->   {newToken}");
     }
 
     public CompilerState OnInstructionArgs(Token token) {

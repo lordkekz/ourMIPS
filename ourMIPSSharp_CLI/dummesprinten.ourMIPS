@@ -1,0 +1,18 @@
+
+macro countdowni count
+	addi zero t0 count
+	countdown t0
+endmacro
+
+macro countdown reg
+	loop2:
+		subi reg reg 1
+		bgt reg zero loop2
+endmacro
+
+addi zero s0 0
+loop:
+	sysout s0
+	addi s0 s0 1
+	countdowni 1000
+	jmp loop

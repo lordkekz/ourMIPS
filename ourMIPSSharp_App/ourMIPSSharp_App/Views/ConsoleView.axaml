@@ -28,9 +28,9 @@
                                  VerticalScrollBarVisibility="Visible"
                                  HorizontalAlignment="Stretch"
                                  VerticalAlignment="Stretch"
-                                 ShowLineNumbers="False"
+                                 ShowLineNumbers="True"
                                  Document="{Binding Document}"
-                                 WordWrap="True"
+                                 WordWrap="False"
                                  IsReadOnly="True"
                                  FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
                                  FontWeight="Light" />

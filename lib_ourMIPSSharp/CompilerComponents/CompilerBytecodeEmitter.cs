@@ -60,7 +60,7 @@ public class CompilerBytecodeEmitter : ICompilerHandler {
             lName = lName.ToLowerInvariant();
 
         if (!Labels.TryGetValue(lName, out var lInstruction))
-            throw new UndefinedSymbolError(tok);
+            throw new UndefinedSymbolError(tok, "label");
 
         // Cast to ushort to prevent sign extension
         return (short)(lInstruction - _instructionCounter);

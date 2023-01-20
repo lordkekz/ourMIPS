@@ -78,6 +78,10 @@ public class CompilerMacroReader : ICompilerHandler {
     }
 
     public CompilerState OnMacroLabelDeclaration(Token token, Token colon) {
+        if (_current.StartIndex == -1)
+            // Set start index to index of first label declaration in macro body
+            _current.StartIndex = Comp.Tokens.IndexOf(token);
+        
         _current.AddLabel(token);
         return CompilerState.MacroInstructionArgs;
     }

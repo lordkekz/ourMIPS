@@ -40,7 +40,7 @@
                     IsVisible="{Binding IsDebugging}" />
             <Button i:Attached.Icon="fa-solid fa-stop"
                     Command="{Binding StopCommand}"
-                    IsVisible="{Binding IsDebugging}" />
+                    IsVisible="{Binding IsEmulatorActive}" />
         </StackPanel>
         <Grid Grid.Row="0" Grid.Column="1">
             <Grid.RowDefinitions>

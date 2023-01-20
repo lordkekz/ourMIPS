@@ -56,8 +56,8 @@ public class CompilerDebug {
     /// Main program
     public Builder Main() {
         // Read the source code
-        // var sourceCode = File.ReadAllText("../../../sort_philos.ourMIPS");
-        var sourceCode = File.ReadAllText("../../../../lib_ourMIPSSharp_Tests/Samples/sort_philos.ourMIPS");
+        var sourceCode = File.ReadAllText("../../../dummesprinten.ourMIPS");
+        // var sourceCode = File.ReadAllText("../../../../lib_ourMIPSSharp_Tests/Samples/sort_philos.ourMIPS");
 
         // Build the MIPS program
         var builder = new Builder(sourceCode, DialectOptions.None);

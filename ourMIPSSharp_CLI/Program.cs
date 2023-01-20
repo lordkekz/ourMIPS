@@ -5,8 +5,10 @@ namespace ourMIPSSharp_CLI;
 class Program
 {
     // TODO all of it
-    static async Task<int> Main(string[] args)
-    {
+    static async Task<int> Main(string[] args) {
+        new CompilerDebug().Main();
+        
+        
         var fileOptionC = new Option<FileInfo?>(
             new []{"-c", "-compile"},
             "The source file to compile.");

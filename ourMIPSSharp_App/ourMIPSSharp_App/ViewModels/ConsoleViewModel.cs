@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reactive.Linq;
 using Avalonia.Media;
 using AvaloniaEdit.Document;
 using ourMIPSSharp_App.Models;
@@ -29,6 +31,12 @@ public class ConsoleViewModel : ViewModelBase {
 
     private ConcurrentQueue<string> _newLines = new();
 
+    public event EventHandler LinesFlushed;
+
+    protected virtual void OnLinesFlushed() {
+        LinesFlushed?.Invoke(this, EventArgs.Empty);
+    }
+    
     public ConsoleViewModel(OpenScriptBackend backend) {
         Backend = backend;
         Backend.TextInfoWriter.LineWritten += TextInfoWriterOnLineWritten;
@@ -58,13 +66,16 @@ public class ConsoleViewModel : ViewModelBase {
     }
 
     public bool HasNewLines => !_newLines.IsEmpty;
-    
+
     public void FlushNewLines() {
-        foreach (var line in _newLines)
-            Document.Insert(Document.TextLength, line);
+        // There is no point in using DocumentTextWriter, since it also relies on Document.Insert
+        // Only call Document.Insert once, since it seems to update ui every time
+        var str = _newLines.Aggregate("", (a, b) => a + b);
         _newLines.Clear();
+        Document.Insert(Document.TextLength, str);
+        OnLinesFlushed();
     }
-    
+
     public int GetColorHint(int lineNumber) => ColorHints[lineNumber - 1];
 
     public void Clear() {
@@ -73,7 +84,7 @@ public class ConsoleViewModel : ViewModelBase {
         Backend.TextOutWriter.WriteLine();
         Backend.TextErrWriter.WriteLine();
         Backend.TextInWriter.WriteLine();
-        
+
         // Clear Document and Hints
         Document.Text = "";
         _newLines.Clear();

@@ -36,7 +36,7 @@ public class Emulator {
         if (EffectivelyTerminated)
             throw new EmulatorException("Cannot execute next instruction because program has terminated.");
         if (ProgramCounter < 0 || ProgramCounter >= Program.Count)
-            throw new EmulatorException($"Owner tried to read illegal instruction at {Registers.ProgramCounter}!");
+            throw new EmulatorException($"Tried to read instruction at illegal address {Registers.ProgramCounter}! Did you forget systerm?");
 
         var instruction = Program[ProgramCounter];
         Executor.ExecuteInstruction(instruction);

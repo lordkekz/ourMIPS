@@ -59,8 +59,8 @@ public partial class MainView : UserControl {
     protected override void OnLoaded() {
         base.OnLoaded();
 
-        var infoColor = this.TryFindResource("SystemBaseMediumColor", out var infoX) ? (Color)infoX : default;
-        var normalColor = this.TryFindResource("SystemBaseHighColor", out var normalX) ? (Color)normalX : default;
+        this.TryFindColor("SystemBaseMediumColor", out var infoColor);
+        this.TryFindColor("SystemBaseHighColor", out var normalColor);
         ConView.LineBrushes = new List<IBrush>() {
             new SolidColorBrush(infoColor),
             new SolidColorBrush(normalColor),
