@@ -1,11 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
@@ -13,15 +7,9 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using Avalonia.Media.Imaging;
 using AvaloniaEdit;
-using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Document;
-using AvaloniaEdit.Editing;
-using AvaloniaEdit.Folding;
 using AvaloniaEdit.Rendering;
-using AvaloniaEdit.TextMate;
-using AvaloniaEdit.TextMate.Grammars;
 using ourMIPSSharp_App.ViewModels;
 
 namespace ourMIPSSharp_App.Views;
@@ -31,15 +19,25 @@ using Pair = KeyValuePair<int, Control>;
 public partial class ConsoleView : UserControl {
     public ConsoleViewModel? ViewModel => DataContext as ConsoleViewModel;
 
-    public static readonly AttachedProperty<IList<Brush>> LineBrushesProperty =
-        AvaloniaProperty.RegisterAttached<ConsoleView, ConsoleView, IList<Brush>>(
-            "LineBrushes", default(IList<Brush>), false, BindingMode.OneTime);
+    public static readonly AttachedProperty<IList<IBrush>?> LineBrushesProperty =
+        AvaloniaProperty.RegisterAttached<ConsoleView, ConsoleView, IList<IBrush>?>(
+            "LineBrushes", default, false, BindingMode.OneTime);
+
+    public IList<IBrush>? LineBrushes {
+        get => GetLineBrushes(this);
+        set => SetLineBrushes(this, value);
+    }
+
+    public static readonly AttachedProperty<bool> IsAutoScrollEnabledProperty =
+        AvaloniaProperty.RegisterAttached<ConsoleView, ConsoleView, bool>(
+            "IsAutoScrollEnabled", true, false, BindingMode.TwoWay);
+
+    public bool IsAutoScrollEnabled {
+        get => GetIsAutoScrollEnabled(this);
+        set => SetIsAutoScrollEnabled(this, value);
+    }
 
     private TextEditor _editor;
-
-    public IList<IBrush> LineBrushes { get; set; }
-
-    private bool _autoScrollActive;
 
     public ConsoleView() {
         InitializeComponent();
@@ -68,30 +66,26 @@ public partial class ConsoleView : UserControl {
         _editor.TextArea.RightClickMovesCaret = true;
 
         _editor.TextArea.TextView.LineTransformers.Add(new ConsoleColorTransformer() { MyConsoleView = this });
+        
+        AddHandler(PointerWheelChangedEvent, (o, i) => {
+            if (i.KeyModifiers != KeyModifiers.Control) {
+                IsAutoScrollEnabled = false;
+                return;
+            }
 
-        this.AddHandler(PointerWheelChangedEvent, (o, i) => {
-            if (i.KeyModifiers != KeyModifiers.Control) return;
+            i.Handled = true;
             if (i.Delta.Y > 0) _editor.FontSize++;
             else _editor.FontSize = _editor.FontSize > 1 ? _editor.FontSize - 1 : 1;
-        }, RoutingStrategies.Bubble, true);
-
-
-        // Autoscroll behavior
-        _editor.TextArea.Caret.PositionChanged += (sender, args) => {
-            _autoScrollActive = _editor.CaretOffset >= _editor.Document.TextLength;
-            Debug.WriteLine(_autoScrollActive);
-        };
-        _editor.TextChanged += (sender, args) => {
-            if (!_autoScrollActive) return;
-            _editor.CaretOffset = _editor.Document.TextLength;
-        };
+        }, RoutingStrategies.Tunnel, true);
     }
 
     protected override void OnDataContextChanged(EventArgs e) {
         base.OnDataContextChanged(e);
         if (ViewModel is null) return;
         ViewModel!.LinesFlushed += (sender, args) => {
-            Debug.WriteLine(_editor.TextArea.Caret.Line);
+            if (!IsAutoScrollEnabled)
+                return;
+            _editor.CaretOffset = _editor.Document.TextLength;
             _editor.TextArea.Caret.BringCaretToView();
         };
     }
@@ -131,5 +125,34 @@ public partial class ConsoleView : UserControl {
             ViewModel.SubmitInput();
             // InputBox.Clear();
         }
+    }
+
+
+    /// <summary>
+    /// Accessor for Attached property <see cref="LineBrushesProperty"/>.
+    /// </summary>
+    public static void SetLineBrushes(AvaloniaObject element, IList<IBrush> value) {
+        element.SetValue(LineBrushesProperty, value);
+    }
+
+    /// <summary>
+    /// Accessor for Attached property <see cref="LineBrushesProperty"/>.
+    /// </summary>
+    public static IList<IBrush>? GetLineBrushes(AvaloniaObject element) {
+        return element.GetValue(LineBrushesProperty);
+    }
+
+    /// <summary>
+    /// Accessor for Attached property <see cref="IsAutoScrollEnabledProperty"/>.
+    /// </summary>
+    public static void SetIsAutoScrollEnabled(AvaloniaObject element, bool value) {
+        element.SetValue(IsAutoScrollEnabledProperty, value);
+    }
+
+    /// <summary>
+    /// Accessor for Attached property <see cref="IsAutoScrollEnabledProperty"/>.
+    /// </summary>
+    public static bool GetIsAutoScrollEnabled(AvaloniaObject element) {
+        return element.GetValue(IsAutoScrollEnabledProperty);
     }
 }

@@ -88,7 +88,14 @@ public class MainViewModel : ViewModelBase {
     
     private readonly ObservableAsPropertyHelper<bool> _isEmulatorActive;
     public bool IsEmulatorActive => _isEmulatorActive.Value;
+    
+    private string _editorCaretInfo;
 
+    public string EditorCaretInfo {
+        get => _editorCaretInfo;
+        private set => this.RaiseAndSetIfChanged(ref _editorCaretInfo, value);
+    }
+    
     public MainViewModel() {
         var canExecuteNever = new[] { false }.ToObservable();
         var isRebuildingAllowed = this.WhenAnyValue(x => x.State,
@@ -117,6 +124,7 @@ public class MainViewModel : ViewModelBase {
         
         isEmulatorActive.ToProperty(this, x => x.IsEmulatorActive, out _isEmulatorActive);
 
+        
         // Load mult_philos sample from unit tests
         Backend = new OpenScriptBackend(
             "../../../../../lib_ourMIPSSharp_Tests/Samples/instructiontests_philos.ourMIPS");
@@ -309,5 +317,9 @@ public class MainViewModel : ViewModelBase {
         foreach (var address in memory.Keys.Order()) {
             MemoryList.Add(new MemoryEntry(address, memory));
         }
+    }
+
+    public void UpdateCaretInfo(int positionLine, int positionColumn) {
+        EditorCaretInfo = $"Pos {positionLine}:{positionColumn}";
     }
 }

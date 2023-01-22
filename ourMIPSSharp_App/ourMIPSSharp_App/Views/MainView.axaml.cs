@@ -26,6 +26,7 @@ public partial class MainView : UserControl {
     public MainViewModel? ViewModel => DataContext as MainViewModel;
 
     private ElementGenerator _generator;
+    private readonly BreakPointMargin _breakPointMargin;
 
     public MainView() {
         InitializeComponent();
@@ -35,7 +36,7 @@ public partial class MainView : UserControl {
         Editor.Options.ShowTabs = false;
         Editor.Options.ShowEndOfLine = false;
         Editor.Options.HighlightCurrentLine = true;
-        
+
         // Load syntax highlighting definition as resource so it's always available
         var assets = AvaloniaLocator.Current.GetService<IAssetLoader>()!;
         using (var bitmap = assets.Open(new Uri("avares://ourMIPSSHarp_App/Assets/ourMIPS.xshd"))) {
@@ -43,17 +44,27 @@ public partial class MainView : UserControl {
                 Editor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
             }
         }
+        
+        Editor.TextArea.Caret.PositionChanged += (sender, args) => {
+            ViewModel?.UpdateCaretInfo(
+                Editor.TextArea.Caret.Position.Line,
+                Editor.TextArea.Caret.Position.Column);
+        };
 
         // _generator = new ElementGenerator() { Editor = Editor };
         // Editor.TextArea.TextView.ElementGenerators.Add(_generator);
 
         Editor.AddHandler(PointerWheelChangedEvent, (o, i) => {
             if (i.KeyModifiers != KeyModifiers.Control) return;
+            i.Handled = true;
             if (i.Delta.Y > 0) Editor.FontSize++;
             else Editor.FontSize = Editor.FontSize > 1 ? Editor.FontSize - 1 : 1;
-        }, RoutingStrategies.Bubble, true);
 
-        Editor.TextArea.LeftMargins.Insert(0, new BreakPointMargin(Editor, this));
+            _breakPointMargin?.InvalidateMeasure();
+        }, RoutingStrategies.Tunnel, true);
+
+        _breakPointMargin = new BreakPointMargin(Editor, this);
+        Editor.TextArea.LeftMargins.Insert(0, _breakPointMargin);
     }
 
     protected override void OnLoaded() {

@@ -1,6 +1,7 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:ourMIPSSharp_App"
+             xmlns:i="clr-namespace:Projektanker.Icons.Avalonia;assembly=Projektanker.Icons.Avalonia"
              x:Class="ourMIPSSharp_App.App">
     <Application.DataTemplates>
         <local:ViewLocator />
@@ -28,12 +29,47 @@
             <Setter Property="Width" Value="48" />
             <Setter Property="Background" Value="{DynamicResource SystemControlTransparentBrush}" />
         </Style>
-        <Style Selector="StackPanel.Menu_Sidebar Button:disabled /template/ ContentPresenter">
+        <Style Selector="StackPanel.Menu_Sidebar Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource SystemControlTransparentBrush}" />
         </Style>
-        <Style Selector="StackPanel.Status_Bar">
+        <Style Selector="Grid.Status_Bar">
             <Setter Property="Background" Value="{DynamicResource SystemAccentColorDark1}" />
             <Setter Property="Height" Value="24" />
+        </Style>
+        <Style Selector=".Status_Bar > TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="8,0" />
+        </Style>
+        <Style Selector=".Status_Bar > Rectangle">
+            <Setter Property="Stroke" Value="{DynamicResource SystemChromeWhiteColor}" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="Height" Value="20" />
+            <Setter Property="Width" Value="0" />
+            <Setter Property="Margin" Value="4, 0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector=".Status_Bar > ToggleButton">
+            <Setter Property="Padding" Value="4,0" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="Background" Value="{DynamicResource SystemControlTransparentBrush}" />
+        </Style>
+        <Style Selector=".Status_Bar > ToggleButton:checked /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemControlTransparentBrush}" />
+        </Style>
+        <Style Selector=".Status_Bar > ToggleButton:unchecked i|Icon.OnContent">
+            <Setter Property="IsVisible" Value="false" />
+        </Style>
+        <Style Selector=".Status_Bar > ToggleButton:checked i|Icon.OffContent">
+            <Setter Property="IsVisible" Value="false" />
+        </Style>
+        <Style Selector=".Status_Bar > ToggleButton:unchecked TextBlock.OnContent">
+            <Setter Property="IsVisible" Value="false" />
+        </Style>
+        <Style Selector=".Status_Bar > ToggleButton:checked TextBlock.OffContent">
+            <Setter Property="IsVisible" Value="false" />
         </Style>
     </Application.Styles>
 

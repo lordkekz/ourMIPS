@@ -49,20 +49,21 @@
                 <RowDefinition Height="*" MinHeight="200" />
             </Grid.RowDefinitions>
             <avaloniaEdit:TextEditor Grid.Row="0" Name="Editor"
-                                   HorizontalScrollBarVisibility="Auto"
-                                   VerticalScrollBarVisibility="Visible"
-                                   HorizontalAlignment="Stretch"
-                                   VerticalAlignment="Stretch"
-                                   ShowLineNumbers="True"
-                                   Document="{Binding Document}"
-                                   WordWrap="False"
-                                   FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
-                                   FontWeight="Light"
-                                   IsReadOnly="{Binding IsEditorReadonly}" />
+                                     HorizontalScrollBarVisibility="Auto"
+                                     VerticalScrollBarVisibility="Visible"
+                                     HorizontalAlignment="Stretch"
+                                     VerticalAlignment="Stretch"
+                                     ShowLineNumbers="True"
+                                     Document="{Binding Document}"
+                                     WordWrap="False"
+                                     FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+                                     FontWeight="Light"
+                                     IsReadOnly="{Binding IsEditorReadonly}" />
             <GridSplitter Grid.Row="1" ResizeDirection="Rows" />
             <views:ConsoleView Grid.Row="2"
                                Name="ConView"
-                               DataContext="{Binding Console}" />
+                               DataContext="{Binding Console}"
+                               IsAutoScrollEnabled="{Binding Path=IsChecked, ElementName=AutoScrollToggleButton, Mode=TwoWay}" />
         </Grid>
         <GridSplitter Grid.Row="0" ZIndex="1" Grid.Column="2" ResizeDirection="Columns" />
         <Grid Grid.Row="0" Grid.Column="3">
@@ -73,7 +74,8 @@
             </Grid.RowDefinitions>
             <TabControl Grid.Row="0">
                 <TabItem Header="Registers">
-                    <Grid ColumnDefinitions="Auto, Auto, *" RowDefinitions="Auto, Auto, *" HorizontalAlignment="Stretch">
+                    <Grid ColumnDefinitions="Auto, Auto, *" RowDefinitions="Auto, Auto, *"
+                          HorizontalAlignment="Stretch">
                         <TextBlock Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left"
                                    Margin="0,0,24,0" Text="Program Counter:" />
                         <TextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right"
@@ -170,8 +172,19 @@
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>
-        <StackPanel Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="4" Classes="Status_Bar">
-            <Label Content="{Binding State}" />
-        </StackPanel>
+        <Grid Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="4" Classes="Status_Bar"
+              ColumnDefinitions="Auto, Auto, Auto, *, Auto">
+            <TextBlock Grid.Column="0" Text="{Binding State}" />
+            <Rectangle Grid.Column="1" />
+            <ToggleButton Grid.Column="2" IsChecked="True" Name="AutoScrollToggleButton">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <i:Icon Value="fa-solid fa-turn-down" Classes="OnContent" />
+                    <TextBlock Text="Auto scroll" Classes="OnContent" />
+                    <i:Icon Value="fa-solid fa-up-down" Classes="OffContent" />
+                    <TextBlock Text="Free scroll" Classes="OffContent" />
+                </StackPanel>
+            </ToggleButton>
+            <TextBlock Grid.Column="4" Text="{Binding EditorCaretInfo}" />
+        </Grid>
     </Grid>
 </UserControl>
