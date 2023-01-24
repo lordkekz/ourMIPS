@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -8,10 +6,8 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Avalonia;
 using AvaloniaEdit.Document;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
-using lib_ourMIPSSharp.EmulatorComponents;
 using ourMIPSSharp_App.Models;
 using ReactiveUI;
 
@@ -85,17 +81,39 @@ public class MainViewModel : ViewModelBase {
 
     private readonly ObservableAsPropertyHelper<bool> _isDebugging;
     public bool IsDebugging => _isDebugging.Value;
-    
+
     private readonly ObservableAsPropertyHelper<bool> _isEmulatorActive;
     public bool IsEmulatorActive => _isEmulatorActive.Value;
-    
+
     private string _editorCaretInfo;
 
     public string EditorCaretInfo {
         get => _editorCaretInfo;
         private set => this.RaiseAndSetIfChanged(ref _editorCaretInfo, value);
     }
-    
+
+    /// <summary>
+    /// Fired whenever the debugger enters its break mode through a breakpoint, manual stepping or a pause command.
+    /// </summary>
+    public event EventHandler<DebuggerBreakingEventHandlerArgs>? DebuggerBreaking;
+
+    /// <summary>
+    /// Fired whenever the debugger leaves its break mode by continuing execution or terminating.
+    /// </summary>
+    public event EventHandler? DebuggerBreakEnding;
+
+    /// <summary>
+    /// Fired whenever the program was rebuilt.
+    /// </summary>
+    public event EventHandler? Rebuilt;
+
+    /// <summary>
+    /// Fired whenever the debugger register/memory are to be updated.
+    /// </summary>
+    public event EventHandler<DebuggerUpdatingEventHandlerArgs>? DebuggerUpdating;
+
+    private IObservable<EventPattern<DebuggerUpdatingEventHandlerArgs>> _debuggerUpdatingObservable;
+
     public MainViewModel() {
         var canExecuteNever = new[] { false }.ToObservable();
         var isRebuildingAllowed = this.WhenAnyValue(x => x.State,
@@ -121,16 +139,24 @@ public class MainViewModel : ViewModelBase {
 
         this.WhenAnyValue(x => x.State, s => s == ApplicationState.Debugging)
             .ToProperty(this, x => x.IsDebugging, out _isDebugging);
-        
+
         isEmulatorActive.ToProperty(this, x => x.IsEmulatorActive, out _isEmulatorActive);
 
-        
+        _debuggerUpdatingObservable = Observable.FromEventPattern<DebuggerUpdatingEventHandlerArgs>(
+            a => DebuggerUpdating += a,
+            a => DebuggerUpdating -= a);
+
         // Load mult_philos sample from unit tests
         Backend = new OpenScriptBackend(
             "../../../../../lib_ourMIPSSharp_Tests/Samples/instructiontests_philos.ourMIPS");
         Document = new TextDocument(Backend.SourceCode);
         Console = new ConsoleViewModel(Backend);
-        UpdateData();
+
+        // Init RegisterList
+        for (var i = 0; i < 32; i++) {
+            RegisterList.Add(new RegisterEntry((Register)i, () => Backend.CurrentEmulator!.Registers,
+                _debuggerUpdatingObservable));
+        }
     }
 
     private async Task ExecuteRebuildCommand() {
@@ -143,7 +169,8 @@ public class MainViewModel : ViewModelBase {
         });
 
         State = ApplicationState.Ready;
-        UpdateData();
+        Console.FlushNewLines();
+        OnRebuilt();
     }
 
     private void UpdateBreakpoints() {
@@ -163,6 +190,7 @@ public class MainViewModel : ViewModelBase {
 
         Console.Clear();
         State = ApplicationState.Running;
+        OnDebuggerUpdating(false);
 
         var em = Backend.CurrentEmulator;
         Backend.TextInfoWriter.WriteLine("[EMULATOR] Running program.");
@@ -186,15 +214,16 @@ public class MainViewModel : ViewModelBase {
         Backend.TextInfoWriter.WriteLine($"[EMULATOR] Program terminated after {s.ElapsedMilliseconds}ms");
 
         State = ApplicationState.Ready;
-        UpdateData();
+        Console.FlushNewLines();
+        OnDebuggerUpdating(true);
     }
 
     // Force pauses between console updates to keep UI responsive
     // except when there's a sysin coming up (otherwise prompts are not shown in time)
     private bool ShouldUpdateConsole(long msSinceUpdate, short pc)
         => Console.HasNewLines && (100 < msSinceUpdate ||
-            (Backend.CurrentBuilder!.SymbolStacks.Length > pc &&
-             Backend.CurrentEmulator!.Program[pc].Command == Keyword.Magic_Reg_Sysin));
+                                   (Backend.CurrentBuilder!.SymbolStacks.Length > pc &&
+                                    Backend.CurrentEmulator!.Program[pc].Command == Keyword.Magic_Reg_Sysin));
 
     private async Task ExecuteDebugCommand() {
         if (!Backend.Ready)
@@ -203,32 +232,41 @@ public class MainViewModel : ViewModelBase {
             await StopEmulator();
         Backend.MakeEmulator();
 
+
         Console.Clear();
         Backend.TextInfoWriter.WriteLine("[EMULATOR] Debug session started.");
         State = ApplicationState.Debugging;
-        UpdateData();
+        OnDebuggerBreaking();
+        OnDebuggerUpdating(false);
+        Console.FlushNewLines();
     }
 
     private async Task ExecuteStepCommand() {
         if (IsBackgroundBusy) return;
         var em = Backend.CurrentEmulator!;
+        OnDebuggerBreakEnding();
 
         IsBackgroundBusy = true;
         await Task.Run(() => { em.TryExecuteNext(); });
         IsBackgroundBusy = false;
 
         if (em.Terminated || em.ErrorTerminated) {
+            if (IsDebugging) OnDebuggerBreakEnding();
             Backend.TextInfoWriter.WriteLine("[EMULATOR] Program terminated.");
             State = ApplicationState.Ready;
         }
+        else {
+            OnDebuggerBreaking();
+        }
 
-        UpdateData();
+        OnDebuggerUpdating(true);
+        Console.FlushNewLines();
     }
 
     private async Task ExecuteForwardCommand() {
         if (IsBackgroundBusy) return;
 
-        var em = Backend.CurrentEmulator;
+        var em = Backend.CurrentEmulator!;
         var s = new Stopwatch();
         s.Start();
 
@@ -248,7 +286,10 @@ public class MainViewModel : ViewModelBase {
             Console.FlushNewLines();
 
             // Pause at breakpoints; but only after at least one instruction was executed.
-            if (IsAtBreakpoint(em.ProgramCounter)) break;
+            if (IsAtBreakpoint(em.ProgramCounter)) {
+                OnDebuggerBreaking();
+                break;
+            }
         }
 
         IsBackgroundBusy = false;
@@ -257,9 +298,10 @@ public class MainViewModel : ViewModelBase {
         if (em.Terminated || em.ErrorTerminated) {
             Backend.TextInfoWriter.WriteLine("[EMULATOR] Program terminated.");
             State = ApplicationState.Ready;
+            OnDebuggerBreakEnding();
         }
 
-        UpdateData();
+        OnDebuggerUpdating(true);
     }
 
     private async Task ExecuteStopCommand() {
@@ -267,7 +309,7 @@ public class MainViewModel : ViewModelBase {
 
         await StopEmulator();
         Backend.TextInfoWriter.WriteLine("[EMULATOR] Program terminated by user.");
-        UpdateData();
+        OnDebuggerUpdating(true);
     }
 
     /// <summary>
@@ -282,6 +324,7 @@ public class MainViewModel : ViewModelBase {
             await Task.Run(() => backgroundNoLongerBusy.Wait());
         }
 
+        if (IsDebugging) OnDebuggerBreakEnding();
         State = ApplicationState.Ready;
     }
 
@@ -291,14 +334,20 @@ public class MainViewModel : ViewModelBase {
                    s => Breakpoints.Any(x => x.Line == s.Line));
     }
 
-    public void UpdateData() {
-        Console.FlushNewLines();
-        if (!Backend.Ready)
-            return;
+    public void UpdateCaretInfo(int positionLine, int positionColumn) {
+        EditorCaretInfo = $"Pos {positionLine}:{positionColumn}";
+    }
 
-        OverflowFlag = Backend.CurrentEmulator!.Registers.FlagOverflow ? 1 : 0;
-        ProgramCounter = Backend.CurrentEmulator!.Registers.ProgramCounter;
+    protected virtual void OnDebuggerBreaking() {
+        var line = Backend.CurrentBuilder!.SymbolStacks[Backend.CurrentEmulator!.ProgramCounter].Last().Line;
+        DebuggerBreaking?.Invoke(this, new DebuggerBreakingEventHandlerArgs(line));
+    }
 
+    protected virtual void OnDebuggerBreakEnding() {
+        DebuggerBreakEnding?.Invoke(this, EventArgs.Empty);
+    }
+
+    protected virtual void OnRebuilt() {
         InstructionList.Clear();
         var prog = Backend.CurrentEmulator!.Program;
         for (var i = 0; i < prog.Count; i++) {
@@ -306,20 +355,51 @@ public class MainViewModel : ViewModelBase {
             InstructionList.Add(new InstructionEntry(i, line, prog));
         }
 
-        RegisterList.Clear();
-        var regs = Backend.CurrentEmulator!.Registers;
-        for (var i = 0; i < 32; i++) {
-            RegisterList.Add(new RegisterEntry((Register)i, regs));
-        }
-
-        MemoryList.Clear();
-        var memory = Backend.CurrentEmulator!.Memory;
-        foreach (var address in memory.Keys.Order()) {
-            MemoryList.Add(new MemoryEntry(address, memory));
-        }
+        Rebuilt?.Invoke(this, EventArgs.Empty);
     }
 
-    public void UpdateCaretInfo(int positionLine, int positionColumn) {
-        EditorCaretInfo = $"Pos {positionLine}:{positionColumn}";
+    protected virtual void OnDebuggerUpdating(bool raisesChangeHighlight) {
+        OverflowFlag = Backend.CurrentEmulator!.Registers.FlagOverflow ? 1 : 0;
+        ProgramCounter = Backend.CurrentEmulator!.Registers.ProgramCounter;
+
+        var index = 0;
+        foreach (var address in Backend.CurrentEmulator!.Memory.Keys.Order()) {
+            if (index >= MemoryList.Count)
+                MemoryList.Add(new MemoryEntry(address, () => Backend.CurrentEmulator!.Memory,
+                    _debuggerUpdatingObservable));
+            else {
+                while (MemoryList[index].AddressDecimal < address)
+                    MemoryList.RemoveAt(index);
+                if (MemoryList[index].AddressDecimal != address)
+                    MemoryList.Insert(index, new MemoryEntry(address, () => Backend.CurrentEmulator!.Memory,
+                        _debuggerUpdatingObservable));
+            }
+
+            index++;
+        }
+
+        while (index < MemoryList.Count) MemoryList.RemoveAt(index);
+
+        DebuggerUpdating?.Invoke(this, new DebuggerUpdatingEventHandlerArgs(raisesChangeHighlight));
+    }
+}
+
+public class DebuggerBreakingEventHandlerArgs : EventArgs {
+    public int Line { get; }
+
+    public DebuggerBreakingEventHandlerArgs(int line) {
+        Line = line;
+    }
+}
+
+public class DebuggerUpdatingEventHandlerArgs : EventArgs {
+    /// <summary>
+    /// Defines whether changes during this event should be highlighted.
+    /// Should be false if update was not because of instruction execution.
+    /// </summary>
+    public bool RaisesChangeHighlight { get; }
+
+    public DebuggerUpdatingEventHandlerArgs(bool raisesChangeHighlight) {
+        RaisesChangeHighlight = raisesChangeHighlight;
     }
 }

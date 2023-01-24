@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
@@ -82,10 +83,13 @@ public partial class ConsoleView : UserControl {
     protected override void OnDataContextChanged(EventArgs e) {
         base.OnDataContextChanged(e);
         if (ViewModel is null) return;
-        ViewModel!.LinesFlushed += (sender, args) => {
+        ViewModel!.LinesFlushed += async (sender, args) => {
             if (!IsAutoScrollEnabled)
                 return;
             _editor.CaretOffset = _editor.Document.TextLength;
+
+            // Release UI thread to allow Editor to calculate new line heights
+            await Task.Delay(10);
             _editor.TextArea.Caret.BringCaretToView();
         };
     }

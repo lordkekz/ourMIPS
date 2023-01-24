@@ -6,8 +6,12 @@
              xmlns:i="clr-namespace:Projektanker.Icons.Avalonia;assembly=Projektanker.Icons.Avalonia"
              xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
              xmlns:views="clr-namespace:ourMIPSSharp_App.Views"
+             xmlns:converters="clr-namespace:ourMIPSSharp_App.Converters"
              mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="450"
              x:Class="ourMIPSSharp_App.Views.MainView">
+    <UserControl.Resources>
+        <converters:DataChangedHighlightRowConverter x:Key="DataChangedHighlightRowConverter" />
+    </UserControl.Resources>
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
@@ -85,7 +89,7 @@
                                    Text="{Binding OverflowFlag}" />
                         <DataGrid Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Items="{Binding  RegisterList}"
                                   AutoGenerateColumns="False"
-                                  CanUserReorderColumns="True" CanUserResizeColumns="False" CanUserSortColumns="False"
+                                  CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="False"
                                   SelectionChanged="DataGrid_OnSelectionChanged">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="Id"
@@ -114,12 +118,18 @@
                                                     FontFamily="Courier New"
                                                     FontWeight="Light" />
                             </DataGrid.Columns>
+                            
+                            <DataGrid.Styles>
+                                <Style Selector="DataGridCell" x:DataType="viewModels:RegisterEntry">
+                                    <Setter Property="Background" Value="{Binding HasChanged,  Converter={StaticResource DataChangedHighlightRowConverter}}" />
+                                </Style>
+                            </DataGrid.Styles>
                         </DataGrid>
                     </Grid>
                 </TabItem>
                 <TabItem Header="Memory">
                     <DataGrid Grid.Row="2" Items="{Binding  MemoryList}" AutoGenerateColumns="False"
-                              CanUserReorderColumns="True" CanUserResizeColumns="False" CanUserSortColumns="False"
+                              CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="False"
                               SelectionChanged="DataGrid_OnSelectionChanged">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Address"
@@ -129,7 +139,7 @@
                                                 Binding="{Binding AddressHex}"
                                                 FontFamily="Courier New" />
                             <DataGridTemplateColumn Header="Value">
-                                <DataTemplate DataType="viewModels:RegisterEntry">
+                                <DataTemplate DataType="viewModels:MemoryEntry">
                                     <TextBlock HorizontalAlignment="Right"
                                                Text="{Binding ValueDecimal}"
                                                FontFamily="Courier New" />
@@ -143,12 +153,18 @@
                                                 Binding="{Binding ValueBinary}"
                                                 FontFamily="Courier New" />
                         </DataGrid.Columns>
+                            
+                        <DataGrid.Styles>
+                            <Style Selector="DataGridCell" x:DataType="viewModels:MemoryEntry">
+                                <Setter Property="Background" Value="{Binding HasChanged,  Converter={StaticResource DataChangedHighlightRowConverter}}" />
+                            </Style>
+                        </DataGrid.Styles>
                     </DataGrid>
                 </TabItem>
             </TabControl>
             <GridSplitter ZIndex="1" Grid.Row="1" ResizeDirection="Rows" />
             <DataGrid Grid.Row="2" Items="{Binding  InstructionList}" AutoGenerateColumns="False"
-                      CanUserReorderColumns="True" CanUserResizeColumns="False" CanUserSortColumns="False"
+                      CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="False"
                       SelectionChanged="DataGrid_OnSelectionChanged">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Line"

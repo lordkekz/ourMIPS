@@ -12,10 +12,12 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Platform;
 using AvaloniaEdit;
+using AvaloniaEdit.Document;
 using AvaloniaEdit.Editing;
 using AvaloniaEdit.Highlighting;
 using AvaloniaEdit.Highlighting.Xshd;
 using AvaloniaEdit.Rendering;
+using ourMIPSSharp_App.Rendering;
 using ourMIPSSharp_App.ViewModels;
 
 namespace ourMIPSSharp_App.Views;
@@ -24,9 +26,9 @@ using Pair = KeyValuePair<int, Control>;
 
 public partial class MainView : UserControl {
     public MainViewModel? ViewModel => DataContext as MainViewModel;
-
-    private ElementGenerator _generator;
+    
     private readonly BreakPointMargin _breakPointMargin;
+    private readonly EditorDebugCurrentLineHighlighter _lineHightlighter;
 
     public MainView() {
         InitializeComponent();
@@ -44,15 +46,15 @@ public partial class MainView : UserControl {
                 Editor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
             }
         }
-        
+
         Editor.TextArea.Caret.PositionChanged += (sender, args) => {
             ViewModel?.UpdateCaretInfo(
                 Editor.TextArea.Caret.Position.Line,
                 Editor.TextArea.Caret.Position.Column);
         };
 
-        // _generator = new ElementGenerator() { Editor = Editor };
-        // Editor.TextArea.TextView.ElementGenerators.Add(_generator);
+        _lineHightlighter = new EditorDebugCurrentLineHighlighter(Editor.TextArea.TextView);
+        Editor.TextArea.TextView.BackgroundRenderers.Add(_lineHightlighter);
 
         Editor.AddHandler(PointerWheelChangedEvent, (o, i) => {
             if (i.KeyModifiers != KeyModifiers.Control) return;
@@ -65,6 +67,17 @@ public partial class MainView : UserControl {
 
         _breakPointMargin = new BreakPointMargin(Editor, this);
         Editor.TextArea.LeftMargins.Insert(0, _breakPointMargin);
+    }
+
+    protected override void OnDataContextChanged(EventArgs e) {
+        base.OnDataContextChanged(e);
+        if (ViewModel is null) return;
+        ViewModel.DebuggerBreaking += (sender, args) => {
+            _lineHightlighter.Line = args.Line;
+            Editor.CaretOffset = Editor.Document.Lines[args.Line-1].EndOffset;
+            Editor.TextArea.Caret.BringCaretToView();
+        };
+        ViewModel.DebuggerBreakEnding += (sender, args) => { _lineHightlighter.Line = 0; };
     }
 
     protected override void OnLoaded() {
@@ -87,34 +100,5 @@ public partial class MainView : UserControl {
     private void DataGrid_OnSelectionChanged(object? sender, SelectionChangedEventArgs e) {
         if (sender is DataGrid grid && e.AddedItems.Count > 0)
             grid.SelectedItems.Clear();
-    }
-
-    // TODO eventually repurpose to show inline code intelligence
-    class ElementGenerator : VisualLineElementGenerator {
-        public List<Control> controls = new();
-        public TextEditor Editor { get; init; }
-
-        /// <summary>
-        /// Gets the first interested offset using binary search
-        /// </summary>
-        /// <returns>The first interested offset.</returns>
-        /// <param name="startOffset">Start offset.</param>
-        public override int GetFirstInterestedOffset(int startOffset) {
-            // Find next newline
-            if (startOffset == Editor.Document.GetLineByOffset(startOffset).Offset)
-                return startOffset;
-            return -1;
-        }
-
-        public override VisualLineElement ConstructElement(int offset) {
-            var line = Editor.Document.GetLineByOffset(offset).LineNumber - 1;
-            var c = line < controls.Count
-                ? controls[line]
-                : new Ellipse() {
-                    Height = 12, Width = 12, VerticalAlignment = VerticalAlignment.Center,
-                    HorizontalAlignment = HorizontalAlignment.Center, Fill = Brushes.Red
-                };
-            return new InlineObjectElement(0, c);
-        }
     }
 }
