@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
+using System.Threading;
 using System.Threading.Tasks;
 using AvaloniaEdit.Document;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
@@ -37,9 +39,9 @@ public class MainViewModel : ViewModelBase {
         set => this.RaiseAndSetIfChanged(ref _isBackgroundBusy, value);
     }
 
-    private ConsoleViewModel _console;
+    private ConsoleViewModel? _console;
 
-    public ConsoleViewModel Console {
+    public ConsoleViewModel? Console {
         get => _console;
         set => this.RaiseAndSetIfChanged(ref _console, value);
     }
@@ -58,6 +60,7 @@ public class MainViewModel : ViewModelBase {
         set => this.RaiseAndSetIfChanged(ref _programCounter, value);
     }
 
+    public ReactiveCommand<Unit, Unit> SettingsCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
     public ReactiveCommand<Unit, Unit> MemInitCommand { get; }
     public ReactiveCommand<Unit, Unit> RebuildCommand { get; }
@@ -114,6 +117,21 @@ public class MainViewModel : ViewModelBase {
 
     private IObservable<EventPattern<DebuggerUpdatingEventHandlerArgs>> _debuggerUpdatingObservable;
 
+    private SettingsViewModel _settings;
+
+    public SettingsViewModel Settings {
+        get => _settings;
+        private set => this.RaiseAndSetIfChanged(ref _settings, value);
+    }
+
+    private bool _isSettingsOpened;
+    private readonly IObservable<bool> _resetConsoleExpectingInput;
+
+    public bool IsSettingsOpened {
+        get => _isSettingsOpened;
+        set => this.RaiseAndSetIfChanged(ref _isSettingsOpened, value);
+    }
+
     public MainViewModel() {
         var canExecuteNever = new[] { false }.ToObservable();
         var isRebuildingAllowed = this.WhenAnyValue(x => x.State,
@@ -123,12 +141,13 @@ public class MainViewModel : ViewModelBase {
         var isDebuggingButNotBusy = this.WhenAnyValue(x => x.State,
                 x => x.IsBackgroundBusy)
             .Select(t => t is { Item1: ApplicationState.Debugging, Item2: false });
-        var isBuilt = this.WhenAnyValue(x => x.State, s => s.IsBuilt());
+        var isBuiltButEmulatorInactive = this.WhenAnyValue(x => x.State, s => s.IsBuilt() && !s.IsEmulatorActive());
+        SettingsCommand = ReactiveCommand.Create(ExecuteSettingsCommand);
         SaveCommand = ReactiveCommand.Create(() => throw new NotImplementedException(), canExecuteNever);
         MemInitCommand = ReactiveCommand.Create(() => throw new NotImplementedException(), canExecuteNever);
         RebuildCommand = ReactiveCommand.CreateFromTask(ExecuteRebuildCommand, isRebuildingAllowed);
-        RunCommand = ReactiveCommand.CreateFromTask(ExecuteRunCommand, isBuilt);
-        DebugCommand = ReactiveCommand.CreateFromTask(ExecuteDebugCommand, isBuilt);
+        RunCommand = ReactiveCommand.CreateFromTask(ExecuteRunCommand, isBuiltButEmulatorInactive);
+        DebugCommand = ReactiveCommand.CreateFromTask(ExecuteDebugCommand, isBuiltButEmulatorInactive);
         StepCommand = ReactiveCommand.CreateFromTask(ExecuteStepCommand, isDebuggingButNotBusy);
         ForwardCommand = ReactiveCommand.CreateFromTask(ExecuteForwardCommand, isDebuggingButNotBusy);
         StopCommand = ReactiveCommand.CreateFromTask(ExecuteStopCommand, isEmulatorActive);
@@ -141,6 +160,10 @@ public class MainViewModel : ViewModelBase {
             .ToProperty(this, x => x.IsDebugging, out _isDebugging);
 
         isEmulatorActive.ToProperty(this, x => x.IsEmulatorActive, out _isEmulatorActive);
+
+        isEmulatorActive.Subscribe(b => {
+            if (Console is not null) Console.IsExpectingInput = false;
+        });
 
         _debuggerUpdatingObservable = Observable.FromEventPattern<DebuggerUpdatingEventHandlerArgs>(
             a => DebuggerUpdating += a,
@@ -157,6 +180,10 @@ public class MainViewModel : ViewModelBase {
             RegisterList.Add(new RegisterEntry((Register)i, () => Backend.CurrentEmulator!.Registers,
                 _debuggerUpdatingObservable));
         }
+    }
+
+    private void ExecuteSettingsCommand() {
+        IsSettingsOpened = !IsSettingsOpened;
     }
 
     private async Task ExecuteRebuildCommand() {
@@ -189,6 +216,7 @@ public class MainViewModel : ViewModelBase {
             Backend.MakeEmulator();
 
         Console.Clear();
+        IsBackgroundBusy = true;
         State = ApplicationState.Running;
         OnDebuggerUpdating(false);
 
@@ -205,17 +233,37 @@ public class MainViewModel : ViewModelBase {
                 do {
                     em.TryExecuteNext();
                 } while (!em.EffectivelyTerminated &&
-                         !ShouldUpdateConsole(s.ElapsedMilliseconds - last, em.ProgramCounter));
+                         !ShouldUpdateConsole(s.ElapsedMilliseconds - last, em.ProgramCounter) &&
+                         !em.ExpectingInput);
             });
             Console.FlushNewLines();
+
+
+            // Await input or sth
+            if (em.ExpectingInput) await AwaitInputAsync();
         }
 
         s.Stop();
         Backend.TextInfoWriter.WriteLine($"[EMULATOR] Program terminated after {s.ElapsedMilliseconds}ms");
 
         State = ApplicationState.Ready;
-        Console.FlushNewLines();
         OnDebuggerUpdating(true);
+        Console.FlushNewLines();
+        IsBackgroundBusy = false;
+    }
+
+    private async Task AwaitInputAsync() {
+        var o = Observable.FromEventPattern<NotifyingTextWriterEventArgs>(
+            a => Backend.TextInWriter.LineWritten += a,
+            a => Backend.TextInWriter.LineWritten -= a);
+        Console.IsExpectingInput = true;
+        var t = o.FirstAsync().ToTask();
+        while (!t.IsCompleted && !Backend.CurrentEmulator!.EffectivelyTerminated) {
+            try {
+                await t.WaitAsync(TimeSpan.FromMilliseconds(1000));
+            }
+            catch (TimeoutException) { }
+        }
     }
 
     // Force pauses between console updates to keep UI responsive
@@ -247,20 +295,27 @@ public class MainViewModel : ViewModelBase {
         OnDebuggerBreakEnding();
 
         IsBackgroundBusy = true;
-        await Task.Run(() => { em.TryExecuteNext(); });
-        IsBackgroundBusy = false;
+        var pc = em.ProgramCounter;
+        while (!em.EffectivelyTerminated && pc == em.ProgramCounter) {
+            await Task.Run(() => { em.TryExecuteNext(); });
+
+            // Await input or sth
+            if (em.ExpectingInput) await AwaitInputAsync();
+        }
 
         if (em.Terminated || em.ErrorTerminated) {
-            if (IsDebugging) OnDebuggerBreakEnding();
+            OnDebuggerBreakEnding();
             Backend.TextInfoWriter.WriteLine("[EMULATOR] Program terminated.");
             State = ApplicationState.Ready;
         }
-        else {
+
+        if (!em.EffectivelyTerminated) {
             OnDebuggerBreaking();
         }
 
         OnDebuggerUpdating(true);
         Console.FlushNewLines();
+        IsBackgroundBusy = false;
     }
 
     private async Task ExecuteForwardCommand() {
@@ -281,9 +336,13 @@ public class MainViewModel : ViewModelBase {
                     em.TryExecuteNext();
                 } while (!em.EffectivelyTerminated &&
                          !ShouldUpdateConsole(s.ElapsedMilliseconds - last, em.ProgramCounter) &&
-                         !IsAtBreakpoint(em.ProgramCounter));
+                         !IsAtBreakpoint(em.ProgramCounter) &&
+                         !em.ExpectingInput);
             });
             Console.FlushNewLines();
+
+            // Await input or sth
+            if (em.ExpectingInput) await AwaitInputAsync();
 
             // Pause at breakpoints; but only after at least one instruction was executed.
             if (IsAtBreakpoint(em.ProgramCounter)) {
@@ -292,7 +351,6 @@ public class MainViewModel : ViewModelBase {
             }
         }
 
-        IsBackgroundBusy = false;
         s.Stop();
 
         if (em.Terminated || em.ErrorTerminated) {
@@ -302,6 +360,8 @@ public class MainViewModel : ViewModelBase {
         }
 
         OnDebuggerUpdating(true);
+        Console.FlushNewLines();
+        IsBackgroundBusy = false;
     }
 
     private async Task ExecuteStopCommand() {
@@ -310,6 +370,7 @@ public class MainViewModel : ViewModelBase {
         await StopEmulator();
         Backend.TextInfoWriter.WriteLine("[EMULATOR] Program terminated by user.");
         OnDebuggerUpdating(true);
+        Console.FlushNewLines();
     }
 
     /// <summary>

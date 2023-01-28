@@ -29,14 +29,21 @@ public class ConsoleViewModel : ViewModelBase {
 
     public OpenScriptBackend Backend { get; }
 
-    private ConcurrentQueue<string> _newLines = new();
+    private readonly ConcurrentQueue<string> _newLines = new();
 
-    public event EventHandler LinesFlushed;
+    public event EventHandler? LinesFlushed;
+
+    private bool _isExpectingInput;
+
+    public bool IsExpectingInput {
+        get => _isExpectingInput;
+        set => this.RaiseAndSetIfChanged(ref _isExpectingInput, value);
+    }
 
     protected virtual void OnLinesFlushed() {
         LinesFlushed?.Invoke(this, EventArgs.Empty);
     }
-    
+
     public ConsoleViewModel(OpenScriptBackend backend) {
         Backend = backend;
         Backend.TextInfoWriter.LineWritten += TextInfoWriterOnLineWritten;
@@ -92,6 +99,7 @@ public class ConsoleViewModel : ViewModelBase {
     }
 
     public void SubmitInput() {
+        IsExpectingInput = false;
         Backend.TextInWriter.WriteLine(InputString);
         FlushNewLines();
         InputString = "";

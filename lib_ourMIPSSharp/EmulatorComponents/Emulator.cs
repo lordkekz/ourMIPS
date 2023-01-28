@@ -18,6 +18,7 @@ public class Emulator {
     public TextWriter TextInfo { get; set; } = Console.Out;
     public TextWriter TextOut { get; set; } = Console.Out;
     public TextReader TextIn { get; set; }
+    public bool ExpectingInput { get; set; }
 
     public Emulator(IEnumerable<uint> instructions, string stringConstants) {
         Registers = new RegisterStorage(this);

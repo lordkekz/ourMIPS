@@ -12,6 +12,31 @@
     <UserControl.Resources>
         <converters:DataChangedHighlightRowConverter x:Key="DataChangedHighlightRowConverter" />
     </UserControl.Resources>
+    <UserControl.Styles>
+        <Style Selector="Border#SettingsSlideBorder">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="RenderTransform" Value="translateX(-200px)" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="0:0:.2" />
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:.2" />
+                </Transitions>
+            </Setter>
+            <Style.Animations>
+                <Animation Duration="0:0:.2"
+                           Delay="0:0:.2">
+                    <KeyFrame Cue="100%">
+                        <Setter Property="IsVisible" Value="False" />
+                    </KeyFrame>
+                </Animation>
+            </Style.Animations>
+        </Style>
+        <Style Selector="Border#SettingsSlideBorder[Tag=True]">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="RenderTransform" Value="translateX(0px)" />
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+    </UserControl.Styles>
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
@@ -24,8 +49,10 @@
             <ColumnDefinition Width="{StaticResource GridSplitterThickness}" />
             <ColumnDefinition Width="*" MinWidth="200" />
         </Grid.ColumnDefinitions>
-        <StackPanel Grid.Column="0" Grid.RowSpan="3" Orientation="Vertical"
+        <StackPanel Grid.Column="0" Grid.RowSpan="1" Orientation="Vertical" ZIndex="1"
                     Classes="Menu_Sidebar">
+            <Button i:Attached.Icon="fa-solid fa-sliders"
+                    Command="{Binding SettingsCommand}" />
             <Button i:Attached.Icon="fa-solid fa-floppy-disk"
                     Command="{Binding SaveCommand}" />
             <Button i:Attached.Icon="fa-solid fa-memory"
@@ -52,17 +79,7 @@
                 <RowDefinition Height="{StaticResource GridSplitterThickness}" />
                 <RowDefinition Height="*" MinHeight="200" />
             </Grid.RowDefinitions>
-            <avaloniaEdit:TextEditor Grid.Row="0" Name="Editor"
-                                     HorizontalScrollBarVisibility="Auto"
-                                     VerticalScrollBarVisibility="Visible"
-                                     HorizontalAlignment="Stretch"
-                                     VerticalAlignment="Stretch"
-                                     ShowLineNumbers="True"
-                                     Document="{Binding Document}"
-                                     WordWrap="False"
-                                     FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
-                                     FontWeight="Light"
-                                     IsReadOnly="{Binding IsEditorReadonly}" />
+            <views:DebuggingEditorView />
             <GridSplitter Grid.Row="1" ResizeDirection="Rows" />
             <views:ConsoleView Grid.Row="2"
                                Name="ConView"
@@ -118,10 +135,11 @@
                                                     FontFamily="Courier New"
                                                     FontWeight="Light" />
                             </DataGrid.Columns>
-                            
+
                             <DataGrid.Styles>
                                 <Style Selector="DataGridCell" x:DataType="viewModels:RegisterEntry">
-                                    <Setter Property="Background" Value="{Binding HasChanged,  Converter={StaticResource DataChangedHighlightRowConverter}}" />
+                                    <Setter Property="Background"
+                                            Value="{Binding HasChanged,  Converter={StaticResource DataChangedHighlightRowConverter}}" />
                                 </Style>
                             </DataGrid.Styles>
                         </DataGrid>
@@ -153,10 +171,11 @@
                                                 Binding="{Binding ValueBinary}"
                                                 FontFamily="Courier New" />
                         </DataGrid.Columns>
-                            
+
                         <DataGrid.Styles>
                             <Style Selector="DataGridCell" x:DataType="viewModels:MemoryEntry">
-                                <Setter Property="Background" Value="{Binding HasChanged,  Converter={StaticResource DataChangedHighlightRowConverter}}" />
+                                <Setter Property="Background"
+                                        Value="{Binding HasChanged,  Converter={StaticResource DataChangedHighlightRowConverter}}" />
                             </Style>
                         </DataGrid.Styles>
                     </DataGrid>
@@ -202,5 +221,10 @@
             </ToggleButton>
             <TextBlock Grid.Column="4" Text="{Binding EditorCaretInfo}" />
         </Grid>
+        <Border Grid.Row="0" Grid.RowSpan="1" Grid.Column="1" Grid.ColumnSpan="1"
+                Name="SettingsSlideBorder" Tag="{Binding IsSettingsOpened}"
+                Background="{DynamicResource SystemControlBackgroundChromeBlackHighBrush}">
+            <views:SettingsView DataContext="{Binding Settings}" />
+        </Border>
     </Grid>
 </UserControl>

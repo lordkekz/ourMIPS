@@ -71,6 +71,15 @@
         <Style Selector=".Status_Bar > ToggleButton:checked TextBlock.OffContent">
             <Setter Property="IsVisible" Value="false" />
         </Style>
+        <Style Selector="Rectangle.HLine">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="Stroke" Value="{DynamicResource SystemAltMediumColor}" />
+            <Setter Property="Margin" Value="-4,4" />
+        </Style>
+        <Style Selector="TextBlock.H1Style">
+            <Setter Property="FontSize" Value="24" />
+        </Style>
     </Application.Styles>
 
     <Application.Resources>

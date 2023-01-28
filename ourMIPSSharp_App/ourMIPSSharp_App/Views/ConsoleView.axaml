@@ -12,6 +12,15 @@
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <viewModels:ConsoleViewModel />
     </Design.DataContext>
+    <UserControl.Styles>
+        <Style Selector="TextBox#InputBox">
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Background" Value="{DynamicResource SystemControlTransparentBrush}" />
+        </Style>
+        <Style Selector="TextBox#InputBox[IsEnabled=True]">
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBrush}" />
+        </Style>
+    </UserControl.Styles>
     <Grid RowDefinitions="Auto,*"
           HorizontalAlignment="Stretch"
           VerticalAlignment="Stretch">
@@ -21,7 +30,8 @@
                  MaxLines="1"
                  Watermark="Console Input..."
                  Text="{Binding InputString, Mode=TwoWay}"
-                 KeyDown="InputBox_OnKeyDown" />
+                 KeyDown="InputBox_OnKeyDown"
+                 IsEnabled="{Binding IsExpectingInput}"/>
         <avaloniaEdit:TextEditor Grid.Row="1"
                                  Name="Editor"
                                  HorizontalScrollBarVisibility="Auto"

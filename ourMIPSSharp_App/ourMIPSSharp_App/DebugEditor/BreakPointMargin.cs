@@ -23,13 +23,13 @@ public class BreakPointMargin : AbstractMargin {
     private int previewLine;
     private bool previewPointVisible;
     private readonly TextEditor _editor;
-    private readonly MainView _mv;
+    private readonly DebuggingEditorView _mv;
 
     static BreakPointMargin() {
         FocusableProperty.OverrideDefaultValue(typeof(BreakPointMargin), true);
     }
 
-    public BreakPointMargin(TextEditor editor, MainView mv) {
+    public BreakPointMargin(TextEditor editor, DebuggingEditorView mv) {
         _editor = editor;
         _mv = mv;
         Cursor = new Cursor(StandardCursorType.Hand);

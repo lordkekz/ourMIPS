@@ -11,7 +11,6 @@ namespace ourMIPSSharp_App.Converters;
 /// </summary>
 public class DataChangedHighlightRowConverter : IValueConverter {
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) {
-        Debug.WriteLine(value);
         return value is true ? new SolidColorBrush(Colors.Green, .3) : Brushes.Transparent;
     }
 

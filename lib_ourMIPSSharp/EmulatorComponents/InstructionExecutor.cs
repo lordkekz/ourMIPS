@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
 using lib_ourMIPSSharp.Errors;
 
@@ -19,6 +20,9 @@ public class InstructionExecutor {
         // reset flags
         _flagOverflow = Registers.FlagOverflow;
         Registers.FlagOverflow = false;
+        
+        // reset; if still expecting input, will be set again in ExecuteRegSysin
+        EmulatorInstance.ExpectingInput = false;
 
         // execute instruction method
         switch (instruction.Command) {
@@ -121,8 +125,9 @@ public class InstructionExecutor {
                 break;
         }
 
-        // increment program counter
-        Registers.ProgramCounter++;
+        // increment program counter (unless instruction wasn't executed)
+        if (!EmulatorInstance.ExpectingInput)
+            Registers.ProgramCounter++;
     }
 
     private void ExecuteSysterm(Instruction i) {
@@ -137,13 +142,25 @@ public class InstructionExecutor {
         EmulatorInstance.TextOut.WriteLine(Registers[i.Registers[0]].ToString());
     }
 
+    /// <summary>
+    /// Tries to execute the sysin instruction.
+    /// Does so by reading lines from textin until a valid number is found or there are no lines to read or the emulator
+    /// forcefully terminates. The Emulator instance's ExpectingInput flag will be set if execution failed because there
+    /// was no line to read.
+    /// </summary>
+    /// <param name="i"></param>
     private void ExecuteRegSysin(Instruction i) {
-        // TODO improve exception handling
-        // TODO add a way to interface with UI
-        int val;
-        while (!int.TryParse(EmulatorInstance.TextIn.ReadLine(), out val))
-            if (EmulatorInstance.ForceTerminated)
-                return;
+        var val = 0;
+        string? line;
+        do {
+            line = EmulatorInstance.TextIn.ReadLine();
+        } while (!EmulatorInstance.ForceTerminated &&
+                 line is not null &&
+                 !int.TryParse(line, out val));
+
+        if (EmulatorInstance.ForceTerminated ||
+            (EmulatorInstance.ExpectingInput = line is null))
+            return;
 
         Registers[i.Registers[0]] = val;
     }
@@ -190,13 +207,13 @@ public class InstructionExecutor {
 
     private void ExecuteSubi(Instruction i) {
         var valRi = Registers[i.Registers[0]];
-        
+
         // Extract signs; treat zero as positive (since 0 has sign 0 in two's complement)
         var signRi = Math.Sign(valRi);
         signRi = signRi == 0 ? +1 : signRi;
         var signV = Math.Sign(i.ImmVal);
         signV = signV == 0 ? +1 : signV;
-        
+
         // Actual operation
         Registers[i.Registers[1]] = valRi - i.ImmVal;
         // Set Overflow if sign changed even though it shouldn't have
@@ -206,13 +223,13 @@ public class InstructionExecutor {
 
     private void ExecuteAddi(Instruction i) {
         var valRi = Registers[i.Registers[0]];
-        
+
         // Extract signs; treat zero as positive (since 0 has sign 0 in two's complement)
         var signRi = Math.Sign(valRi);
         signRi = signRi == 0 ? +1 : signRi;
         var signV = Math.Sign(i.ImmVal);
         signV = signV == 0 ? +1 : signV;
-        
+
         // Actual operation
         Registers[i.Registers[1]] = valRi + i.ImmVal;
         // Set Overflow if sign changed even though it shouldn't have
@@ -251,13 +268,13 @@ public class InstructionExecutor {
     private void ExecuteSub(Instruction i) {
         var valRi = Registers[i.Registers[0]];
         var valRj = Registers[i.Registers[1]];
-        
+
         // Extract signs; treat zero as positive (since 0 has sign 0 in two's complement)
         var signRi = Math.Sign(valRi);
         signRi = signRi == 0 ? +1 : signRi;
         var signRj = Math.Sign(valRj);
         signRj = signRj == 0 ? +1 : signRj;
-        
+
         // Actual operation
         Registers[i.Registers[2]] = valRi - valRj;
         // Set Overflow if sign changed even though it shouldn't have
@@ -268,13 +285,13 @@ public class InstructionExecutor {
     private void ExecuteAdd(Instruction i) {
         var valRi = Registers[i.Registers[0]];
         var valRj = Registers[i.Registers[1]];
-        
+
         // Extract signs; treat zero as positive (since 0 has sign 0 in two's complement)
         var signRi = Math.Sign(valRi);
         signRi = signRi == 0 ? +1 : signRi;
         var signRj = Math.Sign(valRj);
         signRj = signRj == 0 ? +1 : signRj;
-        
+
         // Actual operation
         Registers[i.Registers[2]] = valRi + valRj;
         // Set Overflow if sign changed even though it shouldn't have
