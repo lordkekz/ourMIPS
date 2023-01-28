@@ -72,7 +72,7 @@ public class MainViewModel : ViewModelBase {
 
     public TextDocument Document { get; }
 
-    private ApplicationState _state = ApplicationState.Started;
+    private ApplicationState _state = ApplicationState.NotBuilt;
 
     public ApplicationState State {
         get => _state;
@@ -98,12 +98,12 @@ public class MainViewModel : ViewModelBase {
     /// <summary>
     /// Fired whenever the debugger enters its break mode through a breakpoint, manual stepping or a pause command.
     /// </summary>
-    public event EventHandler<DebuggerBreakingEventHandlerArgs>? DebuggerBreaking;
+    public event EventHandler<DebuggerBreakEventHandlerArgs>? DebuggerBreaking;
 
     /// <summary>
     /// Fired whenever the debugger leaves its break mode by continuing execution or terminating.
     /// </summary>
-    public event EventHandler? DebuggerBreakEnding;
+    public event EventHandler<DebuggerBreakEventHandlerArgs>? DebuggerBreakEnding;
 
     /// <summary>
     /// Fired whenever the program was rebuilt.
@@ -115,7 +115,10 @@ public class MainViewModel : ViewModelBase {
     /// </summary>
     public event EventHandler<DebuggerUpdatingEventHandlerArgs>? DebuggerUpdating;
 
-    private IObservable<EventPattern<DebuggerUpdatingEventHandlerArgs>> _debuggerUpdatingObservable;
+    private readonly IObservable<EventPattern<DebuggerUpdatingEventHandlerArgs>> _debuggerUpdatingObservable;
+    private readonly IObservable<EventPattern<DebuggerBreakEventHandlerArgs>> _debuggerBreakingObservable;
+    private readonly IObservable<EventPattern<DebuggerBreakEventHandlerArgs>> _debuggerBreakEndingObservable;
+    private readonly IObservable<EventPattern<DebuggerBreakEventHandlerArgs>> _debuggerBreakChangingObservable;
 
     private SettingsViewModel _settings;
 
@@ -125,7 +128,6 @@ public class MainViewModel : ViewModelBase {
     }
 
     private bool _isSettingsOpened;
-    private readonly IObservable<bool> _resetConsoleExpectingInput;
 
     public bool IsSettingsOpened {
         get => _isSettingsOpened;
@@ -169,6 +171,16 @@ public class MainViewModel : ViewModelBase {
             a => DebuggerUpdating += a,
             a => DebuggerUpdating -= a);
 
+        _debuggerBreakingObservable = Observable.FromEventPattern<DebuggerBreakEventHandlerArgs>(
+            a => DebuggerBreaking += a,
+            a => DebuggerBreaking -= a);
+
+        _debuggerBreakEndingObservable = Observable.FromEventPattern<DebuggerBreakEventHandlerArgs>(
+            a => DebuggerBreakEnding += a,
+            a => DebuggerBreakEnding -= a);
+
+        _debuggerBreakChangingObservable = _debuggerBreakingObservable.Merge(_debuggerBreakEndingObservable);
+
         // Load mult_philos sample from unit tests
         Backend = new OpenScriptBackend(
             "../../../../../lib_ourMIPSSharp_Tests/Samples/instructiontests_philos.ourMIPS");
@@ -195,9 +207,12 @@ public class MainViewModel : ViewModelBase {
             Backend.Rebuild();
         });
 
-        State = ApplicationState.Ready;
         Console.FlushNewLines();
-        OnRebuilt();
+        if (Backend.Ready) {
+            State = ApplicationState.Ready;
+            OnRebuilt();
+        }
+        else State = ApplicationState.NotBuilt;
     }
 
     private void UpdateBreakpoints() {
@@ -401,11 +416,11 @@ public class MainViewModel : ViewModelBase {
 
     protected virtual void OnDebuggerBreaking() {
         var line = Backend.CurrentBuilder!.SymbolStacks[Backend.CurrentEmulator!.ProgramCounter].Last().Line;
-        DebuggerBreaking?.Invoke(this, new DebuggerBreakingEventHandlerArgs(line));
+        DebuggerBreaking?.Invoke(this, new DebuggerBreakEventHandlerArgs(line));
     }
 
     protected virtual void OnDebuggerBreakEnding() {
-        DebuggerBreakEnding?.Invoke(this, EventArgs.Empty);
+        DebuggerBreakEnding?.Invoke(this, new DebuggerBreakEventHandlerArgs(-1));
     }
 
     protected virtual void OnRebuilt() {
@@ -413,7 +428,7 @@ public class MainViewModel : ViewModelBase {
         var prog = Backend.CurrentEmulator!.Program;
         for (var i = 0; i < prog.Count; i++) {
             var line = Backend.CurrentBuilder!.SymbolStacks[i].Last().Line;
-            InstructionList.Add(new InstructionEntry(i, line, prog));
+            InstructionList.Add(new InstructionEntry(i, line, prog, _debuggerBreakChangingObservable));
         }
 
         Rebuilt?.Invoke(this, EventArgs.Empty);
@@ -445,10 +460,10 @@ public class MainViewModel : ViewModelBase {
     }
 }
 
-public class DebuggerBreakingEventHandlerArgs : EventArgs {
+public class DebuggerBreakEventHandlerArgs : EventArgs {
     public int Line { get; }
 
-    public DebuggerBreakingEventHandlerArgs(int line) {
+    public DebuggerBreakEventHandlerArgs(int line) {
         Line = line;
     }
 }

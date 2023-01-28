@@ -11,6 +11,7 @@
              x:Class="ourMIPSSharp_App.Views.MainView">
     <UserControl.Resources>
         <converters:DataChangedHighlightRowConverter x:Key="DataChangedHighlightRowConverter" />
+        <converters:InstructionIsCurrentHighlightRowConverter x:Key="InstructionIsCurrentHighlightRowConverter" />
     </UserControl.Resources>
     <UserControl.Styles>
         <Style Selector="Border#SettingsSlideBorder">
@@ -205,6 +206,12 @@
                                         FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
                                         FontWeight="ExtraLight" />
                 </DataGrid.Columns>
+                <DataGrid.Styles>
+                    <Style Selector="DataGridCell" x:DataType="viewModels:InstructionEntry">
+                        <Setter Property="Background"
+                                Value="{Binding IsCurrent,  Converter={StaticResource InstructionIsCurrentHighlightRowConverter}}" />
+                    </Style>
+                </DataGrid.Styles>
             </DataGrid>
         </Grid>
         <Grid Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="4" Classes="Status_Bar"

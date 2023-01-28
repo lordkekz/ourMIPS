@@ -1,7 +1,7 @@
 namespace ourMIPSSharp_App.ViewModels; 
 
 public enum ApplicationState {
-    Started,
+    NotBuilt,
     Ready,
     Rebuilding,
     Running,
@@ -16,5 +16,5 @@ public static class ApplicationStateExtensions {
     public static bool IsEditingAllowed(this ApplicationState state) =>
         state is not ApplicationState.Debugging;
     public static bool IsRebuildingAllowed(this ApplicationState state) =>
-        state is ApplicationState.Started or ApplicationState.Ready;
+        state is ApplicationState.NotBuilt or ApplicationState.Ready;
 }

@@ -7,19 +7,26 @@ using ReactiveUI;
 
 namespace ourMIPSSharp_App.ViewModels;
 
-public class InstructionEntry {
+public class InstructionEntry : ViewModelBase {
     private int _address;
     private int _line;
     private ProgramStorage _program;
 
-    public InstructionEntry(int address, int line, ProgramStorage program) {
+
+    public InstructionEntry(int address, int line, ProgramStorage program,
+        IObservable<EventPattern<DebuggerBreakEventHandlerArgs>> breakingObservable) {
         _address = address;
         _line = line;
         _program = program;
+        breakingObservable.Select(x => x.EventArgs.Line == _line)
+            .ToProperty(this, x => x.IsCurrent, out _isCurrent);
     }
 
-    public string LineNumber => _line.ToString();
-    public string AddressDecimal => _address.ToString();
+    public bool IsCurrent => _isCurrent.Value;
+    private ObservableAsPropertyHelper<bool> _isCurrent;
+
+    public int LineNumber => _line;
+    public int AddressDecimal => _address;
     public string AddressHex => _address.ToString(NumberLiteralFormat.HexPrefix);
     public string Bytecode => Convert.ToString(_program[_address].Bytecode, 2).PadLeft(32, '0');
     public string InstructionString => _program[_address].ToString();
@@ -38,8 +45,9 @@ public class RegisterEntry : ViewModelBase {
         updatingObservable
             .Do(x => tmpLast = _last)
             .Do(x => _last = _registerStorageFunc()[_register])
-            .Select(x => 
-                x.EventArgs.RaisesChangeHighlight && tmpLast.HasValue && _registerStorageFunc()[_register] != tmpLast.Value)
+            .Select(x =>
+                x.EventArgs.RaisesChangeHighlight && tmpLast.HasValue &&
+                _registerStorageFunc()[_register] != tmpLast.Value)
             .ToProperty(this, x => x.HasChanged, out _hasChanged);
         updatingObservable.Select(x => _registerStorageFunc()[_register].ToString(NumberLiteralFormat.Decimal))
             .ToProperty(this, x => x.ValueDecimal, out _valueDecimal);
