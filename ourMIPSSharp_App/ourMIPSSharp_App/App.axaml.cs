@@ -1,8 +1,11 @@
 using System;
 using System.Diagnostics;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
+using Avalonia.VisualTree;
 using ourMIPSSharp_App.Models;
 using ourMIPSSharp_App.ViewModels;
 using ourMIPSSharp_App.Views;
@@ -10,7 +13,7 @@ using ourMIPSSharp_App.Views;
 namespace ourMIPSSharp_App;
 
 public partial class App : Application {
-    public new static App Current => Application.Current as App;
+    public new static App? Current => Application.Current as App;
     public AppSettings? Settings { get; private set; }
 
     public override void Initialize() {
@@ -34,5 +37,14 @@ public partial class App : Application {
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    public IStorageProvider? GetStorageProvider() {
+        return ApplicationLifetime switch {
+            IClassicDesktopStyleApplicationLifetime desktop => desktop.MainWindow?.StorageProvider,
+            ISingleViewApplicationLifetime singleViewPlatform =>
+                (singleViewPlatform.MainView?.Parent as TopLevel)?.StorageProvider,
+            _ => null
+        };
     }
 }

@@ -7,6 +7,7 @@
              xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
              xmlns:views="clr-namespace:ourMIPSSharp_App.Views"
              xmlns:converters="clr-namespace:ourMIPSSharp_App.Converters"
+             xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
              mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="450"
              x:Class="ourMIPSSharp_App.Views.MainView">
     <UserControl.Resources>
@@ -43,195 +44,224 @@
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <viewModels:MainViewModel />
     </Design.DataContext>
-    <Grid Background="{DynamicResource SystemChromeBlackMediumColor}" RowDefinitions="*, Auto">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" MinWidth="200" />
-            <ColumnDefinition Width="{StaticResource GridSplitterThickness}" />
-            <ColumnDefinition Width="*" MinWidth="200" />
-        </Grid.ColumnDefinitions>
-        <StackPanel Grid.Column="0" Grid.RowSpan="1" Orientation="Vertical" ZIndex="1"
-                    Classes="Menu_Sidebar">
-            <Button i:Attached.Icon="fa-solid fa-sliders"
-                    Command="{Binding SettingsCommand}" />
-            <Button i:Attached.Icon="fa-solid fa-floppy-disk"
-                    Command="{Binding SaveCommand}" />
-            <Button i:Attached.Icon="fa-solid fa-memory"
-                    Command="{Binding MemInitCommand}" />
-            <Button i:Attached.Icon="fa-solid fa-screwdriver-wrench"
-                    Command="{Binding RebuildCommand}" />
-            <Button i:Attached.Icon="fa-solid fa-play"
-                    Command="{Binding RunCommand}" />
-            <Button i:Attached.Icon="fa-solid fa-bug"
-                    Command="{Binding DebugCommand}" />
-            <Button i:Attached.Icon="fa-solid fa-forward-step"
-                    Command="{Binding StepCommand}"
-                    IsVisible="{Binding IsDebugging}" />
-            <Button i:Attached.Icon="fa-solid fa-forward"
-                    Command="{Binding ForwardCommand}"
-                    IsVisible="{Binding IsDebugging}" />
-            <Button i:Attached.Icon="fa-solid fa-stop"
-                    Command="{Binding StopCommand}"
-                    IsVisible="{Binding IsEmulatorActive}" />
-        </StackPanel>
-        <Grid Grid.Row="0" Grid.Column="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" MinHeight="200" />
-                <RowDefinition Height="{StaticResource GridSplitterThickness}" />
-                <RowDefinition Height="*" MinHeight="200" />
-            </Grid.RowDefinitions>
-            <views:DebuggingEditorView />
-            <GridSplitter Grid.Row="1" ResizeDirection="Rows" />
-            <views:ConsoleView Grid.Row="2"
-                               Name="ConView"
-                               DataContext="{Binding Console}"
-                               IsAutoScrollEnabled="{Binding Path=IsChecked, ElementName=AutoScrollToggleButton, Mode=TwoWay}" />
-        </Grid>
-        <GridSplitter Grid.Row="0" ZIndex="1" Grid.Column="2" ResizeDirection="Columns" />
-        <Grid Grid.Row="0" Grid.Column="3">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" MinHeight="200" />
-                <RowDefinition Height="{StaticResource GridSplitterThickness}" />
-                <RowDefinition Height="*" MinHeight="200" />
-            </Grid.RowDefinitions>
-            <TabControl Grid.Row="0">
-                <TabItem Header="Registers">
-                    <Grid ColumnDefinitions="Auto, Auto, *" RowDefinitions="Auto, Auto, *"
-                          HorizontalAlignment="Stretch">
-                        <TextBlock Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left"
-                                   Margin="0,0,24,0" Text="Program Counter:" />
-                        <TextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right"
-                                   Margin="0,0,24,0" Text="{Binding ProgramCounter}" />
-                        <TextBlock Grid.Row="1" Grid.Column="0" HorizontalAlignment="Left" Text="Overflow Flag:" />
-                        <TextBlock Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right"
-                                   Text="{Binding OverflowFlag}" />
-                        <DataGrid Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Items="{Binding  RegisterList}"
-                                  AutoGenerateColumns="False"
+    <dialogHost:DialogHost Name="MainDialogHost">
+        <dialogHost:DialogHost.DataTemplates>
+            <DataTemplate DataType="viewModels:ModalDialogViewModel">
+                <Grid RowDefinitions="*, 8, Auto" ColumnDefinitions="Auto, 8, Auto">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
+                               Text="{Binding Text}" />
+                    <Button Grid.Row="2" Grid.Column="0"
+                            Content="{Binding CancelButtonContent}"
+                            Command="{Binding RelativeSource={RelativeSource FindAncestor,
+                            AncestorType=dialogHost:DialogHost}, Path=CloseDialogCommand}">
+                        <Button.CommandParameter>
+                            <x:Boolean>False</x:Boolean>
+                        </Button.CommandParameter>
+                    </Button>
+                    <Button Grid.Row="2" Grid.Column="2" Classes="PrimaryBtn"
+                            Content="{Binding AcceptButtonContent}"
+                            Command="{Binding RelativeSource={RelativeSource FindAncestor,
+                            AncestorType=dialogHost:DialogHost}, Path=CloseDialogCommand}">
+                        <Button.CommandParameter>
+                            <x:Boolean>True</x:Boolean>
+                        </Button.CommandParameter>
+                    </Button>
+                </Grid>
+            </DataTemplate>
+        </dialogHost:DialogHost.DataTemplates>
+        <Grid Background="{DynamicResource SystemChromeBlackMediumColor}" RowDefinitions="*, Auto">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" MinWidth="200" />
+                <ColumnDefinition Width="{StaticResource GridSplitterThickness}" />
+                <ColumnDefinition Width="*" MinWidth="200" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Grid.RowSpan="1" Orientation="Vertical" ZIndex="1"
+                        Classes="Menu_Sidebar">
+                <Button i:Attached.Icon="fa-solid fa-sliders"
+                        Command="{Binding SettingsCommand}" />
+                <Button i:Attached.Icon="fa-solid fa-floppy-disk"
+                        Command="{Binding FileSaveCommand}" />
+                <Button i:Attached.Icon="fa-solid fa-folder-open"
+                        Command="{Binding FileOpenCommand}" />
+                <Button i:Attached.Icon="fa-solid fa-memory"
+                        Command="{Binding MemInitCommand}" />
+                <Button i:Attached.Icon="fa-solid fa-screwdriver-wrench"
+                        Command="{Binding RebuildCommand}" />
+                <Button i:Attached.Icon="fa-solid fa-play"
+                        Command="{Binding RunCommand}" />
+                <Button i:Attached.Icon="fa-solid fa-bug"
+                        Command="{Binding DebugCommand}" />
+                <Button i:Attached.Icon="fa-solid fa-forward-step"
+                        Command="{Binding StepCommand}"
+                        IsVisible="{Binding IsDebugging}" />
+                <Button i:Attached.Icon="fa-solid fa-forward"
+                        Command="{Binding ForwardCommand}"
+                        IsVisible="{Binding IsDebugging}" />
+                <Button i:Attached.Icon="fa-solid fa-stop"
+                        Command="{Binding StopCommand}"
+                        IsVisible="{Binding IsEmulatorActive}" />
+            </StackPanel>
+            <Grid Grid.Row="0" Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" MinHeight="200" />
+                    <RowDefinition Height="{StaticResource GridSplitterThickness}" />
+                    <RowDefinition Height="*" MinHeight="200" />
+                </Grid.RowDefinitions>
+                <views:DebuggingEditorView />
+                <GridSplitter Grid.Row="1" ResizeDirection="Rows" />
+                <views:ConsoleView Grid.Row="2"
+                                   Name="ConView"
+                                   DataContext="{Binding Console}"
+                                   IsAutoScrollEnabled="{Binding Path=IsChecked, ElementName=AutoScrollToggleButton, Mode=TwoWay}" />
+            </Grid>
+            <GridSplitter Grid.Row="0" ZIndex="1" Grid.Column="2" ResizeDirection="Columns" />
+            <Grid Grid.Row="0" Grid.Column="3">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" MinHeight="200" />
+                    <RowDefinition Height="{StaticResource GridSplitterThickness}" />
+                    <RowDefinition Height="*" MinHeight="200" />
+                </Grid.RowDefinitions>
+                <TabControl Grid.Row="0">
+                    <TabItem Header="Registers">
+                        <Grid ColumnDefinitions="Auto, Auto, *" RowDefinitions="Auto, Auto, *"
+                              HorizontalAlignment="Stretch">
+                            <TextBlock Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left"
+                                       Margin="0,0,24,0" Text="Program Counter:" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right"
+                                       Margin="0,0,24,0" Text="{Binding ProgramCounter}" />
+                            <TextBlock Grid.Row="1" Grid.Column="0" HorizontalAlignment="Left" Text="Overflow Flag:" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right"
+                                       Text="{Binding OverflowFlag}" />
+                            <DataGrid Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Items="{Binding  RegisterList}"
+                                      AutoGenerateColumns="False"
+                                      CanUserReorderColumns="True" CanUserResizeColumns="True"
+                                      CanUserSortColumns="False"
+                                      SelectionChanged="DataGrid_OnSelectionChanged">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Id"
+                                                        Binding="{Binding RegId}"
+                                                        FontFamily="Courier New"
+                                                        FontWeight="Light" />
+                                    <DataGridTextColumn Header="Name"
+                                                        Binding="{Binding Name}"
+                                                        FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+                                                        FontWeight="ExtraLight" />
+                                    <DataGridTemplateColumn Header="Value">
+                                        <DataTemplate DataType="viewModels:RegisterEntry">
+                                            <TextBlock HorizontalAlignment="Right"
+                                                       Text="{Binding ValueDecimal}"
+                                                       FontFamily="Courier New"
+                                                       FontWeight="Light" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTextColumn Header="Value (Hex)"
+                                                        Binding="{Binding ValueHex}"
+                                                        FontFamily="Courier New"
+                                                        FontWeight="Light" />
+                                    <DataGridTextColumn Header="Value (Binary)"
+                                                        Width="*"
+                                                        Binding="{Binding ValueBinary}"
+                                                        FontFamily="Courier New"
+                                                        FontWeight="Light" />
+                                </DataGrid.Columns>
+
+                                <DataGrid.Styles>
+                                    <Style Selector="DataGridCell" x:DataType="viewModels:RegisterEntry">
+                                        <Setter Property="Background"
+                                                Value="{Binding HasChanged,  Converter={StaticResource DataChangedHighlightRowConverter}}" />
+                                    </Style>
+                                </DataGrid.Styles>
+                            </DataGrid>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Memory">
+                        <DataGrid Grid.Row="2" Items="{Binding  MemoryList}" AutoGenerateColumns="False"
                                   CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="False"
                                   SelectionChanged="DataGrid_OnSelectionChanged">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Id"
-                                                    Binding="{Binding RegId}"
-                                                    FontFamily="Courier New"
-                                                    FontWeight="Light" />
-                                <DataGridTextColumn Header="Name"
-                                                    Binding="{Binding Name}"
-                                                    FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
-                                                    FontWeight="ExtraLight" />
+                                <DataGridTextColumn Header="Address"
+                                                    Binding="{Binding AddressDecimal}"
+                                                    FontFamily="Courier New" />
+                                <DataGridTextColumn Header="Address (Hex)"
+                                                    Binding="{Binding AddressHex}"
+                                                    FontFamily="Courier New" />
                                 <DataGridTemplateColumn Header="Value">
-                                    <DataTemplate DataType="viewModels:RegisterEntry">
+                                    <DataTemplate DataType="viewModels:MemoryEntry">
                                         <TextBlock HorizontalAlignment="Right"
                                                    Text="{Binding ValueDecimal}"
-                                                   FontFamily="Courier New"
-                                                   FontWeight="Light" />
+                                                   FontFamily="Courier New" />
                                     </DataTemplate>
                                 </DataGridTemplateColumn>
                                 <DataGridTextColumn Header="Value (Hex)"
                                                     Binding="{Binding ValueHex}"
-                                                    FontFamily="Courier New"
-                                                    FontWeight="Light" />
+                                                    FontFamily="Courier New" />
                                 <DataGridTextColumn Header="Value (Binary)"
                                                     Width="*"
                                                     Binding="{Binding ValueBinary}"
-                                                    FontFamily="Courier New"
-                                                    FontWeight="Light" />
+                                                    FontFamily="Courier New" />
                             </DataGrid.Columns>
 
                             <DataGrid.Styles>
-                                <Style Selector="DataGridCell" x:DataType="viewModels:RegisterEntry">
+                                <Style Selector="DataGridCell" x:DataType="viewModels:MemoryEntry">
                                     <Setter Property="Background"
                                             Value="{Binding HasChanged,  Converter={StaticResource DataChangedHighlightRowConverter}}" />
                                 </Style>
                             </DataGrid.Styles>
                         </DataGrid>
-                    </Grid>
-                </TabItem>
-                <TabItem Header="Memory">
-                    <DataGrid Grid.Row="2" Items="{Binding  MemoryList}" AutoGenerateColumns="False"
-                              CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="False"
-                              SelectionChanged="DataGrid_OnSelectionChanged">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Address"
-                                                Binding="{Binding AddressDecimal}"
-                                                FontFamily="Courier New" />
-                            <DataGridTextColumn Header="Address (Hex)"
-                                                Binding="{Binding AddressHex}"
-                                                FontFamily="Courier New" />
-                            <DataGridTemplateColumn Header="Value">
-                                <DataTemplate DataType="viewModels:MemoryEntry">
-                                    <TextBlock HorizontalAlignment="Right"
-                                               Text="{Binding ValueDecimal}"
-                                               FontFamily="Courier New" />
-                                </DataTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="Value (Hex)"
-                                                Binding="{Binding ValueHex}"
-                                                FontFamily="Courier New" />
-                            <DataGridTextColumn Header="Value (Binary)"
-                                                Width="*"
-                                                Binding="{Binding ValueBinary}"
-                                                FontFamily="Courier New" />
-                        </DataGrid.Columns>
-
-                        <DataGrid.Styles>
-                            <Style Selector="DataGridCell" x:DataType="viewModels:MemoryEntry">
-                                <Setter Property="Background"
-                                        Value="{Binding HasChanged,  Converter={StaticResource DataChangedHighlightRowConverter}}" />
-                            </Style>
-                        </DataGrid.Styles>
-                    </DataGrid>
-                </TabItem>
-            </TabControl>
-            <GridSplitter ZIndex="1" Grid.Row="1" ResizeDirection="Rows" />
-            <DataGrid Grid.Row="2" Items="{Binding  InstructionList}" AutoGenerateColumns="False"
-                      CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="False"
-                      SelectionChanged="DataGrid_OnSelectionChanged">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Line"
-                                        Binding="{Binding LineNumber}"
-                                        FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
-                                        FontWeight="ExtraLight" />
-                    <DataGridTextColumn Header="Address"
-                                        Binding="{Binding AddressDecimal}"
-                                        FontFamily="Courier New" />
-                    <DataGridTextColumn Header="Address (Hex)"
-                                        Binding="{Binding AddressHex}"
-                                        FontFamily="Courier New" />
-                    <DataGridTextColumn Header="Bytecode"
-                                        Binding="{Binding Bytecode}"
-                                        FontFamily="Courier New" />
-                    <DataGridTextColumn Header="Interpreted as"
-                                        Width="*"
-                                        Binding="{Binding InstructionString}"
-                                        FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
-                                        FontWeight="ExtraLight" />
-                </DataGrid.Columns>
-                <DataGrid.Styles>
-                    <Style Selector="DataGridCell" x:DataType="viewModels:InstructionEntry">
-                        <Setter Property="Background"
-                                Value="{Binding IsCurrent,  Converter={StaticResource InstructionIsCurrentHighlightRowConverter}}" />
-                    </Style>
-                </DataGrid.Styles>
-            </DataGrid>
+                    </TabItem>
+                </TabControl>
+                <GridSplitter ZIndex="1" Grid.Row="1" ResizeDirection="Rows" />
+                <DataGrid Grid.Row="2" Items="{Binding  InstructionList}" AutoGenerateColumns="False"
+                          CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="False"
+                          SelectionChanged="DataGrid_OnSelectionChanged">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Line"
+                                            Binding="{Binding LineNumber}"
+                                            FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+                                            FontWeight="ExtraLight" />
+                        <DataGridTextColumn Header="Address"
+                                            Binding="{Binding AddressDecimal}"
+                                            FontFamily="Courier New" />
+                        <DataGridTextColumn Header="Address (Hex)"
+                                            Binding="{Binding AddressHex}"
+                                            FontFamily="Courier New" />
+                        <DataGridTextColumn Header="Bytecode"
+                                            Binding="{Binding Bytecode}"
+                                            FontFamily="Courier New" />
+                        <DataGridTextColumn Header="Interpreted as"
+                                            Width="*"
+                                            Binding="{Binding InstructionString}"
+                                            FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+                                            FontWeight="ExtraLight" />
+                    </DataGrid.Columns>
+                    <DataGrid.Styles>
+                        <Style Selector="DataGridCell" x:DataType="viewModels:InstructionEntry">
+                            <Setter Property="Background"
+                                    Value="{Binding IsCurrent,  Converter={StaticResource InstructionIsCurrentHighlightRowConverter}}" />
+                        </Style>
+                    </DataGrid.Styles>
+                </DataGrid>
+            </Grid>
+            <Grid Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="4" Classes="Status_Bar"
+                  ColumnDefinitions="Auto, Auto, Auto, *, Auto">
+                <TextBlock Grid.Column="0" Text="{Binding State}" />
+                <Rectangle Grid.Column="1" />
+                <ToggleButton Grid.Column="2" IsChecked="True" Name="AutoScrollToggleButton">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <i:Icon Value="fa-solid fa-turn-down" Classes="OnContent" />
+                        <TextBlock Text="Auto scroll" Classes="OnContent" />
+                        <i:Icon Value="fa-solid fa-up-down" Classes="OffContent" />
+                        <TextBlock Text="Free scroll" Classes="OffContent" />
+                    </StackPanel>
+                </ToggleButton>
+                <TextBlock Grid.Column="4" Text="{Binding EditorCaretInfo}" />
+            </Grid>
+            <Border Grid.Row="0" Grid.RowSpan="1" Grid.Column="1" Grid.ColumnSpan="1"
+                    Name="SettingsSlideBorder" Tag="{Binding IsSettingsOpened}"
+                    Background="{DynamicResource SystemControlBackgroundChromeBlackHighBrush}">
+                <views:SettingsView DataContext="{Binding Settings}" />
+            </Border>
         </Grid>
-        <Grid Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="4" Classes="Status_Bar"
-              ColumnDefinitions="Auto, Auto, Auto, *, Auto">
-            <TextBlock Grid.Column="0" Text="{Binding State}" />
-            <Rectangle Grid.Column="1" />
-            <ToggleButton Grid.Column="2" IsChecked="True" Name="AutoScrollToggleButton">
-                <StackPanel Orientation="Horizontal" Spacing="4">
-                    <i:Icon Value="fa-solid fa-turn-down" Classes="OnContent" />
-                    <TextBlock Text="Auto scroll" Classes="OnContent" />
-                    <i:Icon Value="fa-solid fa-up-down" Classes="OffContent" />
-                    <TextBlock Text="Free scroll" Classes="OffContent" />
-                </StackPanel>
-            </ToggleButton>
-            <TextBlock Grid.Column="4" Text="{Binding EditorCaretInfo}" />
-        </Grid>
-        <Border Grid.Row="0" Grid.RowSpan="1" Grid.Column="1" Grid.ColumnSpan="1"
-                Name="SettingsSlideBorder" Tag="{Binding IsSettingsOpened}"
-                Background="{DynamicResource SystemControlBackgroundChromeBlackHighBrush}">
-            <views:SettingsView DataContext="{Binding Settings}" />
-        </Border>
-    </Grid>
+    </dialogHost:DialogHost>
 </UserControl>

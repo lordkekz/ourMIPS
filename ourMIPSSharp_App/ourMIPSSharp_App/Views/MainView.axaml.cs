@@ -1,22 +1,9 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Reactive.Disposables;
-using System.Xml;
-using Avalonia;
+using System.Linq;
 using Avalonia.Controls;
-using Avalonia.Controls.Shapes;
-using Avalonia.Input;
-using Avalonia.Interactivity;
-using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Platform;
-using AvaloniaEdit;
-using AvaloniaEdit.Document;
-using AvaloniaEdit.Editing;
-using AvaloniaEdit.Highlighting;
-using AvaloniaEdit.Highlighting.Xshd;
-using AvaloniaEdit.Rendering;
+using Avalonia.Platform.Storage;
+using DialogHostAvalonia;
 using ourMIPSSharp_App.Rendering;
 using ourMIPSSharp_App.ViewModels;
 
@@ -26,7 +13,7 @@ using Pair = KeyValuePair<int, Control>;
 
 public partial class MainView : UserControl {
     public MainViewModel? ViewModel => DataContext as MainViewModel;
-    
+
     private readonly BreakPointMargin _breakPointMargin;
     private readonly EditorDebugCurrentLineHighlighter _lineHightlighter;
 
@@ -46,9 +33,42 @@ public partial class MainView : UserControl {
             Brushes.LimeGreen
         };
         // Write ready text to console (immediately applies colors)
-        ViewModel.Console.Clear();
+        ViewModel!.Console.Clear();
         ViewModel.Backend.TextInfoWriter.WriteLine("Ready.");
         ViewModel.Console.FlushNewLines();
+
+        var saveOptions = new FilePickerSaveOptions {
+            Title = "Save program...",
+            DefaultExtension = "ourMIPS",
+            ShowOverwritePrompt = true,
+            SuggestedFileName = "program"
+        };
+        var openOptions = new FilePickerOpenOptions {
+            Title = "Open program...",
+            AllowMultiple = false
+        };
+        ViewModel.SaveFileTo.RegisterHandler(
+            async interaction => {
+                var sp = App.Current?.GetStorageProvider();
+                var file = sp is not null ? await sp.SaveFilePickerAsync(saveOptions) : null;
+
+                interaction.SetOutput(file);
+            });
+        ViewModel.OpenProgramFile.RegisterHandler(
+            async interaction => {
+                var sp = App.Current?.GetStorageProvider();
+                var file = sp is not null ? await sp.OpenFilePickerAsync(openOptions) : null;
+
+                interaction.SetOutput(file?.FirstOrDefault());
+            });
+        ViewModel.AskSaveChanges.RegisterHandler(
+            async interaction => {
+                var result = await DialogHost.Show(new ModalDialogViewModel {
+                    Text = "Save Changes?"
+                });
+
+                interaction.SetOutput((bool)(result ?? false));
+            });
     }
 
     private void DataGrid_OnSelectionChanged(object? sender, SelectionChangedEventArgs e) {

@@ -11,6 +11,7 @@
         <FluentTheme Mode="Dark" />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
         <StyleInclude Source="avares://AvaloniaEdit/AvaloniaEdit.xaml" />
+        <StyleInclude Source="avares://DialogHost.Avalonia/Styles.xaml"/>
         <Style Selector="DataGridCell">
             <Setter Property="MinHeight" Value="20" />
             <Setter Property="FontSize" Value="17" />
@@ -79,6 +80,9 @@
         </Style>
         <Style Selector="TextBlock.H1Style">
             <Setter Property="FontSize" Value="24" />
+        </Style>
+        <Style Selector="Button.PrimaryBtn">
+            <Setter Property="Background" Value="{DynamicResource SystemAccentColor}"></Setter>
         </Style>
     </Application.Styles>
 

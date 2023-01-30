@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Platform.Storage;
 using AvaloniaEdit.Document;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
 using ourMIPSSharp_App.Models;
@@ -61,7 +63,9 @@ public class MainViewModel : ViewModelBase {
     }
 
     public ReactiveCommand<Unit, Unit> SettingsCommand { get; }
-    public ReactiveCommand<Unit, Unit> SaveCommand { get; }
+    public ReactiveCommand<Unit, Unit> FileSaveCommand { get; }
+    public ReactiveCommand<Unit, Unit> FileOpenCommand { get; }
+    public ReactiveCommand<Unit, Unit> FileCloseCommand { get; }
     public ReactiveCommand<Unit, Unit> MemInitCommand { get; }
     public ReactiveCommand<Unit, Unit> RebuildCommand { get; }
     public ReactiveCommand<Unit, Unit> RunCommand { get; }
@@ -134,6 +138,13 @@ public class MainViewModel : ViewModelBase {
         set => this.RaiseAndSetIfChanged(ref _isSettingsOpened, value);
     }
 
+
+    public bool HasUnsavedChanges { get; private set; }
+
+    public Interaction<Unit, IStorageFile?> SaveFileTo { get; } = new();
+    public Interaction<Unit, IStorageFile?> OpenProgramFile { get; } = new();
+    public Interaction<Unit, bool> AskSaveChanges { get; } = new();
+
     public MainViewModel() {
         var canExecuteNever = new[] { false }.ToObservable();
         var isRebuildingAllowed = this.WhenAnyValue(x => x.State,
@@ -145,7 +156,9 @@ public class MainViewModel : ViewModelBase {
             .Select(t => t is { Item1: ApplicationState.Debugging, Item2: false });
         var isBuiltButEmulatorInactive = this.WhenAnyValue(x => x.State, s => s.IsBuilt() && !s.IsEmulatorActive());
         SettingsCommand = ReactiveCommand.Create(ExecuteSettingsCommand);
-        SaveCommand = ReactiveCommand.Create(() => throw new NotImplementedException(), canExecuteNever);
+        FileSaveCommand = ReactiveCommand.CreateFromTask(ExecuteFileSaveCommand);
+        FileOpenCommand = ReactiveCommand.CreateFromTask(ExecuteFileOpenCommand);
+        FileCloseCommand = ReactiveCommand.CreateFromTask(ExecuteFileCloseCommand);
         MemInitCommand = ReactiveCommand.Create(() => throw new NotImplementedException(), canExecuteNever);
         RebuildCommand = ReactiveCommand.CreateFromTask(ExecuteRebuildCommand, isRebuildingAllowed);
         RunCommand = ReactiveCommand.CreateFromTask(ExecuteRunCommand, isBuiltButEmulatorInactive);
@@ -191,6 +204,42 @@ public class MainViewModel : ViewModelBase {
         for (var i = 0; i < 32; i++) {
             RegisterList.Add(new RegisterEntry((Register)i, () => Backend.CurrentEmulator!.Registers,
                 _debuggerUpdatingObservable));
+        }
+    }
+
+    private async Task ExecuteFileCloseCommand() {
+        if (!HasUnsavedChanges) return;
+        var saveChanges = await AskSaveChanges.Handle(Unit.Default);
+        if (saveChanges)
+            await ExecuteFileSaveCommand();
+    }
+
+    private async Task ExecuteFileOpenCommand() {
+        await ExecuteFileCloseCommand();
+        
+        try {
+            var file = await OpenProgramFile.Handle(Unit.Default);
+            if (file is null) return;
+            await using var stream = await file.OpenReadAsync();
+            using var reader = new StreamReader(stream);
+            Document.Text = await reader.ReadToEndAsync();
+        }
+        catch (IOException ex) {
+            System.Console.Error.WriteLine(ex);
+        }
+    }
+
+    private async Task ExecuteFileSaveCommand() {
+        try {
+            var file = await SaveFileTo.Handle(Unit.Default);
+            if (file is null) return;
+            await using var stream = await file.OpenWriteAsync();
+            await using var write = new StreamWriter(stream);
+            await write.WriteAsync(Backend.SourceCode);
+            await write.FlushAsync();
+        }
+        catch (IOException ex) {
+            System.Console.Error.WriteLine(ex);
         }
     }
 
