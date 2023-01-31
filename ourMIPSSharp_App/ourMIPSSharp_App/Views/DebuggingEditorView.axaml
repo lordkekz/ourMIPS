@@ -15,7 +15,7 @@
                              HorizontalAlignment="Stretch"
                              VerticalAlignment="Stretch"
                              ShowLineNumbers="True"
-                             Document="{Binding Document}"
+                             Document="{Binding CurrentEditor.Document}"
                              WordWrap="False"
                              FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
                              FontWeight="Light"

@@ -7,14 +7,13 @@ using lib_ourMIPSSharp.Errors;
 
 namespace ourMIPSSharp_App.Models;
 
-public class OpenScriptBackend {
-    public string FilePath { get; }
-
+public class FileBackend {
     public string SourceCode { get; set; } = "";
     public DialectOptions? DialectOpts => CurrentBuilder?.Options;
 
     public Builder? CurrentBuilder { get; private set; }
     public Emulator? CurrentEmulator { get; private set; }
+    public Debugger DebuggerInstance { get; }
     public bool Ready { get; private set; }
 
     public NotifyingTextWriter TextInWriter { get; } = new();
@@ -24,39 +23,23 @@ public class OpenScriptBackend {
     public NotifyingTextWriter TextOutWriter { get; private set; } = new();
     public NotifyingTextWriter TextErrWriter { get; private set; } = new();
 
-    public OpenScriptBackend(string path) {
-        FilePath = path;
-
+    public FileBackend(Func<bool> getInput) {
         TextInReader = new StringReader("");
         TextInWriter.LineWritten += (sender, args) => {
             var unreadTextIn = TextInReader!.ReadToEnd() + args.Content;
             TextInReader = new StringReader(unreadTextIn);
             if (CurrentEmulator != null) CurrentEmulator.TextIn = TextInReader;
         };
-
-        try {
-            SourceCode = File.ReadAllText(FilePath);
-        }
-        catch (IOException ex) {
-            Console.Error.WriteLine(ex);
-        }
+        DebuggerInstance = new Debugger(getInput, this);
     }
 
-    public void SaveFile() {
-        File.WriteAllText(FilePath, SourceCode);
-    }
-
-    public bool Rebuild(DialectOptions opts = DialectOptions.None) {
+    public void Rebuild(DialectOptions opts = DialectOptions.None) {
         CurrentBuilder = new Builder(SourceCode, opts) {
             TextOut = TextInfoWriter,
             TextErr = TextErrWriter
         };
-        if (!CurrentBuilder.FullBuild())
-            return Ready = false;
-
-        Ready = true;
-        MakeEmulator();
-        return true;
+        
+        Ready = CurrentBuilder.FullBuild();
     }
 
     public void MakeEmulator() {

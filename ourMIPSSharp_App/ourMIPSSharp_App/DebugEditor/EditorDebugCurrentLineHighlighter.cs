@@ -4,7 +4,7 @@ using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using AvaloniaEdit.Rendering;
 
-namespace ourMIPSSharp_App.Rendering;
+namespace ourMIPSSharp_App.DebugEditor;
 
 /// <summary>
 /// Based on <a href="https://github.com/AvaloniaUI/AvaloniaEdit/blob/1937a74920098d1bac0cf45110bc6e0ab2998375/src/AvaloniaEdit/Rendering/CurrentLineHighlightRenderer.cs">this</a>.
@@ -53,9 +53,6 @@ public class EditorDebugCurrentLineHighlighter : IBackgroundRenderer {
     }
 
     public void Draw(TextView textView, DrawingContext drawingContext) {
-        if (!_textView.Options.HighlightCurrentLine)
-            return;
-
         var builder = new BackgroundGeometryBuilder();
 
         var visualLine = _textView.GetVisualLine(_line);

@@ -3,6 +3,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
 using lib_ourMIPSSharp.EmulatorComponents;
+using ourMIPSSharp_App.Models;
 using ReactiveUI;
 
 namespace ourMIPSSharp_App.ViewModels;
@@ -18,7 +19,7 @@ public class InstructionEntry : ViewModelBase {
         _address = address;
         _line = line;
         _program = program;
-        breakingObservable.Select(x => x.EventArgs.Line == _line)
+        breakingObservable.Select(x => x.EventArgs.Address == _address)
             .ToProperty(this, x => x.IsCurrent, out _isCurrent);
     }
 
@@ -34,26 +35,26 @@ public class InstructionEntry : ViewModelBase {
 
 public class RegisterEntry : ViewModelBase {
     private readonly Register _register;
-    private readonly Func<RegisterStorage> _registerStorageFunc;
+    private readonly Func<RegisterStorage?> _registerStorageFunc;
     private int? _last;
 
-    public RegisterEntry(Register register, Func<RegisterStorage> registerStorageFunc,
+    public RegisterEntry(Register register, Func<RegisterStorage?> registerStorageFunc,
         IObservable<EventPattern<DebuggerUpdatingEventHandlerArgs>> updatingObservable) {
         _register = register;
         _registerStorageFunc = registerStorageFunc;
         int? tmpLast = null;
         updatingObservable
             .Do(x => tmpLast = _last)
-            .Do(x => _last = _registerStorageFunc()[_register])
+            .Do(x => _last = _registerStorageFunc()?[_register])
             .Select(x =>
                 x.EventArgs.RaisesChangeHighlight && tmpLast.HasValue &&
-                _registerStorageFunc()[_register] != tmpLast.Value)
+                _registerStorageFunc()?[_register] != tmpLast.Value)
             .ToProperty(this, x => x.HasChanged, out _hasChanged);
-        updatingObservable.Select(x => _registerStorageFunc()[_register].ToString(NumberLiteralFormat.Decimal))
+        updatingObservable.Select(x => _registerStorageFunc()?[_register].ToString(NumberLiteralFormat.Decimal))
             .ToProperty(this, x => x.ValueDecimal, out _valueDecimal);
-        updatingObservable.Select(x => _registerStorageFunc()[_register].ToString(NumberLiteralFormat.HexPrefix))
+        updatingObservable.Select(x => _registerStorageFunc()?[_register].ToString(NumberLiteralFormat.HexPrefix))
             .ToProperty(this, x => x.ValueHex, out _valueHex);
-        updatingObservable.Select(x => _registerStorageFunc()[_register].ToString(NumberLiteralFormat.BinaryPrefix))
+        updatingObservable.Select(x => _registerStorageFunc()?[_register].ToString(NumberLiteralFormat.BinaryPrefix))
             .ToProperty(this, x => x.ValueBinary, out _valueBinary);
     }
 
@@ -61,13 +62,13 @@ public class RegisterEntry : ViewModelBase {
     public string Name => _register.ToString().ToLower();
 
     public bool HasChanged => _hasChanged.Value;
-    private ObservableAsPropertyHelper<bool> _hasChanged;
-    public string ValueDecimal => _valueDecimal.Value;
-    private ObservableAsPropertyHelper<string> _valueDecimal;
-    public string ValueHex => _valueHex.Value;
-    private ObservableAsPropertyHelper<string> _valueHex;
-    public string ValueBinary => _valueBinary.Value;
-    private ObservableAsPropertyHelper<string> _valueBinary;
+    private readonly ObservableAsPropertyHelper<bool> _hasChanged;
+    public string? ValueDecimal => _valueDecimal.Value;
+    private readonly ObservableAsPropertyHelper<string?> _valueDecimal;
+    public string? ValueHex => _valueHex.Value;
+    private readonly ObservableAsPropertyHelper<string?> _valueHex;
+    public string? ValueBinary => _valueBinary.Value;
+    private readonly ObservableAsPropertyHelper<string?> _valueBinary;
 }
 
 public class MemoryEntry : ViewModelBase {

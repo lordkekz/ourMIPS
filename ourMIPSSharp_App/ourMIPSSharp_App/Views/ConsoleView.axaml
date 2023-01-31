@@ -31,7 +31,7 @@
                  Watermark="Console Input..."
                  Text="{Binding InputString, Mode=TwoWay}"
                  KeyDown="InputBox_OnKeyDown"
-                 IsEnabled="{Binding IsExpectingInput}"/>
+                 IsEnabled="{Binding IsExpectingInput}" />
         <avaloniaEdit:TextEditor Grid.Row="1"
                                  Name="Editor"
                                  HorizontalScrollBarVisibility="Auto"

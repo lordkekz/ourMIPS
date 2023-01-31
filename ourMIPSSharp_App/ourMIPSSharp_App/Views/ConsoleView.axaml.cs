@@ -67,7 +67,7 @@ public partial class ConsoleView : UserControl {
         _editor.TextArea.RightClickMovesCaret = true;
 
         _editor.TextArea.TextView.LineTransformers.Add(new ConsoleColorTransformer() { MyConsoleView = this });
-        
+
         AddHandler(PointerWheelChangedEvent, (o, i) => {
             if (i.KeyModifiers != KeyModifiers.Control) {
                 IsAutoScrollEnabled = false;
@@ -78,6 +78,16 @@ public partial class ConsoleView : UserControl {
             if (i.Delta.Y > 0) _editor.FontSize++;
             else _editor.FontSize = _editor.FontSize > 1 ? _editor.FontSize - 1 : 1;
         }, RoutingStrategies.Tunnel, true);
+
+
+        var inputBox = this.FindControl<TextBox>("InputBox")!;
+        inputBox.PropertyChanged += (sender, args) => {
+            if (args.Property != IsEnabledProperty) return;
+            if (inputBox.IsEnabled)
+                inputBox.Focus();
+            else
+                _editor.Focus();
+        };
     }
 
     protected override void OnDataContextChanged(EventArgs e) {

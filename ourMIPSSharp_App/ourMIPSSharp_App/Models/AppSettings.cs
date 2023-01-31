@@ -10,7 +10,7 @@ public class AppSettings {
     private static readonly JsonSerializerOptions SerializerOptions = new() { WriteIndented = true };
     private static string _dataFolder;
     private static string _settingsFilePath;
-    private List<OpenScriptBackend> _openFiles;
+    private List<FileBackend> _openFiles;
     public List<string>? OpenFiles { get; set; }
     public string? ActiveTheme { get; set; }
 

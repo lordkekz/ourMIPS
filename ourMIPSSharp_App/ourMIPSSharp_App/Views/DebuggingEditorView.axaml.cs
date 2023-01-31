@@ -8,17 +8,17 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
 using AvaloniaEdit.Highlighting;
 using AvaloniaEdit.Highlighting.Xshd;
-using ourMIPSSharp_App.Rendering;
+using ourMIPSSharp_App.DebugEditor;
 using ourMIPSSharp_App.ViewModels;
 
-namespace ourMIPSSharp_App.Views; 
+namespace ourMIPSSharp_App.Views;
 
 public partial class DebuggingEditorView : UserControl {
     public MainViewModel? ViewModel => DataContext as MainViewModel;
-    
+
     private readonly BreakPointMargin _breakPointMargin;
     private readonly EditorDebugCurrentLineHighlighter _lineHighlighter;
-    
+
     public DebuggingEditorView() {
         InitializeComponent();
 
@@ -37,7 +37,7 @@ public partial class DebuggingEditorView : UserControl {
         }
 
         Editor.TextArea.Caret.PositionChanged += (sender, args) => {
-            ViewModel?.UpdateCaretInfo(
+            ViewModel?.CurrentEditor?.UpdateCaretInfo(
                 Editor.TextArea.Caret.Position.Line,
                 Editor.TextArea.Caret.Position.Column);
         };
@@ -61,11 +61,20 @@ public partial class DebuggingEditorView : UserControl {
     protected override void OnDataContextChanged(EventArgs e) {
         base.OnDataContextChanged(e);
         if (ViewModel is null) return;
-        ViewModel.DebuggerBreaking += (sender, args) => {
-            _lineHighlighter.Line = args.Line;
-            Editor.CaretOffset = Editor.Document.Lines[args.Line-1].EndOffset;
-            Editor.TextArea.Caret.BringCaretToView();
+        var vm = ViewModel;
+        vm.FileOpened += (s1, a1) => {
+            if (a1 is null) return;
+            var d = vm.CurrentDebugger!.DebuggerInstance;
+            d.DebuggerBreaking += (s2, a2) => {
+                if (vm.CurrentDebugger?.DebuggerInstance != d) return;
+                _lineHighlighter.Line = a2.Line;
+                Editor.CaretOffset = Editor.Document.Lines[a2.Line - 1].EndOffset;
+                Editor.TextArea.Caret.BringCaretToView();
+            };
+            d.DebuggerBreakEnding += (sender, args) => {
+                if (vm.CurrentDebugger?.DebuggerInstance != d) return;
+                _lineHighlighter.Line = 0;
+            };
         };
-        ViewModel.DebuggerBreakEnding += (sender, args) => { _lineHighlighter.Line = 0; };
     }
 }

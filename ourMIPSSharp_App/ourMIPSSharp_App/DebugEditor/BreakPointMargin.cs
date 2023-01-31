@@ -1,14 +1,11 @@
-using System;
-using System.ComponentModel;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
 using AvaloniaEdit;
 using AvaloniaEdit.Editing;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
+using ourMIPSSharp_App.Models;
 using ourMIPSSharp_App.ViewModels;
 
 namespace ourMIPSSharp_App.Views;
@@ -19,7 +16,7 @@ namespace ourMIPSSharp_App.Views;
 /// This class is based on <a href="https://github.com/VitalElement/AvalonStudio/blob/master/AvalonStudio/AvalonStudio.Controls.Editor/BreakPointMargin.cs">BreakPointMargin</a> from AvalonStudio.
 /// </summary>
 public class BreakPointMargin : AbstractMargin {
-    public MainViewModel ViewModel => _mv.ViewModel;
+    public DebuggerViewModel? ViewModel => _mv.ViewModel?.CurrentDebugger;
     private int previewLine;
     private bool previewPointVisible;
     private readonly TextEditor _editor;

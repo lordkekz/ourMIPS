@@ -112,7 +112,7 @@
                 <GridSplitter Grid.Row="1" ResizeDirection="Rows" />
                 <views:ConsoleView Grid.Row="2"
                                    Name="ConView"
-                                   DataContext="{Binding Console}"
+                                   DataContext="{Binding CurrentConsole}"
                                    IsAutoScrollEnabled="{Binding Path=IsChecked, ElementName=AutoScrollToggleButton, Mode=TwoWay}" />
             </Grid>
             <GridSplitter Grid.Row="0" ZIndex="1" Grid.Column="2" ResizeDirection="Columns" />
@@ -129,11 +129,11 @@
                             <TextBlock Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left"
                                        Margin="0,0,24,0" Text="Program Counter:" />
                             <TextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right"
-                                       Margin="0,0,24,0" Text="{Binding ProgramCounter}" />
+                                       Margin="0,0,24,0" Text="{Binding CurrentDebugger.ProgramCounter}" />
                             <TextBlock Grid.Row="1" Grid.Column="0" HorizontalAlignment="Left" Text="Overflow Flag:" />
                             <TextBlock Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right"
-                                       Text="{Binding OverflowFlag}" />
-                            <DataGrid Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Items="{Binding  RegisterList}"
+                                       Text="{Binding CurrentDebugger.OverflowFlag}" />
+                            <DataGrid Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Items="{Binding  CurrentDebugger.RegisterList}"
                                       AutoGenerateColumns="False"
                                       CanUserReorderColumns="True" CanUserResizeColumns="True"
                                       CanUserSortColumns="False"
@@ -176,7 +176,7 @@
                         </Grid>
                     </TabItem>
                     <TabItem Header="Memory">
-                        <DataGrid Grid.Row="2" Items="{Binding  MemoryList}" AutoGenerateColumns="False"
+                        <DataGrid Grid.Row="2" Items="{Binding  CurrentDebugger.MemoryList}" AutoGenerateColumns="False"
                                   CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="False"
                                   SelectionChanged="DataGrid_OnSelectionChanged">
                             <DataGrid.Columns>
@@ -212,7 +212,7 @@
                     </TabItem>
                 </TabControl>
                 <GridSplitter ZIndex="1" Grid.Row="1" ResizeDirection="Rows" />
-                <DataGrid Grid.Row="2" Items="{Binding  InstructionList}" AutoGenerateColumns="False"
+                <DataGrid Grid.Row="2" Items="{Binding  CurrentEditor.InstructionList}" AutoGenerateColumns="False"
                           CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="False"
                           SelectionChanged="DataGrid_OnSelectionChanged">
                     <DataGrid.Columns>
@@ -255,7 +255,7 @@
                         <TextBlock Text="Free scroll" Classes="OffContent" />
                     </StackPanel>
                 </ToggleButton>
-                <TextBlock Grid.Column="4" Text="{Binding EditorCaretInfo}" />
+                <TextBlock Grid.Column="4" Text="{Binding CurrentEditor.EditorCaretInfo}" />
             </Grid>
             <Border Grid.Row="0" Grid.RowSpan="1" Grid.Column="1" Grid.ColumnSpan="1"
                     Name="SettingsSlideBorder" Tag="{Binding IsSettingsOpened}"
