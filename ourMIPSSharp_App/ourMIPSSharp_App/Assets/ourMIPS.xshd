@@ -49,7 +49,7 @@
             <Word>endmacro</Word>
             <Word>mend</Word>
         </Keywords>
-
+        
         <Keywords color="Register">
             <Word>zero</Word>
             <Word>at</Word>
@@ -67,14 +67,30 @@
         |   \b[kK][0-1]
         </Rule>
         
-        <!-- Leading Register Dollar -->
-        <Rule color="Register">
-            \$
-        </Rule>
-        
         <!-- Numbered Register -->
         <Rule color="Register">
             \b[rR](?:(?:1\d)|(?:2\d)|(?:30)|(?:31)|\d)
+        |   \b[rR]\[(?:(?:1\d)|(?:2\d)|(?:30)|(?:31)|\d)\]
+        |   \$[rR](?:(?:1\d)|(?:2\d)|(?:30)|(?:31)|\d)
+        |   \$[rR]\[(?:(?:1\d)|(?:2\d)|(?:30)|(?:31)|\d)\]
+        </Rule>
+        
+        <!-- Yapjoma-style param Register -->
+        <Rule color="Register">
+            \breg\d\d?
+        |   \breg\[\d\d?\]
+        |   \$reg\d\d?
+        |   \$reg\[\d\d?\]
+        </Rule>
+        
+        <!-- Custom Register with Dollar -->
+        <Rule color="Register">
+            \$[a-zA-Z][a-zA-Z0-9_]*
+        </Rule>
+        
+        <!-- Leading Register Dollar -->
+        <Rule color="Register">
+            \$
         </Rule>
     </RuleSet>
     
@@ -92,11 +108,11 @@
 
         <!-- Digits -->
         <Rule color="Number">
-            \b[+-]?0[xX][0-9a-fA-F]+  # hex number with prefix
-        |   \b[+-]?[0-9a-fA-F]+h      # hex number with suffix
-        |   \b[+-]?0[bB][0-1]+        # bin number with prefix
-        |   \b[+-]?[0-1]+b            # bin number with suffix
-        |   \b[+-]?\d+                # decimal number
+            \b[+-]?0[xX][0-9a-fA-F]+\b  # hex number with prefix
+        |   \b[+-]?[0-9a-fA-F]+h\b      # hex number with suffix
+        |   \b[+-]?0[bB][0-1]+\b        # bin number with prefix
+        |   \b[+-]?[0-1]+b\b            # bin number with suffix
+        |   \b[+-]?\d+\b                # decimal number
         </Rule>
 
         <!-- Label Declarations -->

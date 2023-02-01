@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -10,7 +11,11 @@ using ReactiveUI;
 
 namespace ourMIPSSharp_App.ViewModels;
 
-public class MainViewModel : ViewModelBase {
+public class MainViewModel : ViewModelBase, IDisposable {
+    public static Interaction<Unit, IStorageFile?> SaveFileTo { get; } = new();
+    public static Interaction<Unit, IStorageFile?> OpenProgramFile { get; } = new();
+    public static Interaction<Unit, bool> AskSaveChanges { get; } = new();
+
     private OpenFileViewModel? _currentFile;
 
     public OpenFileViewModel? CurrentFile {
@@ -33,9 +38,7 @@ public class MainViewModel : ViewModelBase {
 
 
     public ReactiveCommand<Unit, Unit> SettingsCommand { get; }
-    public ReactiveCommand<Unit, Unit> FileSaveCommand { get; }
     public ReactiveCommand<Unit, Unit> FileOpenCommand { get; }
-    public ReactiveCommand<Unit, Unit> FileCloseCommand { get; }
     public ReactiveCommand<Unit, Unit> MemInitCommand { get; }
     public ReactiveCommand<Unit, Unit> RebuildCommand { get; }
     public ReactiveCommand<Unit, Unit> RunCommand { get; }
@@ -44,13 +47,9 @@ public class MainViewModel : ViewModelBase {
     public ReactiveCommand<Unit, Unit> ForwardCommand { get; }
     public ReactiveCommand<Unit, Unit> StopCommand { get; }
 
+    private ApplicationState _state = ApplicationState.None;
 
-    private ApplicationState _state = ApplicationState.NotBuilt;
-
-    public ApplicationState State {
-        get => _state;
-        set => this.RaiseAndSetIfChanged(ref _state, value);
-    }
+    public ApplicationState State => _state;
 
     private readonly ObservableAsPropertyHelper<bool> _isEditorReadonly;
     public bool IsEditorReadonly => _isEditorReadonly.Value;
@@ -75,13 +74,26 @@ public class MainViewModel : ViewModelBase {
         set => this.RaiseAndSetIfChanged(ref _isSettingsOpened, value);
     }
 
+    public ObservableCollection<OpenFileViewModel> OpenFiles { get; } = new();
+
     /// <summary>
     /// Fired whenever a new file is opened.
     /// </summary>
-    public event EventHandler<OpenFileViewModel?>? FileOpened;
+    public event EventHandler<OpenFileViewModel>? FileOpened;
+
+    /// <summary>
+    /// Fired whenever a new file is brought to the foreground.
+    /// </summary>
+    public event EventHandler<OpenFileViewModel>? FileActivated;
+
+    private readonly List<IDisposable> _disposables = new();
 
     public MainViewModel() {
+        _disposables.Add(this.WhenAnyValue(x => x.CurrentFile).Subscribe(f => OnFileActivated()));
+
         var canExecuteNever = new[] { false }.ToObservable();
+        var canExecuteAlways = new[] { true }.ToObservable();
+
         var isRebuildingAllowed = this.WhenAnyValue(x => x.State,
             s => s.IsRebuildingAllowed());
         var isEmulatorActive = this.WhenAnyValue(x => x.State,
@@ -92,13 +104,11 @@ public class MainViewModel : ViewModelBase {
         var isBuiltButEmulatorInactive = this.WhenAnyValue(x => x.State, s => s.IsBuilt() && !s.IsEmulatorActive());
 
         SettingsCommand = ReactiveCommand.Create(ExecuteSettingsCommand);
-        FileSaveCommand = ReactiveCommand.CreateFromTask(ExecuteFileSaveCommand);
         FileOpenCommand = ReactiveCommand.CreateFromTask(ExecuteFileOpenCommand);
-        FileCloseCommand = ReactiveCommand.CreateFromTask(ExecuteFileCloseCommand);
         MemInitCommand = ReactiveCommand.Create(() => throw new NotImplementedException(), canExecuteNever);
         RebuildCommand = ReactiveCommand.CreateFromTask(ExecuteRebuildCommand, isRebuildingAllowed);
         RunCommand = ReactiveCommand.CreateFromTask(ExecuteRunCommand, isBuiltButEmulatorInactive);
-        DebugCommand = ReactiveCommand.CreateFromTask(ExecuteDebugCommand, isBuiltButEmulatorInactive);
+        DebugCommand = ReactiveCommand.Create(ExecuteDebugCommand, isBuiltButEmulatorInactive);
         StepCommand = ReactiveCommand.CreateFromTask(ExecuteStepCommand, isDebuggingButNotBusy);
         ForwardCommand = ReactiveCommand.CreateFromTask(ExecuteForwardCommand, isDebuggingButNotBusy);
         StopCommand = ReactiveCommand.CreateFromTask(ExecuteStopCommand, isEmulatorActive);
@@ -112,9 +122,9 @@ public class MainViewModel : ViewModelBase {
 
         isEmulatorActive.ToProperty(this, x => x.IsEmulatorActive, out _isEmulatorActive);
 
-        isEmulatorActive.Subscribe(b => {
+        _disposables.Add(isEmulatorActive.Subscribe(b => {
             if (CurrentConsole is not null) CurrentConsole.IsExpectingInput = false;
-        });
+        }));
 
         // Current File Output Props
         this.WhenAnyValue(x => x.CurrentFile, f => f?.Backend)
@@ -127,20 +137,21 @@ public class MainViewModel : ViewModelBase {
             .ToProperty(this, x => x.CurrentDebugger, out _currentDebugger);
     }
 
-    public Interaction<Unit, IStorageFile?> SaveFileTo { get; } = new();
-    public Interaction<Unit, IStorageFile?> OpenProgramFile { get; } = new();
-    public Interaction<Unit, bool> AskSaveChanges { get; } = new();
-
-    private async Task ExecuteFileCloseCommand() {
-        if (CurrentEditor is { HasUnsavedChanges: false }) return;
-        var saveChanges = await AskSaveChanges.Handle(Unit.Default);
-        if (saveChanges)
-            await ExecuteFileSaveCommand();
-        CurrentFile = null;
+    public void OpenProgramFromSource(string sourceCode) {
+        var f = new OpenFileViewModel($"Untitled {OpenFiles.Count}");
+        f.Editor.Document.Text = sourceCode;
+        f.Closing += (sender, args) => {
+            // Remove file if it closes
+            OpenFiles.Remove(f);
+            if (CurrentFile == f)
+                CurrentFile = null;
+        };
+        OpenFiles.Add(f);
+        CurrentFile = f;
+        OnFileOpened();
     }
 
     private async Task ExecuteFileOpenCommand() {
-        await ExecuteFileCloseCommand();
         try {
             var file = await OpenProgramFile.Handle(Unit.Default);
             if (file is null) return;
@@ -155,109 +166,78 @@ public class MainViewModel : ViewModelBase {
         }
     }
 
-    public void OpenProgramFromSource(string sourceCode) {
-        var f = new OpenFileViewModel($"Untitled {OpenFiles.Count}");
-        f.Editor.Document.Text = sourceCode;
-        OpenFiles.Add(f);
-        CurrentFile = f;
-        OnFileOpened();
-    }
-
-    public List<OpenFileViewModel> OpenFiles { get; } = new();
-
-    private async Task ExecuteFileSaveCommand() {
-        try {
-            var file = await SaveFileTo.Handle(Unit.Default);
-            if (file is null) return;
-            await using var stream = await file.OpenWriteAsync();
-            await using var write = new StreamWriter(stream);
-            await write.WriteAsync(CurrentBackend.SourceCode);
-            await write.FlushAsync();
-        }
-        catch (IOException ex) {
-            Console.Error.WriteLine(ex);
-        }
-    }
-
     private void ExecuteSettingsCommand() {
         IsSettingsOpened = !IsSettingsOpened;
     }
 
     private async Task ExecuteRebuildCommand() {
-        if (CurrentEditor is null) return;
+        if (CurrentFile is null || CurrentFile!.IsBackgroundBusy) return;
         CurrentConsole?.Clear();
-        State = ApplicationState.Rebuilding;
-        var str = CurrentEditor.Text;
+        CurrentFile.State = ApplicationState.Rebuilding;
+        var str = CurrentEditor!.Text;
         await Task.Run(() => {
-            CurrentBackend.SourceCode = str;
+            CurrentBackend!.SourceCode = str;
             CurrentBackend.Rebuild();
             CurrentBackend.MakeEmulator();
         });
 
         CurrentConsole?.FlushNewLines();
-        if (CurrentBackend.Ready) {
-            State = ApplicationState.Ready;
-            CurrentEditor.OnRebuilt(CurrentDebugger.DebuggerBreakChangingObservable);
+        if (CurrentBackend!.Ready) {
+            CurrentFile.State = ApplicationState.Built;
+            CurrentEditor.OnRebuilt(CurrentDebugger!.DebuggerBreakChangingObservable);
         }
-        else State = ApplicationState.NotBuilt;
+        else CurrentFile.State = ApplicationState.FileOpened;
     }
 
     private async Task ExecuteRunCommand() {
-        if (!CurrentBackend.Ready)
-            return;
-        if (CurrentFile.IsBackgroundBusy)
-            await CurrentDebugger!.StopEmulator();
+        if (CurrentFile is null || CurrentFile!.IsBackgroundBusy || !CurrentBackend!.Ready) return;
         CurrentFile.IsBackgroundBusy = true;
 
         CurrentBackend.MakeEmulator();
         CurrentConsole!.Clear();
-        State = ApplicationState.Running;
+        CurrentFile.State = ApplicationState.Running;
         await Task.Run(CurrentDebugger!.DebuggerInstance.Run);
-        State = ApplicationState.Ready;
+        CurrentFile.State = ApplicationState.Built;
         CurrentConsole.FlushNewLines();
         CurrentFile.IsBackgroundBusy = false;
     }
 
-    private async Task ExecuteDebugCommand() {
-        if (!CurrentBackend.Ready)
-            return;
-        if (CurrentFile.IsBackgroundBusy)
-            await CurrentDebugger!.StopEmulator();
+    private void ExecuteDebugCommand() {
+        if (CurrentFile is null || CurrentFile!.IsBackgroundBusy || !CurrentBackend!.Ready) return;
         CurrentBackend.MakeEmulator();
 
-
-        CurrentConsole.Clear();
-        CurrentBackend.TextInfoWriter.WriteLine("[EMULATOR] Debug session started.");
-        State = ApplicationState.Debugging;
+        CurrentConsole!.Clear();
+        CurrentDebugger.DebuggerInstance.StartSession();
+        CurrentFile.State = ApplicationState.Debugging;
         CurrentConsole.FlushNewLines();
     }
 
     private async Task ExecuteStepCommand() {
-        if (CurrentFile.IsBackgroundBusy) return;
+        if (CurrentFile is null || CurrentFile!.IsBackgroundBusy) return;
         CurrentFile.IsBackgroundBusy = true;
-        
-        State = ApplicationState.Running;
+
+        CurrentFile.State = ApplicationState.Running;
         await Task.Run(CurrentDebugger!.DebuggerInstance.Step);
 
-        if (CurrentBackend.CurrentEmulator!.Terminated || CurrentBackend.CurrentEmulator!.ErrorTerminated)
-            State = ApplicationState.Ready;
+        if (CurrentBackend!.CurrentEmulator!.Terminated || CurrentBackend.CurrentEmulator!.ErrorTerminated)
+            CurrentFile.State = ApplicationState.Built;
         else
-            State = ApplicationState.Debugging;
+            CurrentFile.State = ApplicationState.Debugging;
         CurrentConsole!.FlushNewLines();
         CurrentFile.IsBackgroundBusy = false;
     }
 
     private async Task ExecuteForwardCommand() {
-        if (CurrentFile.IsBackgroundBusy) return;
+        if (CurrentFile is null || CurrentFile!.IsBackgroundBusy) return;
         CurrentFile.IsBackgroundBusy = true;
-        
-        State = ApplicationState.Running;
+
+        CurrentFile.State = ApplicationState.Running;
         await Task.Run(CurrentDebugger!.DebuggerInstance.Forward);
 
-        if (CurrentBackend.CurrentEmulator!.Terminated || CurrentBackend.CurrentEmulator!.ErrorTerminated)
-            State = ApplicationState.Ready;
+        if (CurrentBackend!.CurrentEmulator!.Terminated || CurrentBackend.CurrentEmulator!.ErrorTerminated)
+            CurrentFile.State = ApplicationState.Built;
         else if (!CurrentBackend.CurrentEmulator!.ForceTerminated)
-            State = ApplicationState.Debugging;
+            CurrentFile.State = ApplicationState.Debugging;
         CurrentConsole!.FlushNewLines();
         CurrentFile.IsBackgroundBusy = false;
     }
@@ -267,11 +247,60 @@ public class MainViewModel : ViewModelBase {
             CurrentBackend.CurrentEmulator.EffectivelyTerminated) return;
 
         await CurrentDebugger!.StopEmulator();
-        State = ApplicationState.Ready;
+        CurrentFile.State = ApplicationState.Built;
         CurrentConsole!.FlushNewLines();
     }
 
     protected virtual void OnFileOpened() {
+        if (CurrentFile is null) return;
+
+        var f = CurrentFile;
+        f.WhenAnyValue(f => f.State).Subscribe(s => {
+            if (CurrentFile == f)
+                this.RaiseAndSetIfChanged(ref _state, s, nameof(State));
+        });
         FileOpened?.Invoke(this, CurrentFile);
+    }
+
+    protected virtual void OnFileActivated() {
+        foreach (var f in OpenFiles)
+            if (f != CurrentFile)
+                f.Debugger.DebuggerInstance.Hide();
+
+        if (CurrentFile is null) return;
+
+        CurrentDebugger?.DebuggerInstance.ComeBack();
+        this.RaiseAndSetIfChanged(ref _state, CurrentFile.State, nameof(State));
+        FileActivated?.Invoke(this, CurrentFile);
+    }
+
+    private void Dispose(bool disposing) {
+        if (!disposing) return;
+        foreach (var d in _disposables) d.Dispose();
+        _currentBackend.Dispose();
+        _currentConsole.Dispose();
+        _currentEditor.Dispose();
+        _currentDebugger.Dispose();
+        _isEditorReadonly.Dispose();
+        _isDebugging.Dispose();
+        _isEmulatorActive.Dispose();
+        SettingsCommand.Dispose();
+        FileOpenCommand.Dispose();
+        MemInitCommand.Dispose();
+        RebuildCommand.Dispose();
+        RunCommand.Dispose();
+        DebugCommand.Dispose();
+        StepCommand.Dispose();
+        ForwardCommand.Dispose();
+        StopCommand.Dispose();
+    }
+
+    public void Dispose() {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    ~MainViewModel() {
+        Dispose(false);
     }
 }

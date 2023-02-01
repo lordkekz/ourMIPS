@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
+using Avalonia.Threading;
 using AvaloniaEdit.Highlighting;
 using AvaloniaEdit.Highlighting.Xshd;
 using ourMIPSSharp_App.DebugEditor;
@@ -63,17 +64,20 @@ public partial class DebuggingEditorView : UserControl {
         if (ViewModel is null) return;
         var vm = ViewModel;
         vm.FileOpened += (s1, a1) => {
-            if (a1 is null) return;
             var d = vm.CurrentDebugger!.DebuggerInstance;
-            d.DebuggerBreaking += (s2, a2) => {
-                if (vm.CurrentDebugger?.DebuggerInstance != d) return;
-                _lineHighlighter.Line = a2.Line;
-                Editor.CaretOffset = Editor.Document.Lines[a2.Line - 1].EndOffset;
-                Editor.TextArea.Caret.BringCaretToView();
+            d.DebuggerBreaking += async (s2, a2) => {
+                await Dispatcher.UIThread.InvokeAsync(() => {
+                    if (vm.CurrentDebugger?.DebuggerInstance != d) return;
+                    _lineHighlighter.Line = a2.Line;
+                    Editor.CaretOffset = Editor.Document.Lines[a2.Line - 1].EndOffset;
+                    Editor.TextArea.Caret.BringCaretToView();
+                });
             };
-            d.DebuggerBreakEnding += (sender, args) => {
-                if (vm.CurrentDebugger?.DebuggerInstance != d) return;
-                _lineHighlighter.Line = 0;
+            d.DebuggerBreakEnding += async (sender, args) => {
+                await Dispatcher.UIThread.InvokeAsync(() => {
+                    if (vm.CurrentDebugger?.DebuggerInstance != d) return;
+                    _lineHighlighter.Line = 0;
+                });
             };
         };
     }

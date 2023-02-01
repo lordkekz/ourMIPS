@@ -81,7 +81,7 @@
                 <Button i:Attached.Icon="fa-solid fa-sliders"
                         Command="{Binding SettingsCommand}" />
                 <Button i:Attached.Icon="fa-solid fa-floppy-disk"
-                        Command="{Binding FileSaveCommand}" />
+                        Command="{Binding CurrentFile.SaveCommand}" />
                 <Button i:Attached.Icon="fa-solid fa-folder-open"
                         Command="{Binding FileOpenCommand}" />
                 <Button i:Attached.Icon="fa-solid fa-memory"
@@ -133,7 +133,8 @@
                             <TextBlock Grid.Row="1" Grid.Column="0" HorizontalAlignment="Left" Text="Overflow Flag:" />
                             <TextBlock Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right"
                                        Text="{Binding CurrentDebugger.OverflowFlag}" />
-                            <DataGrid Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2" Items="{Binding  CurrentDebugger.RegisterList}"
+                            <DataGrid Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2"
+                                      Items="{Binding  CurrentDebugger.RegisterList}"
                                       AutoGenerateColumns="False"
                                       CanUserReorderColumns="True" CanUserResizeColumns="True"
                                       CanUserSortColumns="False"
@@ -176,7 +177,8 @@
                         </Grid>
                     </TabItem>
                     <TabItem Header="Memory">
-                        <DataGrid Grid.Row="2" Items="{Binding  CurrentDebugger.MemoryList}" AutoGenerateColumns="False"
+                        <DataGrid Grid.Row="2" Items="{Binding  CurrentDebugger.MemoryList}"
+                                  AutoGenerateColumns="False"
                                   CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="False"
                                   SelectionChanged="DataGrid_OnSelectionChanged">
                             <DataGrid.Columns>
@@ -244,7 +246,7 @@
                 </DataGrid>
             </Grid>
             <Grid Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="4" Classes="Status_Bar"
-                  ColumnDefinitions="Auto, Auto, Auto, *, Auto">
+                  ColumnDefinitions="Auto, Auto, Auto, Auto, Auto, *, Auto">
                 <TextBlock Grid.Column="0" Text="{Binding State}" />
                 <Rectangle Grid.Column="1" />
                 <ToggleButton Grid.Column="2" IsChecked="True" Name="AutoScrollToggleButton">
@@ -255,7 +257,21 @@
                         <TextBlock Text="Free scroll" Classes="OffContent" />
                     </StackPanel>
                 </ToggleButton>
-                <TextBlock Grid.Column="4" Text="{Binding CurrentEditor.EditorCaretInfo}" />
+                <Rectangle Grid.Column="3" />
+                <TabStrip Grid.Column="4" Items="{Binding OpenFiles}" SelectedItem="{Binding CurrentFile, Mode=TwoWay}"
+                          Name="Strip">
+                    <TabStrip.DataTemplates>
+                        <DataTemplate DataType="viewModels:OpenFileViewModel">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                <Button i:Attached.Icon="fa-solid fa-square-xmark"
+                                        Command="{Binding CloseCommand}"
+                                        VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </TabStrip.DataTemplates>
+                </TabStrip>
+                <TextBlock Grid.Column="6" Text="{Binding CurrentEditor.EditorCaretInfo}" />
             </Grid>
             <Border Grid.Row="0" Grid.RowSpan="1" Grid.Column="1" Grid.ColumnSpan="1"
                     Name="SettingsSlideBorder" Tag="{Binding IsSettingsOpened}"

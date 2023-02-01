@@ -90,6 +90,7 @@ public class ConsoleViewModel : ViewModelBase {
     public void FlushNewLines() {
         if (!Dispatcher.UIThread.CheckAccess()) {
             // Switch to UI Thread
+            // TODO get this out of my viewmodel!
             Dispatcher.UIThread.InvokeAsync(FlushNewLines).Wait();
             return;
         }

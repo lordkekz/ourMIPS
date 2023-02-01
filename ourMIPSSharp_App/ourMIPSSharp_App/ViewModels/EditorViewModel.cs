@@ -17,7 +17,6 @@ using ReactiveUI;
 namespace ourMIPSSharp_App.ViewModels;
 
 public class EditorViewModel : ViewModelBase {
-
     public OpenFileViewModel File { get; }
     public TextDocument Document { get; }
     public ObservableCollection<InstructionEntry> InstructionList { get; } = new();
@@ -35,7 +34,8 @@ public class EditorViewModel : ViewModelBase {
         private set => this.RaiseAndSetIfChanged(ref _editorCaretInfo, value);
     }
 
-    public bool HasUnsavedChanges { get; private set; }
+    public bool HasUnsavedChanges => !SavedText.Equals(Text);
+    public string SavedText { get; set; }
     public string Text => Document.Text;
 
     public void UpdateCaretInfo(int positionLine, int positionColumn) {
@@ -63,5 +63,6 @@ public class EditorViewModel : ViewModelBase {
     public EditorViewModel(OpenFileViewModel file) {
         File = file;
         Document = new TextDocument(File.Backend.SourceCode);
+        SavedText = File.Backend.SourceCode;
     }
 }

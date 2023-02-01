@@ -59,6 +59,7 @@ public class Debugger {
     }
 
     public void StartSession() {
+        Backend.TextInfoWriter.WriteLine("[EMULATOR] Debug session started.");
         OnDebuggerUpdating(false);
         OnDebuggerBreaking();
     }
@@ -155,5 +156,14 @@ public class Debugger {
 
     protected virtual void OnDebuggerSyncing() {
         DebuggerSyncing?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void Hide() {
+        OnDebuggerBreakEnding();
+    }
+
+    public void ComeBack() {
+        if (Backend is { Ready: true, CurrentEmulator: { } })
+            OnDebuggerBreaking();
     }
 }
