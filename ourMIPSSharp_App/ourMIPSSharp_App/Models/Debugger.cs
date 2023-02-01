@@ -2,10 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 using Avalonia.Threading;
-using lib_ourMIPSSharp.EmulatorComponents;
-using ourMIPSSharp_App.ViewModels;
 
 namespace ourMIPSSharp_App.Models;
 
@@ -74,8 +71,7 @@ public class Debugger {
         while (!em.EffectivelyTerminated) {
             em.TryExecuteNext();
 
-            if (em.ExpectingInput)
-                _getInput();
+            if (em.ExpectingInput) _getInput();
             else break;
         }
 
@@ -109,7 +105,7 @@ public class Debugger {
             OnDebuggerSyncing();
 
             // Await input or sth
-            if (em.ExpectingInput && !_getInput()) break;
+            if (em.ExpectingInput) _getInput();
 
             // Pause at breakpoints; but only after at least one instruction was executed.
             if (IsAtBreakpoint(em.ProgramCounter)) {
@@ -142,7 +138,7 @@ public class Debugger {
             } while (em is { EffectivelyTerminated: false, ExpectingInput: false });
 
             // Await input or sth
-            if (em.ExpectingInput && !_getInput()) break;
+            if (em.ExpectingInput) _getInput();
         }
 
         s.Stop();

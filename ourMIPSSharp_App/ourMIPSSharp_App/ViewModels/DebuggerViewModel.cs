@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
 using ourMIPSSharp_App.Models;
 using ReactiveUI;
+using Debugger = ourMIPSSharp_App.Models.Debugger;
 
 namespace ourMIPSSharp_App.ViewModels;
 
@@ -113,9 +114,11 @@ public class DebuggerViewModel : ViewModelBase {
         File.Backend.CurrentEmulator!.ForceTerminated = true;
 
         if (File.IsBackgroundBusy) {
-            await this.WhenAnyValue(x => x.File.IsBackgroundBusy).FirstAsync();
+            var backgroundNoLongerBusy = File.WhenAnyValue(x => x.IsBackgroundBusy).Where(b => !b).FirstAsync();
+            await Task.Run(() => backgroundNoLongerBusy.Wait());
         }
-        
+
+        Debug.Assert(!File.IsBackgroundBusy);
         File.Backend.TextInfoWriter.WriteLine("[EMULATOR] Program terminated by user.");
     }
 }

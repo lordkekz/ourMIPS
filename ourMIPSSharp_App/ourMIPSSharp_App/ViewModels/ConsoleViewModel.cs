@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
-using Avalonia.Media;
+using System.Reactive.Threading.Tasks;
 using Avalonia.Threading;
 using AvaloniaEdit.Document;
-using lib_ourMIPSSharp.CompilerComponents.Elements;
 using ourMIPSSharp_App.Models;
 using ReactiveUI;
 
@@ -134,19 +131,8 @@ public class ConsoleViewModel : ViewModelBase {
         InputString = "";
     }
 
-    public async Task<bool> GetInputAsync() {
-        FlushNewLines();
-        IsExpectingInput = true;
-        foreach (var b in this.WhenAnyValue(x => x.IsExpectingInput).ToEnumerable())
-            if (!b)
-                break;
-
-        Debug.WriteLine("Got input!");
-        return true;
-    }
-
     /// <summary>
-    /// Gets input synchronously. Must be called from Background thread!
+    /// Gets input. Must be called from Background thread!
     /// </summary>
     /// <returns><c>true</c> if input was read; <c>false</c> otherwise</returns>
     /// <exception cref="InvalidOperationException">When called from UI thread</exception>
@@ -154,9 +140,13 @@ public class ConsoleViewModel : ViewModelBase {
         if (Dispatcher.UIThread.CheckAccess())
             throw new InvalidOperationException(
                 "GetInput must not be called from UI thread! Consider using GetInputAsync.");
-
-        var t = GetInputAsync();
-        t.Wait();
-        return t.Result;
+        
+        FlushNewLines();
+        IsExpectingInput = true;
+        var noLongerExpectingInput = this.WhenAnyValue(x => x.IsExpectingInput)
+            .Where(b => !b).FirstAsync().ToTask();
+        var r = noLongerExpectingInput.Wait(200);
+        Debug.WriteLine(r ? "Got input!" : "No input!");
+        return r;
     }
 }

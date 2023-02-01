@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -208,15 +207,15 @@ public class MainViewModel : ViewModelBase {
             return;
         if (CurrentFile.IsBackgroundBusy)
             await CurrentDebugger!.StopEmulator();
-        CurrentBackend.MakeEmulator();
-
-        CurrentConsole!.Clear();
         CurrentFile.IsBackgroundBusy = true;
+
+        CurrentBackend.MakeEmulator();
+        CurrentConsole!.Clear();
         State = ApplicationState.Running;
         await Task.Run(CurrentDebugger!.DebuggerInstance.Run);
         State = ApplicationState.Ready;
-        CurrentFile.IsBackgroundBusy = false;
         CurrentConsole.FlushNewLines();
+        CurrentFile.IsBackgroundBusy = false;
     }
 
     private async Task ExecuteDebugCommand() {
@@ -235,36 +234,36 @@ public class MainViewModel : ViewModelBase {
 
     private async Task ExecuteStepCommand() {
         if (CurrentFile.IsBackgroundBusy) return;
-
         CurrentFile.IsBackgroundBusy = true;
+        
         State = ApplicationState.Running;
         await Task.Run(CurrentDebugger!.DebuggerInstance.Step);
-        CurrentFile.IsBackgroundBusy = false;
 
         if (CurrentBackend.CurrentEmulator!.Terminated || CurrentBackend.CurrentEmulator!.ErrorTerminated)
             State = ApplicationState.Ready;
         else
             State = ApplicationState.Debugging;
         CurrentConsole!.FlushNewLines();
+        CurrentFile.IsBackgroundBusy = false;
     }
 
     private async Task ExecuteForwardCommand() {
         if (CurrentFile.IsBackgroundBusy) return;
-
         CurrentFile.IsBackgroundBusy = true;
+        
         State = ApplicationState.Running;
         await Task.Run(CurrentDebugger!.DebuggerInstance.Forward);
-        CurrentFile.IsBackgroundBusy = false;
 
         if (CurrentBackend.CurrentEmulator!.Terminated || CurrentBackend.CurrentEmulator!.ErrorTerminated)
             State = ApplicationState.Ready;
-        else
+        else if (!CurrentBackend.CurrentEmulator!.ForceTerminated)
             State = ApplicationState.Debugging;
         CurrentConsole!.FlushNewLines();
+        CurrentFile.IsBackgroundBusy = false;
     }
 
     private async Task ExecuteStopCommand() {
-        if (CurrentBackend?.CurrentEmulator == null ||
+        if (CurrentBackend?.CurrentEmulator is null ||
             CurrentBackend.CurrentEmulator.EffectivelyTerminated) return;
 
         await CurrentDebugger!.StopEmulator();
