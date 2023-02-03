@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Avalonia.Threading;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
 using ourMIPSSharp_App.Models;
 using ReactiveUI;
@@ -24,14 +23,16 @@ public class DebuggerViewModel : ViewModelBase {
     public ObservableCollection<MemoryEntry> MemoryList { get; } = new();
     public OpenFileViewModel File { get; }
     public Debugger DebuggerInstance => File.Backend.DebuggerInstance;
-    
+
     private int _overflowFlag;
+
     public int OverflowFlag {
         get => _overflowFlag;
         set => this.RaiseAndSetIfChanged(ref _overflowFlag, value);
     }
 
     private int _programCounter;
+
     public int ProgramCounter {
         get => _programCounter;
         set => this.RaiseAndSetIfChanged(ref _programCounter, value);
@@ -41,6 +42,14 @@ public class DebuggerViewModel : ViewModelBase {
     /// Reserved for UI Thread.
     /// </summary>
     public List<Breakpoint> UIBreakpoints { get; } = new();
+
+
+    private int _highlightedLine;
+
+    public int HighlightedLine {
+        get => _highlightedLine;
+        set => this.RaiseAndSetIfChanged(ref _highlightedLine, value);
+    }
 
     private void UpdateBreakpoints() {
         foreach (var bp in UIBreakpoints.Where(bp => !DebuggerInstance.Breakpoints.Contains(bp)))
@@ -63,14 +72,14 @@ public class DebuggerViewModel : ViewModelBase {
             a => DebuggerInstance.DebuggerBreakEnding -= a);
         DebuggerBreakChangingObservable = DebuggerBreakingObservable.Merge(DebuggerBreakEndingObservable);
 
+        DebuggerInstance.DebuggerBreaking += (sender, args) => HighlightedLine = args.Line;
+        DebuggerInstance.DebuggerBreakEnding += (sender, args) => HighlightedLine = 0;
         DebuggerInstance.DebuggerUpdating += HandleDebuggerUpdate;
-        DebuggerInstance.DebuggerSyncing += async (sender, args) => {
-            await Dispatcher.UIThread.InvokeAsync(() => {
-                UpdateBreakpoints();
-                File.Console.FlushNewLines();
-            });
+        DebuggerInstance.DebuggerSyncing += (sender, args) => {
+            UpdateBreakpoints();
+            File.Console.DoFlushNewLines();
         };
-        
+
         // Init RegisterList
         for (var i = 0; i < 32; i++) {
             RegisterList.Add(new RegisterEntry((Register)i, () => File.Backend.CurrentEmulator?.Registers,
@@ -79,12 +88,6 @@ public class DebuggerViewModel : ViewModelBase {
     }
 
     private void HandleDebuggerUpdate(object? sender, DebuggerUpdatingEventHandlerArgs args) {
-        if (!Dispatcher.UIThread.CheckAccess()) {
-            // Switch to UI Thread
-            Dispatcher.UIThread.InvokeAsync(() => HandleDebuggerUpdate(sender, args)).Wait();
-            return;
-        }
-
         OverflowFlag = File.Backend.CurrentEmulator!.Registers.FlagOverflow ? 1 : 0;
         ProgramCounter = File.Backend.CurrentEmulator!.Registers.ProgramCounter;
 
@@ -106,7 +109,7 @@ public class DebuggerViewModel : ViewModelBase {
 
         while (index < MemoryList.Count) MemoryList.RemoveAt(index);
     }
-    
+
     /// <summary>
     /// Force terminates the emulator. Needs to run in UI thread.
     /// </summary>
@@ -118,6 +121,7 @@ public class DebuggerViewModel : ViewModelBase {
             await Task.Run(() => backgroundNoLongerBusy.Wait());
         }
 
+        DebuggerInstance.Hide();
         Debug.Assert(!File.IsBackgroundBusy);
         File.Backend.TextInfoWriter.WriteLine("[EMULATOR] Program terminated by user.");
     }

@@ -137,10 +137,8 @@ public partial class ConsoleView : UserControl {
     private void InputBox_OnKeyDown(object? sender, KeyEventArgs e) {
         if (e is { KeyModifiers: KeyModifiers.None, Key: Key.Enter or Key.Return }) {
             ViewModel.SubmitInput();
-            // InputBox.Clear();
         }
     }
-
 
     /// <summary>
     /// Accessor for Attached property <see cref="LineBrushesProperty"/>.

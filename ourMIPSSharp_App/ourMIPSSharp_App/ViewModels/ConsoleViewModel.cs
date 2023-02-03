@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
-using Avalonia.Threading;
+using System.Threading.Tasks;
 using AvaloniaEdit.Document;
 using ourMIPSSharp_App.Models;
 using ReactiveUI;
@@ -58,43 +58,41 @@ public class ConsoleViewModel : ViewModelBase {
         ColorHints[ColorHints.Count] = 0;
         _newLines.Enqueue(e.Content);
         if (ShouldAutoUpdateConsole())
-            FlushNewLines();
+            FlushNewLines().Wait();
     }
 
     private void TextOutWriterOnLineWritten(object? sender, NotifyingTextWriterEventArgs e) {
         ColorHints[ColorHints.Count] = 1;
         _newLines.Enqueue(e.Content);
         if (ShouldAutoUpdateConsole())
-            FlushNewLines();
+            FlushNewLines().Wait();
     }
 
     private void TextErrWriterOnLineWritten(object? sender, NotifyingTextWriterEventArgs e) {
         ColorHints[ColorHints.Count] = 2;
         _newLines.Enqueue(e.Content);
         if (ShouldAutoUpdateConsole())
-            FlushNewLines();
+            FlushNewLines().Wait();
     }
 
     private void TextInWriterOnLineWritten(object? sender, NotifyingTextWriterEventArgs e) {
         ColorHints[ColorHints.Count] = 3;
         _newLines.Enqueue("Input: " + e.Content);
         if (ShouldAutoUpdateConsole())
-            FlushNewLines();
+            FlushNewLines().Wait();
     }
 
     public bool HasNewLines => !_newLines.IsEmpty;
 
     /// <summary>
-    /// Flushes new lines to UI. Automatically runs itself in UI Thread if needed.
+    /// Flushes new lines to UI. Automatically switches to UI thread.
     /// </summary>
-    public void FlushNewLines() {
-        if (!Dispatcher.UIThread.CheckAccess()) {
-            // Switch to UI Thread
-            // TODO get this out of my viewmodel!
-            Dispatcher.UIThread.InvokeAsync(FlushNewLines).Wait();
-            return;
-        }
-
+    public async Task FlushNewLines() => await Observable.Start(DoFlushNewLines, RxApp.MainThreadScheduler);
+    
+    /// <summary>
+    /// Flushes new lines to UI. Must be called from UI thread.
+    /// </summary>
+    public void DoFlushNewLines() {
         // There is no point in using DocumentTextWriter, since it also relies on Document.Insert
         // Only call Document.Insert once, since it seems to update ui every time
         var str = _newLines.Aggregate("", (a, b) => a + b);
@@ -125,24 +123,23 @@ public class ConsoleViewModel : ViewModelBase {
         ColorHints.Clear();
     }
 
+    /// <summary>
+    /// Submits input. Must be called from UI thread.
+    /// </summary>
     public void SubmitInput() {
         IsExpectingInput = false;
         Backend.TextInWriter.WriteLine(InputString);
-        FlushNewLines();
+        DoFlushNewLines();
         InputString = "";
     }
 
     /// <summary>
-    /// Gets input. Must be called from Background thread!
+    /// Gets input. Must be called from background thread.
     /// </summary>
     /// <returns><c>true</c> if input was read; <c>false</c> otherwise</returns>
     /// <exception cref="InvalidOperationException">When called from UI thread</exception>
     public bool GetInput() {
-        if (Dispatcher.UIThread.CheckAccess())
-            throw new InvalidOperationException(
-                "GetInput must not be called from UI thread! Consider using GetInputAsync.");
-        
-        FlushNewLines();
+        FlushNewLines().Wait();
         IsExpectingInput = true;
         var noLongerExpectingInput = this.WhenAnyValue(x => x.IsExpectingInput)
             .Where(b => !b).FirstAsync().ToTask();

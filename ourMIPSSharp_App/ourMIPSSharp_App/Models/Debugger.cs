@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Avalonia.Threading;
+using System.Reactive.Linq;
+using ReactiveUI;
 
 namespace ourMIPSSharp_App.Models;
 
@@ -44,18 +45,27 @@ public class Debugger {
     protected virtual void OnDebuggerBreaking() {
         var address = Backend.CurrentEmulator!.ProgramCounter;
         var line = Backend.CurrentBuilder!.SymbolStacks[address].Last().Line;
-        Dispatcher.UIThread.InvokeAsync(() =>
-            DebuggerBreaking?.Invoke(this, new DebuggerBreakEventHandlerArgs(address, line)));
+        Observable.Start(
+            () => DebuggerBreaking?.Invoke(this, new DebuggerBreakEventHandlerArgs(address, line)),
+            RxApp.MainThreadScheduler).Wait();
     }
 
     protected virtual void OnDebuggerBreakEnding() {
-        Dispatcher.UIThread.InvokeAsync(() =>
-            DebuggerBreakEnding?.Invoke(this, new DebuggerBreakEventHandlerArgs(-1, -1)));
+        Observable.Start(
+            () => DebuggerBreakEnding?.Invoke(this, new DebuggerBreakEventHandlerArgs(-1, -1)),
+            RxApp.MainThreadScheduler).Wait();
     }
 
     protected virtual void OnDebuggerUpdating(bool raisesChangeHighlight) {
-        Dispatcher.UIThread.InvokeAsync(() =>
-            DebuggerUpdating?.Invoke(this, new DebuggerUpdatingEventHandlerArgs(raisesChangeHighlight)));
+        Observable.Start(
+            () => DebuggerUpdating?.Invoke(this, new DebuggerUpdatingEventHandlerArgs(raisesChangeHighlight)),
+            RxApp.MainThreadScheduler).Wait();
+    }
+
+    protected virtual void OnDebuggerSyncing() {
+        Observable.Start(
+            () => DebuggerSyncing?.Invoke(this, EventArgs.Empty),
+            RxApp.MainThreadScheduler).Wait();
     }
 
     public void StartSession() {
@@ -90,6 +100,7 @@ public class Debugger {
 
     public void Forward() {
         var em = Backend.CurrentEmulator!;
+        OnDebuggerSyncing();
         OnDebuggerBreakEnding();
         var s = new Stopwatch();
         s.Start();
@@ -152,10 +163,6 @@ public class Debugger {
         return Backend.CurrentBuilder!.SymbolStacks.Length > pc &&
                Backend.CurrentBuilder!.SymbolStacks[pc].Any(
                    s => Breakpoints.Any(x => x.Line == s.Line));
-    }
-
-    protected virtual void OnDebuggerSyncing() {
-        DebuggerSyncing?.Invoke(this, EventArgs.Empty);
     }
 
     public void Hide() {

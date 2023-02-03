@@ -4,9 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
-using Avalonia.Threading;
 using AvaloniaEdit.Highlighting;
 using AvaloniaEdit.Highlighting.Xshd;
 using ourMIPSSharp_App.DebugEditor;
@@ -43,8 +41,8 @@ public partial class DebuggingEditorView : UserControl {
                 Editor.TextArea.Caret.Position.Column);
         };
 
-        _lineHighlighter = new EditorDebugCurrentLineHighlighter(Editor.TextArea.TextView);
-        Editor.TextArea.TextView.BackgroundRenderers.Add(_lineHighlighter);
+        _lineHighlighter = (EditorDebugCurrentLineHighlighter)Editor.Resources["CurrentLineHighlighter"]!;
+        _lineHighlighter.Initialize(Editor.TextArea.TextView);
 
         Editor.AddHandler(PointerWheelChangedEvent, (o, i) => {
             if (i.KeyModifiers != KeyModifiers.Control) return;
@@ -65,19 +63,13 @@ public partial class DebuggingEditorView : UserControl {
         var vm = ViewModel;
         vm.FileOpened += (s1, a1) => {
             var d = vm.CurrentDebugger!.DebuggerInstance;
-            d.DebuggerBreaking += async (s2, a2) => {
-                await Dispatcher.UIThread.InvokeAsync(() => {
-                    if (vm.CurrentDebugger?.DebuggerInstance != d) return;
-                    _lineHighlighter.Line = a2.Line;
-                    Editor.CaretOffset = Editor.Document.Lines[a2.Line - 1].EndOffset;
-                    Editor.TextArea.Caret.BringCaretToView();
-                });
+            d.DebuggerBreaking += (s2, a2) => {
+                if (vm.CurrentDebugger?.DebuggerInstance != d) return;
+                Editor.CaretOffset = Editor.Document.Lines[a2.Line - 1].EndOffset;
+                Editor.TextArea.Caret.BringCaretToView();
             };
-            d.DebuggerBreakEnding += async (sender, args) => {
-                await Dispatcher.UIThread.InvokeAsync(() => {
-                    if (vm.CurrentDebugger?.DebuggerInstance != d) return;
-                    _lineHighlighter.Line = 0;
-                });
+            d.DebuggerBreakEnding += (sender, args) => {
+                if (vm.CurrentDebugger?.DebuggerInstance != d) return;
             };
         };
     }

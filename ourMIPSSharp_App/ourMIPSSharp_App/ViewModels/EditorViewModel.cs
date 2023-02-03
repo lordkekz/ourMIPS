@@ -44,12 +44,6 @@ public class EditorViewModel : ViewModelBase {
 
     protected internal virtual void OnRebuilt(
         IObservable<EventPattern<DebuggerBreakEventHandlerArgs>> debuggerBreakChangingObservable) {
-        if (!Dispatcher.UIThread.CheckAccess()) {
-            // Switch to UI Thread
-            Dispatcher.UIThread.InvokeAsync(() => OnRebuilt(debuggerBreakChangingObservable)).Wait();
-            return;
-        }
-
         InstructionList.Clear();
         var prog = File.Backend.CurrentEmulator!.Program;
         for (var i = 0; i < prog.Count; i++) {

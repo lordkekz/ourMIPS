@@ -108,7 +108,7 @@ public class MainViewModel : ViewModelBase, IDisposable {
         MemInitCommand = ReactiveCommand.Create(() => throw new NotImplementedException(), canExecuteNever);
         RebuildCommand = ReactiveCommand.CreateFromTask(ExecuteRebuildCommand, isRebuildingAllowed);
         RunCommand = ReactiveCommand.CreateFromTask(ExecuteRunCommand, isBuiltButEmulatorInactive);
-        DebugCommand = ReactiveCommand.Create(ExecuteDebugCommand, isBuiltButEmulatorInactive);
+        DebugCommand = ReactiveCommand.CreateFromTask(ExecuteDebugCommand, isBuiltButEmulatorInactive);
         StepCommand = ReactiveCommand.CreateFromTask(ExecuteStepCommand, isDebuggingButNotBusy);
         ForwardCommand = ReactiveCommand.CreateFromTask(ExecuteForwardCommand, isDebuggingButNotBusy);
         StopCommand = ReactiveCommand.CreateFromTask(ExecuteStopCommand, isEmulatorActive);
@@ -181,7 +181,7 @@ public class MainViewModel : ViewModelBase, IDisposable {
             CurrentBackend.MakeEmulator();
         });
 
-        CurrentConsole?.FlushNewLines();
+        await CurrentConsole!.FlushNewLines();
         if (CurrentBackend!.Ready) {
             CurrentFile.State = ApplicationState.Built;
             CurrentEditor.OnRebuilt(CurrentDebugger!.DebuggerBreakChangingObservable);
@@ -198,18 +198,18 @@ public class MainViewModel : ViewModelBase, IDisposable {
         CurrentFile.State = ApplicationState.Running;
         await Task.Run(CurrentDebugger!.DebuggerInstance.Run);
         CurrentFile.State = ApplicationState.Built;
-        CurrentConsole.FlushNewLines();
+        await CurrentConsole!.FlushNewLines();
         CurrentFile.IsBackgroundBusy = false;
     }
 
-    private void ExecuteDebugCommand() {
+    private async Task ExecuteDebugCommand() {
         if (CurrentFile is null || CurrentFile!.IsBackgroundBusy || !CurrentBackend!.Ready) return;
         CurrentBackend.MakeEmulator();
 
         CurrentConsole!.Clear();
         CurrentDebugger.DebuggerInstance.StartSession();
         CurrentFile.State = ApplicationState.Debugging;
-        CurrentConsole.FlushNewLines();
+        await CurrentConsole!.FlushNewLines();
     }
 
     private async Task ExecuteStepCommand() {
@@ -223,7 +223,7 @@ public class MainViewModel : ViewModelBase, IDisposable {
             CurrentFile.State = ApplicationState.Built;
         else
             CurrentFile.State = ApplicationState.Debugging;
-        CurrentConsole!.FlushNewLines();
+        await CurrentConsole!.FlushNewLines();
         CurrentFile.IsBackgroundBusy = false;
     }
 
@@ -238,7 +238,7 @@ public class MainViewModel : ViewModelBase, IDisposable {
             CurrentFile.State = ApplicationState.Built;
         else if (!CurrentBackend.CurrentEmulator!.ForceTerminated)
             CurrentFile.State = ApplicationState.Debugging;
-        CurrentConsole!.FlushNewLines();
+        await CurrentConsole!.FlushNewLines();
         CurrentFile.IsBackgroundBusy = false;
     }
 
@@ -247,8 +247,8 @@ public class MainViewModel : ViewModelBase, IDisposable {
             CurrentBackend.CurrentEmulator.EffectivelyTerminated) return;
 
         await CurrentDebugger!.StopEmulator();
-        CurrentFile.State = ApplicationState.Built;
-        CurrentConsole!.FlushNewLines();
+        CurrentFile!.State = ApplicationState.Built;
+        await CurrentConsole!.FlushNewLines();
     }
 
     protected virtual void OnFileOpened() {
