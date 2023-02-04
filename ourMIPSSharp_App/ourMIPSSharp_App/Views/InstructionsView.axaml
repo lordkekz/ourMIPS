@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:ourMIPSSharp_App.Converters"
+             xmlns:viewModels="clr-namespace:ourMIPSSharp_App.ViewModels"
+             x:Class="ourMIPSSharp_App.Views.InstructionsView">
+    <UserControl.Resources>
+        <converters:InstructionIsCurrentHighlightRowConverter x:Key="InstructionIsCurrentHighlightRowConverter" />
+    </UserControl.Resources>
+    <DataGrid Grid.Row="2" Items="{Binding  CurrentEditor.InstructionList}" AutoGenerateColumns="False"
+              CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="False"
+              SelectionChanged="DataGrid_OnSelectionChanged">
+        <DataGrid.Columns>
+            <DataGridTextColumn Header="Line"
+                                Binding="{Binding LineNumber}"
+                                FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+                                FontWeight="ExtraLight" />
+            <DataGridTextColumn Header="Address"
+                                Binding="{Binding AddressDecimal}"
+                                FontFamily="Courier New" />
+            <DataGridTextColumn Header="Address (Hex)"
+                                Binding="{Binding AddressHex}"
+                                FontFamily="Courier New" />
+            <DataGridTextColumn Header="Bytecode"
+                                Binding="{Binding Bytecode}"
+                                FontFamily="Courier New" />
+            <DataGridTextColumn Header="Interpreted as"
+                                Width="*"
+                                Binding="{Binding InstructionString}"
+                                FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+                                FontWeight="ExtraLight" />
+        </DataGrid.Columns>
+        <DataGrid.Styles>
+            <Style Selector="DataGridCell" x:DataType="viewModels:InstructionEntry">
+                <Setter Property="Background"
+                        Value="{Binding IsCurrent,  Converter={StaticResource InstructionIsCurrentHighlightRowConverter}}" />
+            </Style>
+        </DataGrid.Styles>
+    </DataGrid>
+</UserControl>

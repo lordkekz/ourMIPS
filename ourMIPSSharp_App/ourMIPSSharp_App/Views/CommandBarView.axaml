@@ -1,0 +1,33 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="clr-namespace:Projektanker.Icons.Avalonia;assembly=Projektanker.Icons.Avalonia"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="ourMIPSSharp_App.Views.CommandBarView">
+    <StackPanel Orientation="Vertical" ZIndex="1">
+        <Button i:Attached.Icon="fa-solid fa-sliders"
+                Command="{Binding SettingsCommand}" />
+        <Button i:Attached.Icon="fa-solid fa-floppy-disk"
+                Command="{Binding CurrentFile.SaveCommand}" />
+        <Button i:Attached.Icon="fa-solid fa-folder-open"
+                Command="{Binding FileOpenCommand}" />
+        <Button i:Attached.Icon="fa-solid fa-memory"
+                Command="{Binding MemInitCommand}" />
+        <Button i:Attached.Icon="fa-solid fa-screwdriver-wrench"
+                Command="{Binding RebuildCommand}" />
+        <Button i:Attached.Icon="fa-solid fa-play"
+                Command="{Binding RunCommand}" />
+        <Button i:Attached.Icon="fa-solid fa-bug"
+                Command="{Binding DebugCommand}" />
+        <Button i:Attached.Icon="fa-solid fa-forward-step"
+                Command="{Binding StepCommand}"
+                IsVisible="{Binding IsDebugging}" />
+        <Button i:Attached.Icon="fa-solid fa-forward"
+                Command="{Binding ForwardCommand}"
+                IsVisible="{Binding IsDebugging}" />
+        <Button i:Attached.Icon="fa-solid fa-stop"
+                Command="{Binding StopCommand}"
+                IsVisible="{Binding IsEmulatorActive}" />
+    </StackPanel>
+</UserControl>

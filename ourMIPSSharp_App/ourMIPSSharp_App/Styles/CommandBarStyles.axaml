@@ -1,0 +1,29 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:ourMIPSSharp_App.Views">
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <!-- Add Controls for Previewer Here -->
+        </Border>
+    </Design.PreviewWith>
+
+    <Style Selector="views|CommandBarView">
+        <Setter Property="Background" Value="{DynamicResource SystemBaseLowColor}" />
+        <Setter Property="Width" Value="48" />
+    </Style>
+    <Style Selector="views|CommandBarView Button">
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="Height" Value="48" />
+        <Setter Property="Width" Value="48" />
+        <Setter Property="Background" Value="{DynamicResource SystemControlTransparentBrush}" />
+    </Style>
+    <Style Selector="views|CommandBarView Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource SystemControlTransparentBrush}" />
+    </Style>
+    <Style Selector="views|CommandBarView Rectangle.HLine">
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="Stroke" Value="{DynamicResource SystemAltMediumColor}" />
+        <Setter Property="Margin" Value="-2,8" />
+    </Style>
+</Styles>
