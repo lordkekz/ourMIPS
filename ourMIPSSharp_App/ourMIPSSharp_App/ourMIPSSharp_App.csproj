@@ -21,11 +21,40 @@
         <PackageReference Include="AvaloniaEdit.TextMate" Version="11.0.0-preview2" />
         <PackageReference Include="AvaloniaEdit.TextMate.Grammars" Version="0.10.12" />
         <PackageReference Include="DialogHost.Avalonia" Version="0.7.0-preview3" />
+        <PackageReference Include="Dock.Avalonia" Version="11.0.0-preview3" />
+        <PackageReference Include="Dock.Model.ReactiveUI" Version="11.0.0-preview3" />
         <PackageReference Include="Projektanker.Icons.Avalonia.FontAwesome" Version="6.2.0-preview1" />
         <PackageReference Include="XamlNameReferenceGenerator" Version="1.5.1" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\lib_ourMIPSSharp\lib_ourMIPSSharp.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Views\Tools\ConsoleView.axaml.cs">
+        <DependentUpon>ConsoleView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\Tools\CommandBarView.axaml.cs">
+        <DependentUpon>CommandBarView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\Tools\InstructionsView.axaml.cs">
+        <DependentUpon>InstructionsView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\Tools\MemoryView.axaml.cs">
+        <DependentUpon>MemoryView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\Tools\RegistersView.axaml.cs">
+        <DependentUpon>RegistersView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\Editor\DocumentView.axaml.cs">
+        <DependentUpon>DocumentView.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
     </ItemGroup>
 </Project>

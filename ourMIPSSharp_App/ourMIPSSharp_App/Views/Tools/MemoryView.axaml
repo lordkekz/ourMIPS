@@ -4,12 +4,18 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:converters="clr-namespace:ourMIPSSharp_App.Converters"
              xmlns:viewModels="clr-namespace:ourMIPSSharp_App.ViewModels"
+             xmlns:tools="clr-namespace:ourMIPSSharp_App.ViewModels.Tools"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="ourMIPSSharp_App.Views.MemoryView">
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <tools:MemoryViewModel />
+    </Design.DataContext>
     <UserControl.Resources>
         <converters:DataChangedHighlightRowConverter x:Key="DataChangedHighlightRowConverter" />
     </UserControl.Resources>
-    <DataGrid Grid.Row="2" Items="{Binding  CurrentDebugger.MemoryList}"
+    <DataGrid Grid.Row="2" Items="{Binding  Entries}"
               AutoGenerateColumns="False"
               CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="False"
               SelectionChanged="DataGrid_OnSelectionChanged">
@@ -21,7 +27,7 @@
                                 Binding="{Binding AddressHex}"
                                 FontFamily="Courier New" />
             <DataGridTemplateColumn Header="Value">
-                <DataTemplate DataType="viewModels:MemoryEntry">
+                <DataTemplate DataType="tools:MemoryEntry">
                     <TextBlock HorizontalAlignment="Right"
                                Text="{Binding ValueDecimal}"
                                FontFamily="Courier New" />
@@ -37,7 +43,7 @@
         </DataGrid.Columns>
 
         <DataGrid.Styles>
-            <Style Selector="DataGridCell" x:DataType="viewModels:MemoryEntry">
+            <Style Selector="DataGridCell" x:DataType="tools:MemoryEntry">
                 <Setter Property="Background"
                         Value="{Binding HasChanged,  Converter={StaticResource DataChangedHighlightRowConverter}}" />
             </Style>

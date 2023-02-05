@@ -8,6 +8,7 @@
              xmlns:views="clr-namespace:ourMIPSSharp_App.Views"
              xmlns:converters="clr-namespace:ourMIPSSharp_App.Converters"
              xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
+             xmlns:tools="clr-namespace:ourMIPSSharp_App.Views.Tools"
              mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="450"
              x:Class="ourMIPSSharp_App.Views.MainView">
     <UserControl.Styles>
@@ -72,14 +73,14 @@
                 <ColumnDefinition Width="{StaticResource GridSplitterThickness}" />
                 <ColumnDefinition Width="*" MinWidth="200" />
             </Grid.ColumnDefinitions>
-            <views:CommandBarView Grid.Column="0" Grid.RowSpan="1" />
+            <tools:CommandBarView Grid.Column="0" Grid.RowSpan="1" DataContext="{Binding Commands}" />
             <Grid Grid.Row="0" Grid.Column="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" MinHeight="200" />
                     <RowDefinition Height="{StaticResource GridSplitterThickness}" />
                     <RowDefinition Height="*" MinHeight="200" />
                 </Grid.RowDefinitions>
-                <views:DebuggingEditorView />
+                <views:DebuggingEditorView DataContext="{Binding CurrentEditor}" />
                 <GridSplitter Grid.Row="1" ResizeDirection="Rows" />
                 <views:ConsoleView Grid.Row="2"
                                    Name="ConView"
@@ -95,14 +96,14 @@
                 </Grid.RowDefinitions>
                 <TabControl Grid.Row="0">
                     <TabItem Header="Registers">
-                        <views:RegistersView />
+                        <views:RegistersView DataContext="{Binding Registers}" />
                     </TabItem>
                     <TabItem Header="Memory">
-                        <views:MemoryView />
+                        <views:MemoryView DataContext="{Binding Memory}" />
                     </TabItem>
                 </TabControl>
                 <GridSplitter ZIndex="1" Grid.Row="1" ResizeDirection="Rows" />
-                <views:InstructionsView Grid.Row="2" />
+                <views:InstructionsView Grid.Row="2" DataContext="{Binding Instructions}" />
             </Grid>
             <views:StatusBarView Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="4" />
             <Border Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3"

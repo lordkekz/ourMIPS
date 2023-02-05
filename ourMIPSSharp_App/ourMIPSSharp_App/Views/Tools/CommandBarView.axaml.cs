@@ -1,8 +1,7 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace ourMIPSSharp_App.Views; 
+namespace ourMIPSSharp_App.Views.Tools; 
 
 public partial class CommandBarView : UserControl {
     public CommandBarView() {

@@ -4,6 +4,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ourMIPSSharp_App.Models;
+using ourMIPSSharp_App.ViewModels.Editor;
 using ReactiveUI;
 
 namespace ourMIPSSharp_App.ViewModels;
@@ -18,8 +19,7 @@ public class OpenFileViewModel : ViewModelBase {
 
     public FileBackend Backend { get; }
     public ConsoleViewModel Console { get; }
-    public EditorViewModel Editor { get; }
-    public DebuggerViewModel Debugger { get; }
+    public DocumentViewModel Editor { get; }
 
     private bool _isBackgroundBusy;
 
@@ -51,8 +51,7 @@ public class OpenFileViewModel : ViewModelBase {
         Name = name;
         Backend = new FileBackend(() => Console!.GetInput());
         Console = new ConsoleViewModel(Backend);
-        Editor = new EditorViewModel(this);
-        Debugger = new DebuggerViewModel(this);
+        Editor = new DocumentViewModel(this);
         
         SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync);
         CloseCommand = ReactiveCommand.CreateFromTask(CloseAsync);
@@ -60,7 +59,7 @@ public class OpenFileViewModel : ViewModelBase {
 
     public async Task CloseAsync() {
         if (Editor.HasUnsavedChanges) {
-            var saveChanges = await MainViewModel.AskSaveChanges.Handle(Unit.Default);
+            var saveChanges = await Interactions.AskSaveChanges.Handle(Unit.Default);
             if (saveChanges)
                 await SaveAsync();
         }
@@ -74,7 +73,7 @@ public class OpenFileViewModel : ViewModelBase {
 
     private async Task SaveAsync() {
         try {
-            var file = await MainViewModel.SaveFileTo.Handle(Unit.Default);
+            var file = await Interactions.SaveFileTo.Handle(Unit.Default);
             if (file is null) return;
             await using var stream = await file.OpenWriteAsync();
             await using var write = new StreamWriter(stream);

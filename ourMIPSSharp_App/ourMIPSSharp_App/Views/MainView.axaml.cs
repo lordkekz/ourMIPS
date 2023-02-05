@@ -53,21 +53,21 @@ public partial class MainView : UserControl {
             Title = "Open program...",
             AllowMultiple = false
         };
-        MainViewModel.SaveFileTo.RegisterHandler(
+        Interactions.SaveFileTo.RegisterHandler(
             async interaction => {
                 var sp = App.Current?.GetStorageProvider();
                 var file = sp is not null ? await sp.SaveFilePickerAsync(saveOptions) : null;
 
                 interaction.SetOutput(file);
             });
-        MainViewModel.OpenProgramFile.RegisterHandler(
+        Interactions.OpenProgramFile.RegisterHandler(
             async interaction => {
                 var sp = App.Current?.GetStorageProvider();
                 var file = sp is not null ? await sp.OpenFilePickerAsync(openOptions) : null;
 
                 interaction.SetOutput(file?.FirstOrDefault());
             });
-        MainViewModel.AskSaveChanges.RegisterHandler(
+        Interactions.AskSaveChanges.RegisterHandler(
             async interaction => {
                 var result = await DialogHost.Show(new ModalDialogViewModel {
                     Text = "Save Changes?"

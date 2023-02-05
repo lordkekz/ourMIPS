@@ -9,11 +9,12 @@ using AvaloniaEdit.Highlighting;
 using AvaloniaEdit.Highlighting.Xshd;
 using ourMIPSSharp_App.DebugEditor;
 using ourMIPSSharp_App.ViewModels;
+using ourMIPSSharp_App.ViewModels.Editor;
 
 namespace ourMIPSSharp_App.Views;
 
 public partial class DebuggingEditorView : UserControl {
-    public MainViewModel? ViewModel => DataContext as MainViewModel;
+    public DocumentViewModel? ViewModel => DataContext as DocumentViewModel;
 
     private readonly BreakPointMargin _breakPointMargin;
     private readonly EditorDebugCurrentLineHighlighter _lineHighlighter;
@@ -36,7 +37,7 @@ public partial class DebuggingEditorView : UserControl {
         }
 
         Editor.TextArea.Caret.PositionChanged += (sender, args) => {
-            ViewModel?.CurrentEditor?.UpdateCaretInfo(
+            ViewModel?.UpdateCaretInfo(
                 Editor.TextArea.Caret.Position.Line,
                 Editor.TextArea.Caret.Position.Column);
         };
@@ -60,17 +61,13 @@ public partial class DebuggingEditorView : UserControl {
     protected override void OnDataContextChanged(EventArgs e) {
         base.OnDataContextChanged(e);
         if (ViewModel is null) return;
-        var vm = ViewModel;
-        vm.FileOpened += (s1, a1) => {
-            var d = vm.CurrentDebugger!.DebuggerInstance;
-            d.DebuggerBreaking += (s2, a2) => {
-                if (vm.CurrentDebugger?.DebuggerInstance != d) return;
-                Editor.CaretOffset = Editor.Document.Lines[a2.Line - 1].EndOffset;
-                Editor.TextArea.Caret.BringCaretToView();
-            };
-            d.DebuggerBreakEnding += (sender, args) => {
-                if (vm.CurrentDebugger?.DebuggerInstance != d) return;
-            };
+        var d = ViewModel.DebuggerInstance;
+        d.DebuggerBreaking += (s2, a2) => {
+            // Check because 0 or -1 is used to signal that no line was found
+            if (a2.Line < 1) return;
+            Editor.CaretOffset = Editor.Document.Lines[a2.Line - 1].EndOffset;
+            Editor.TextArea.Caret.BringCaretToView();
         };
+        d.DebuggerBreakEnding += (sender, args) => { };
     }
 }

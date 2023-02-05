@@ -5,10 +5,11 @@
              xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
              xmlns:viewModels="clr-namespace:ourMIPSSharp_App.ViewModels"
              xmlns:debugEditor="clr-namespace:ourMIPSSharp_App.DebugEditor"
+             xmlns:editor="clr-namespace:ourMIPSSharp_App.ViewModels.Editor"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="ourMIPSSharp_App.Views.DebuggingEditorView">
     <Design.DataContext>
-        <viewModels:MainViewModel />
+        <editor:DocumentViewModel />
     </Design.DataContext>
     <avaloniaEdit:TextEditor Name="Editor"
                              HorizontalScrollBarVisibility="Auto"
@@ -16,13 +17,13 @@
                              HorizontalAlignment="Stretch"
                              VerticalAlignment="Stretch"
                              ShowLineNumbers="True"
-                             Document="{Binding CurrentEditor.Document}"
+                             Document="{Binding Document}"
                              WordWrap="False"
                              FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
                              FontWeight="Light"
                              IsReadOnly="{Binding IsEditorReadonly}">
         <avaloniaEdit:TextEditor.Resources>
-            <debugEditor:EditorDebugCurrentLineHighlighter x:Key="CurrentLineHighlighter" Line="{Binding CurrentDebugger.HighlightedLine}" />
+            <debugEditor:EditorDebugCurrentLineHighlighter x:Key="CurrentLineHighlighter" Line="{Binding HighlightedLine}" />
         </avaloniaEdit:TextEditor.Resources>
     </avaloniaEdit:TextEditor>
 </UserControl>

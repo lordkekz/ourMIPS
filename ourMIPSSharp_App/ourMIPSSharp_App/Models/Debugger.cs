@@ -44,7 +44,8 @@ public class Debugger {
 
     protected virtual void OnDebuggerBreaking() {
         var address = Backend.CurrentEmulator!.ProgramCounter;
-        var line = Backend.CurrentBuilder!.SymbolStacks[address].Last().Line;
+        var s = Backend.CurrentBuilder!.SymbolStacks;
+        var line = s.Length > address ? s[address].Last().Line : -1;
         Observable.Start(
             () => DebuggerBreaking?.Invoke(this, new DebuggerBreakEventHandlerArgs(address, line)),
             RxApp.MainThreadScheduler).Wait();

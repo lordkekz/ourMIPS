@@ -3,13 +3,20 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:i="clr-namespace:Projektanker.Icons.Avalonia;assembly=Projektanker.Icons.Avalonia"
+             xmlns:viewModels="clr-namespace:ourMIPSSharp_App.ViewModels"
+             xmlns:tools="clr-namespace:ourMIPSSharp_App.ViewModels.Tools"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="ourMIPSSharp_App.Views.CommandBarView">
-    <StackPanel Orientation="Vertical" ZIndex="1">
+             x:Class="ourMIPSSharp_App.Views.Tools.CommandBarView">
+        <Design.DataContext>
+                <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+                <tools:CommandBarViewModel />
+        </Design.DataContext>
+        <StackPanel Orientation="Vertical" ZIndex="1">
         <Button i:Attached.Icon="fa-solid fa-sliders"
                 Command="{Binding SettingsCommand}" />
         <Button i:Attached.Icon="fa-solid fa-floppy-disk"
-                Command="{Binding CurrentFile.SaveCommand}" />
+                Command="{Binding Main.CurrentFile.SaveCommand}" />
         <Button i:Attached.Icon="fa-solid fa-folder-open"
                 Command="{Binding FileOpenCommand}" />
         <Button i:Attached.Icon="fa-solid fa-memory"
@@ -22,12 +29,12 @@
                 Command="{Binding DebugCommand}" />
         <Button i:Attached.Icon="fa-solid fa-forward-step"
                 Command="{Binding StepCommand}"
-                IsVisible="{Binding IsDebugging}" />
+                IsVisible="{Binding Main.IsDebugging}" />
         <Button i:Attached.Icon="fa-solid fa-forward"
                 Command="{Binding ForwardCommand}"
-                IsVisible="{Binding IsDebugging}" />
+                IsVisible="{Binding Main.IsDebugging}" />
         <Button i:Attached.Icon="fa-solid fa-stop"
                 Command="{Binding StopCommand}"
-                IsVisible="{Binding IsEmulatorActive}" />
+                IsVisible="{Binding Main.IsEmulatorActive}" />
     </StackPanel>
 </UserControl>
