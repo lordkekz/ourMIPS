@@ -3,7 +3,7 @@
              xmlns:converters="clr-namespace:ourMIPSSharp_App.Converters"
              xmlns:viewModels="clr-namespace:ourMIPSSharp_App.ViewModels"
              xmlns:tools="clr-namespace:ourMIPSSharp_App.ViewModels.Tools"
-             x:Class="ourMIPSSharp_App.Views.InstructionsView">
+             x:Class="ourMIPSSharp_App.Views.Tools.InstructionsView">
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE,
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->

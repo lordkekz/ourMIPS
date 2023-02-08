@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Linq;
+using Dock.Model.ReactiveUI.Controls;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
 using lib_ourMIPSSharp.EmulatorComponents;
 using ourMIPSSharp_App.Models;
@@ -9,12 +10,14 @@ using ReactiveUI;
 
 namespace ourMIPSSharp_App.ViewModels.Tools;
 
-public class InstructionsViewModel : ViewModelBase {
+public class InstructionsViewModel : Tool {
     
     private readonly ObservableAsPropertyHelper<ObservableCollection<InstructionEntry>?> _entries;
     public ObservableCollection<InstructionEntry>? Entries => _entries.Value;
 
     public InstructionsViewModel(MainViewModel main) {
+        Id = "Instructions";
+        Title = "Instructions";
         main.WhenAnyValue(m => m.CurrentFile)
             .Select(f => f?.Editor.InstructionList)
             .ToProperty(this, x => x.Entries, out _entries);

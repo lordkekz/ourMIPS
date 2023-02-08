@@ -22,7 +22,10 @@
         <PackageReference Include="AvaloniaEdit.TextMate.Grammars" Version="0.10.12" />
         <PackageReference Include="DialogHost.Avalonia" Version="0.7.0-preview3" />
         <PackageReference Include="Dock.Avalonia" Version="11.0.0-preview3" />
+        <PackageReference Include="Dock.Model" Version="11.0.0-preview3" />
+        <PackageReference Include="Dock.Model.Avalonia" Version="11.0.0-preview3" />
         <PackageReference Include="Dock.Model.ReactiveUI" Version="11.0.0-preview3" />
+        <PackageReference Include="Dock.Serializer" Version="11.0.0-preview3" />
         <PackageReference Include="Projektanker.Icons.Avalonia.FontAwesome" Version="6.2.0-preview1" />
         <PackageReference Include="XamlNameReferenceGenerator" Version="1.5.1" />
     </ItemGroup>

@@ -8,18 +8,17 @@ using Avalonia.Platform;
 using AvaloniaEdit.Highlighting;
 using AvaloniaEdit.Highlighting.Xshd;
 using ourMIPSSharp_App.DebugEditor;
-using ourMIPSSharp_App.ViewModels;
 using ourMIPSSharp_App.ViewModels.Editor;
 
-namespace ourMIPSSharp_App.Views;
+namespace ourMIPSSharp_App.Views.Editor;
 
-public partial class DebuggingEditorView : UserControl {
+public partial class DocumentView : UserControl {
     public DocumentViewModel? ViewModel => DataContext as DocumentViewModel;
 
     private readonly BreakPointMargin _breakPointMargin;
     private readonly EditorDebugCurrentLineHighlighter _lineHighlighter;
 
-    public DebuggingEditorView() {
+    public DocumentView() {
         InitializeComponent();
 
         Editor.Options.ShowBoxForControlCharacters = true;
@@ -30,7 +29,7 @@ public partial class DebuggingEditorView : UserControl {
 
         // Load syntax highlighting definition as resource so it's always available
         var assets = AvaloniaLocator.Current.GetService<IAssetLoader>()!;
-        using (var bitmap = assets.Open(new Uri("avares://ourMIPSSHarp_App/Assets/ourMIPS.xshd"))) {
+        using (var bitmap = assets.Open(new Uri("avares://ourMIPSSharp_App/Assets/ourMIPS.xshd"))) {
             using (var reader = new XmlTextReader(bitmap)) {
                 Editor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
             }
@@ -45,11 +44,11 @@ public partial class DebuggingEditorView : UserControl {
         _lineHighlighter = (EditorDebugCurrentLineHighlighter)Editor.Resources["CurrentLineHighlighter"]!;
         _lineHighlighter.Initialize(Editor.TextArea.TextView);
 
-        Editor.AddHandler(PointerWheelChangedEvent, (o, i) => {
+        AddHandler<PointerWheelEventArgs>(PointerWheelChangedEvent, (o, i) => {
             if (i.KeyModifiers != KeyModifiers.Control) return;
             i.Handled = true;
-            if (i.Delta.Y > 0) Editor.FontSize++;
-            else Editor.FontSize = Editor.FontSize > 1 ? Editor.FontSize - 1 : 1;
+            if (i.Delta.Y > 0) FontSize++;
+            else FontSize = FontSize > 1 ? FontSize - 1 : 1;
 
             _breakPointMargin?.InvalidateMeasure();
         }, RoutingStrategies.Tunnel, true);
@@ -64,7 +63,7 @@ public partial class DebuggingEditorView : UserControl {
         var d = ViewModel.DebuggerInstance;
         d.DebuggerBreaking += (s2, a2) => {
             // Check because 0 or -1 is used to signal that no line was found
-            if (a2.Line < 1) return;
+            if (a2.Line < 1 || Editor.Document is null) return;
             Editor.CaretOffset = Editor.Document.Lines[a2.Line - 1].EndOffset;
             Editor.TextArea.Caret.BringCaretToView();
         };

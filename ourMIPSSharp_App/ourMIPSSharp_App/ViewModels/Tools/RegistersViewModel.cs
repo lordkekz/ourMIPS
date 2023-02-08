@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Linq;
+using Dock.Model.ReactiveUI.Controls;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
 using lib_ourMIPSSharp.EmulatorComponents;
 using ourMIPSSharp_App.Models;
@@ -10,7 +11,7 @@ using ReactiveUI;
 
 namespace ourMIPSSharp_App.ViewModels.Tools;
 
-public class RegistersViewModel : ViewModelBase {
+public class RegistersViewModel : Tool {
     private readonly ObservableAsPropertyHelper<ObservableCollection<RegisterEntry>?> _entries;
     private readonly ObservableAsPropertyHelper<int> _programCounter;
     private readonly ObservableAsPropertyHelper<int> _overflowFlag;
@@ -19,6 +20,8 @@ public class RegistersViewModel : ViewModelBase {
     public int OverflowFlag => _overflowFlag.Value;
 
     public RegistersViewModel(MainViewModel main) {
+        Id = "Registers";
+        Title = "Registers";
         main.WhenAnyValue(m => m.CurrentFile.Editor.RegisterList)
             .ToProperty(this, x => x.Entries, out _entries);
         main.WhenAnyValue(m => m.CurrentFile.Editor.ProgramCounter)

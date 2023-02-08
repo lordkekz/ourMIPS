@@ -25,15 +25,6 @@ public partial class MainView : UserControl {
     protected override void OnLoaded() {
         base.OnLoaded();
 
-        this.TryFindColor("SystemBaseMediumColor", out var infoColor);
-        this.TryFindColor("SystemBaseHighColor", out var normalColor);
-        ConView.LineBrushes = new List<IBrush>() {
-            new SolidColorBrush(infoColor),
-            new SolidColorBrush(normalColor),
-            Brushes.OrangeRed,
-            Brushes.LimeGreen
-        };
-        
         // Load mult_philos sample from unit tests
         var sourceSample = File.ReadAllText("../../../../../lib_ourMIPSSharp_Tests/Samples/mult_philos.ourMIPS");
         ViewModel!.OpenProgramFromSource(sourceSample);

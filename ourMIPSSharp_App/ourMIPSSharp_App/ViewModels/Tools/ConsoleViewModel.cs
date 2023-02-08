@@ -6,12 +6,13 @@ using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using AvaloniaEdit.Document;
+using Dock.Model.ReactiveUI.Controls;
 using ourMIPSSharp_App.Models;
 using ReactiveUI;
 
-namespace ourMIPSSharp_App.ViewModels;
+namespace ourMIPSSharp_App.ViewModels.Tools;
 
-public class ConsoleViewModel : ViewModelBase {
+public class ConsoleViewModel : Tool {
     private string _inputString = "";
 
     public string InputString {
@@ -47,6 +48,7 @@ public class ConsoleViewModel : ViewModelBase {
     }
 
     public ConsoleViewModel(FileBackend backend) {
+        Id = "Console";
         Backend = backend;
         Backend.TextInfoWriter.LineWritten += TextInfoWriterOnLineWritten;
         Backend.TextOutWriter.LineWritten += TextOutWriterOnLineWritten;

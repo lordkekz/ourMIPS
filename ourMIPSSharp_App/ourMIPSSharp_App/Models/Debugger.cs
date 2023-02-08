@@ -171,7 +171,7 @@ public class Debugger {
     }
 
     public void ComeBack() {
-        if (Backend is { Ready: true, CurrentEmulator: { } })
+        if (Backend is { Ready: true, CurrentEmulator: { EffectivelyTerminated: false } })
             OnDebuggerBreaking();
     }
 }

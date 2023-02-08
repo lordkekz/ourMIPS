@@ -12,6 +12,7 @@
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
         <StyleInclude Source="avares://AvaloniaEdit/AvaloniaEdit.xaml" />
         <StyleInclude Source="avares://DialogHost.Avalonia/Styles.xaml"/>
+        <StyleInclude Source="avares://Dock.Avalonia/Themes/DockFluentTheme.axaml" />
         <StyleInclude Source="/Styles/StatusBarStyles.axaml" />
         <StyleInclude Source="/Styles/CommandBarStyles.axaml" />
         <Style Selector="DataGridCell">

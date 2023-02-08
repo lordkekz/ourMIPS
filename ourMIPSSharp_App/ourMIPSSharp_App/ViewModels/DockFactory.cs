@@ -1,167 +1,144 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Dock.Avalonia.Controls;
 using Dock.Model.Controls;
 using Dock.Model.Core;
 using Dock.Model.ReactiveUI;
 using Dock.Model.ReactiveUI.Controls;
+using ourMIPSSharp_App.ViewModels.Editor;
+using ourMIPSSharp_App.Views;
+using ReactiveUI;
 
 namespace ourMIPSSharp_App.ViewModels;
 
+public class DockFactory : Factory {
+    private readonly object _context;
+    private IRootDock? _rootDock;
+    private IDocumentDock? _documentDock;
+    private readonly MainViewModel _main;
+    private ToolDock _consoleDock;
 
-// public class DockFactory : Factory
-// {
-//     private readonly object _context;
-//     private IRootDock? _rootDock;
-//     private IDocumentDock? _documentDock;
-//
-//     public DockFactory(object context)
-//     {
-//         _context = context;
-//     }
-//
-//     public override IDocumentDock CreateDocumentDock() => new CustomDocumentDock();
-//
-//     public override IRootDock CreateLayout()
-//     {
-//         var document1 = new DocumentViewModel {Id = "Document1", Title = "Document1"};
-//         var document2 = new DocumentViewModel {Id = "Document2", Title = "Document2"};
-//         var document3 = new DocumentViewModel {Id = "Document3", Title = "Document3", CanClose = true};
-//         var tool1 = new Tool1ViewModel {Id = "Tool1", Title = "Tool1"};
-//         var tool2 = new Tool2ViewModel {Id = "Tool2", Title = "Tool2"};
-//         var tool3 = new Tool3ViewModel {Id = "Tool3", Title = "Tool3"};
-//         var tool4 = new Tool4ViewModel {Id = "Tool4", Title = "Tool4"};
-//         var tool5 = new Tool5ViewModel {Id = "Tool5", Title = "Tool5"};
-//         var tool6 = new Tool6ViewModel {Id = "Tool6", Title = "Tool6", CanClose = true, CanPin = true};
-//         var tool7 = new Tool7ViewModel {Id = "Tool7", Title = "Tool7", CanClose = false, CanPin = false};
-//         var tool8 = new Tool8ViewModel {Id = "Tool8", Title = "Tool8", CanClose = false, CanPin = true};
-//
-//         var leftDock = new ProportionalDock
-//         {
-//             Proportion = 0.25,
-//             Orientation = Orientation.Vertical,
-//             ActiveDockable = null,
-//             VisibleDockables = CreateList<IDockable>
-//             (
-//                 new ToolDock
-//                 {
-//                     ActiveDockable = tool1,
-//                     VisibleDockables = CreateList<IDockable>(tool1, tool2),
-//                     Alignment = Alignment.Left
-//                 },
-//                 new ProportionalDockSplitter(),
-//                 new ToolDock
-//                 {
-//                     ActiveDockable = tool3,
-//                     VisibleDockables = CreateList<IDockable>(tool3, tool4),
-//                     Alignment = Alignment.Bottom
-//                 }
-//             )
-//         };
-//
-//         var rightDock = new ProportionalDock
-//         {
-//             Proportion = 0.25,
-//             Orientation = Orientation.Vertical,
-//             ActiveDockable = null,
-//             VisibleDockables = CreateList<IDockable>
-//             (
-//                 new ToolDock
-//                 {
-//                     ActiveDockable = tool5,
-//                     VisibleDockables = CreateList<IDockable>(tool5, tool6),
-//                     Alignment = Alignment.Top,
-//                     GripMode = GripMode.Hidden
-//                 },
-//                 new ProportionalDockSplitter(),
-//                 new ToolDock
-//                 {
-//                     ActiveDockable = tool7,
-//                     VisibleDockables = CreateList<IDockable>(tool7, tool8),
-//                     Alignment = Alignment.Right,
-//                     GripMode = GripMode.AutoHide
-//                 }
-//             )
-//         };
-//
-//         var documentDock = new CustomDocumentDock
-//         {
-//             IsCollapsable = false,
-//             ActiveDockable = document1,
-//             VisibleDockables = CreateList<IDockable>(document1, document2, document3),
-//             CanCreateDocument = true
-//         };
-//
-//         var mainLayout = new ProportionalDock
-//         {
-//             Orientation = Orientation.Horizontal,
-//             VisibleDockables = CreateList<IDockable>
-//             (
-//                 leftDock,
-//                 new ProportionalDockSplitter(),
-//                 documentDock,
-//                 new ProportionalDockSplitter(),
-//                 rightDock
-//             )
-//         };
-//
-//         var dashboardView = new DashboardViewModel
-//         {
-//             Id = "Dashboard",
-//             Title = "Dashboard"
-//         };
-//
-//         var homeView = new HomeViewModel
-//         {
-//             Id = "Home",
-//             Title = "Home",
-//             ActiveDockable = mainLayout,
-//             VisibleDockables = CreateList<IDockable>(mainLayout)
-//         };
-//
-//         var rootDock = CreateRootDock();
-//
-//         rootDock.IsCollapsable = false;
-//         rootDock.ActiveDockable = dashboardView;
-//         rootDock.DefaultDockable = homeView;
-//         rootDock.VisibleDockables = CreateList<IDockable>(dashboardView, homeView);
-//
-//         _documentDock = documentDock;
-//         _rootDock = rootDock;
-//             
-//         return rootDock;
-//     }
-//
-//     public override void InitLayout(IDockable layout)
-//     {
-//         ContextLocator = new Dictionary<string, Func<object>>
-//         {
-//             ["Document1"] = () => new DemoDocument(),
-//             ["Document2"] = () => new DemoDocument(),
-//             ["Document3"] = () => new DemoDocument(),
-//             ["Tool1"] = () => new Tool1(),
-//             ["Tool2"] = () => new Tool2(),
-//             ["Tool3"] = () => new Tool3(),
-//             ["Tool4"] = () => new Tool4(),
-//             ["Tool5"] = () => new Tool5(),
-//             ["Tool6"] = () => new Tool6(),
-//             ["Tool7"] = () => new Tool7(),
-//             ["Tool8"] = () => new Tool8(),
-//             ["Dashboard"] = () => layout,
-//             ["Home"] = () => _context
-//         };
-//
-//         DockableLocator = new Dictionary<string, Func<IDockable?>>()
-//         {
-//             ["Root"] = () => _rootDock,
-//             ["Documents"] = () => _documentDock
-//         };
-//
-//         HostWindowLocator = new Dictionary<string, Func<IHostWindow>>
-//         {
-//             [nameof(IDockWindow)] = () => new HostWindow()
-//         };
-//
-//         base.InitLayout(layout);
-//     }
-// }
+    public DockFactory(MainViewModel main, object context) {
+        _context = context;
+        _main = main;
+    }
+
+    public override IRootDock CreateLayout() {
+        var leftDock = new ProportionalDock {
+            Proportion = 0.5,
+            Orientation = Orientation.Vertical,
+            ActiveDockable = null,
+            VisibleDockables = CreateList<IDockable>
+            (
+                _documentDock = new DocumentDock {
+                    IsCollapsable = false,
+                    ActiveDockable = _main.CurrentEditor,
+                    VisibleDockables = CreateList<IDockable>(),
+                    CanCreateDocument = true
+                },
+                new ProportionalDockSplitter(),
+                _consoleDock = new ToolDock {
+                    ActiveDockable = _main.CurrentConsole,
+                    VisibleDockables = CreateList<IDockable>(),
+                    Alignment = Alignment.Bottom
+                }
+            )
+        };
+
+        _main.FileSwitched += (sender, args) => {
+            if (args.DeactivatedFile is null || args.ActivatedFile is null)
+                return;
+
+            var c = args.DeactivatedFile.Console;
+            if (c.Owner is not IDock dock) return;
+            
+            var index = 0;
+            
+            if (dock.VisibleDockables is null)
+                dock.VisibleDockables = CreateList<IDockable>();
+            else {
+                index = dock.VisibleDockables.IndexOf(c);
+                dock.VisibleDockables.Remove(c);
+            }
+            
+            if (dock.HiddenDockables is null)
+                dock.HiddenDockables = CreateList<IDockable>(c);
+            else dock.HiddenDockables.Add(c);
+
+            dock.VisibleDockables.Insert(index, args.ActivatedFile.Console);
+        };
+
+        var rightDock = new ProportionalDock {
+            Proportion = 0.5,
+            Orientation = Orientation.Vertical,
+            ActiveDockable = null,
+            VisibleDockables = CreateList<IDockable>
+            (
+                new ToolDock {
+                    ActiveDockable = _main.Registers,
+                    VisibleDockables = CreateList<IDockable>(_main.Registers, _main.Memory),
+                    Alignment = Alignment.Top,
+                    GripMode = GripMode.Hidden
+                },
+                new ProportionalDockSplitter(),
+                new ToolDock {
+                    ActiveDockable = _main.Instructions,
+                    VisibleDockables = CreateList<IDockable>(_main.Instructions),
+                    Alignment = Alignment.Right,
+                    GripMode = GripMode.AutoHide
+                }
+            )
+        };
+
+        var mainLayout = new ProportionalDock {
+            Orientation = Orientation.Horizontal,
+            VisibleDockables = CreateList<IDockable>
+            (
+                leftDock,
+                new ProportionalDockSplitter(),
+                rightDock
+            )
+        };
+
+        var rootDock = CreateRootDock();
+
+        rootDock.IsCollapsable = false;
+        rootDock.ActiveDockable = mainLayout;
+        rootDock.DefaultDockable = mainLayout;
+        rootDock.VisibleDockables = CreateList<IDockable>(mainLayout);
+
+        _rootDock = rootDock;
+
+        _main.FileOpened += (sender, file) => _documentDock.VisibleDockables?.Add(file.Editor);
+        _main.FileSwitched += (sender, args) => _documentDock.ActiveDockable = args.ActivatedFile?.Editor;
+        _documentDock.WhenAnyValue(d => d.ActiveDockable).Subscribe(e => {
+            if (e is DocumentViewModel m)
+                _main.CurrentFile = m.File;
+        });
+
+        return rootDock;
+    }
+
+    public override void InitLayout(IDockable layout) {
+        ContextLocator = new Dictionary<string, Func<object>> {
+            ["Document"] = () => new object(),
+            ["Console"] = () => new object(),
+            ["Instructions"] = () => new object(),
+            ["Memory"] = () => new object(),
+            ["Registers"] = () => new object(),
+            ["MainLayout"] = () => layout
+        };
+
+        DockableLocator = new Dictionary<string, Func<IDockable?>>() {
+            ["Root"] = () => _rootDock,
+            ["Documents"] = () => _documentDock
+        };
+
+        HostWindowLocator = new Dictionary<string, Func<IHostWindow>> {
+            [nameof(IDockWindow)] = () => new HostWindow()
+        };
+
+        base.InitLayout(layout);
+    }
+}

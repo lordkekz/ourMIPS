@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ourMIPSSharp_App.Models;
 using ourMIPSSharp_App.ViewModels.Editor;
+using ourMIPSSharp_App.ViewModels.Tools;
 using ReactiveUI;
 
 namespace ourMIPSSharp_App.ViewModels;

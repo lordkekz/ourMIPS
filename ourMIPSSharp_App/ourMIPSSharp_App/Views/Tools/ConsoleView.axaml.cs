@@ -11,11 +11,9 @@ using Avalonia.Media;
 using AvaloniaEdit;
 using AvaloniaEdit.Document;
 using AvaloniaEdit.Rendering;
-using ourMIPSSharp_App.ViewModels;
+using ourMIPSSharp_App.ViewModels.Tools;
 
-namespace ourMIPSSharp_App.Views;
-
-using Pair = KeyValuePair<int, Control>;
+namespace ourMIPSSharp_App.Views.Tools;
 
 public partial class ConsoleView : UserControl {
     public ConsoleViewModel? ViewModel => DataContext as ConsoleViewModel;
@@ -87,6 +85,15 @@ public partial class ConsoleView : UserControl {
                 inputBox.Focus();
             else
                 _editor.Focus();
+        };
+        
+        this.TryFindColor("SystemBaseMediumColor", out var infoColor);
+        this.TryFindColor("SystemBaseHighColor", out var normalColor);
+        LineBrushes = new List<IBrush>() {
+            new SolidColorBrush(infoColor),
+            new SolidColorBrush(normalColor),
+            Brushes.OrangeRed,
+            Brushes.LimeGreen
         };
     }
 

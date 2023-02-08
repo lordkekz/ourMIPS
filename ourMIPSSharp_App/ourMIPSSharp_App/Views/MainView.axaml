@@ -9,6 +9,9 @@
              xmlns:converters="clr-namespace:ourMIPSSharp_App.Converters"
              xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
              xmlns:tools="clr-namespace:ourMIPSSharp_App.Views.Tools"
+             xmlns:editor="clr-namespace:ourMIPSSharp_App.Views.Editor"
+             xmlns:controls="clr-namespace:Dock.Model.ReactiveUI.Controls;assembly=Dock.Model.ReactiveUI"
+             xmlns:reactiveUi="clr-namespace:Dock.Model.ReactiveUI;assembly=Dock.Model.ReactiveUI"
              mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="450"
              x:Class="ourMIPSSharp_App.Views.MainView">
     <UserControl.Styles>
@@ -70,43 +73,14 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" MinWidth="200" />
-                <ColumnDefinition Width="{StaticResource GridSplitterThickness}" />
-                <ColumnDefinition Width="*" MinWidth="200" />
             </Grid.ColumnDefinitions>
             <tools:CommandBarView Grid.Column="0" Grid.RowSpan="1" DataContext="{Binding Commands}" />
-            <Grid Grid.Row="0" Grid.Column="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" MinHeight="200" />
-                    <RowDefinition Height="{StaticResource GridSplitterThickness}" />
-                    <RowDefinition Height="*" MinHeight="200" />
-                </Grid.RowDefinitions>
-                <views:DebuggingEditorView DataContext="{Binding CurrentEditor}" />
-                <GridSplitter Grid.Row="1" ResizeDirection="Rows" />
-                <views:ConsoleView Grid.Row="2"
-                                   Name="ConView"
-                                   DataContext="{Binding CurrentConsole}"
-                                   IsAutoScrollEnabled="{Binding Path=IsChecked, ElementName=AutoScrollToggleButton, Mode=TwoWay}" />
-            </Grid>
-            <GridSplitter Grid.Row="0" ZIndex="1" Grid.Column="2" ResizeDirection="Columns" />
-            <Grid Grid.Row="0" Grid.Column="3">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" MinHeight="200" />
-                    <RowDefinition Height="{StaticResource GridSplitterThickness}" />
-                    <RowDefinition Height="*" MinHeight="200" />
-                </Grid.RowDefinitions>
-                <TabControl Grid.Row="0">
-                    <TabItem Header="Registers">
-                        <views:RegistersView DataContext="{Binding Registers}" />
-                    </TabItem>
-                    <TabItem Header="Memory">
-                        <views:MemoryView DataContext="{Binding Memory}" />
-                    </TabItem>
-                </TabControl>
-                <GridSplitter ZIndex="1" Grid.Row="1" ResizeDirection="Rows" />
-                <views:InstructionsView Grid.Row="2" DataContext="{Binding Instructions}" />
-            </Grid>
-            <views:StatusBarView Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="4" />
-            <Border Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3"
+            <!--<ContentControl Grid.Row="0" Grid.Column="1" Content="{Binding Registers}" />-->
+            <DockControl x:Name="DockControl" Layout="{Binding Layout}" Margin="4"
+                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                         Grid.Row="0" Grid.Column="1" />
+            <views:StatusBarView Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" />
+            <Border Grid.Row="0" Grid.Column="1"
                     Name="SettingsSlideBorder" Tag="{Binding IsSettingsOpened}"
                     Background="{DynamicResource SystemChromeBlackHighColor}"
                     ZIndex="2">

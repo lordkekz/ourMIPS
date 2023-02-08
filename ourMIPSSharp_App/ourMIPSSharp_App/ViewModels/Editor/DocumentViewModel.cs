@@ -12,12 +12,12 @@ using ReactiveUI;
 using Debugger = ourMIPSSharp_App.Models.Debugger;
 using Observable = System.Reactive.Linq.Observable;
 using System.Reactive.Linq;
+using Dock.Model.ReactiveUI.Controls;
 using ourMIPSSharp_App.ViewModels.Tools;
 
-namespace ourMIPSSharp_App.ViewModels.Editor; 
+namespace ourMIPSSharp_App.ViewModels.Editor;
 
-public class DocumentViewModel : ViewModelBase {
-
+public class DocumentViewModel : Document {
     #region Editor Properties
 
     public OpenFileViewModel File { get; }
@@ -43,10 +43,11 @@ public class DocumentViewModel : ViewModelBase {
 
     private readonly ObservableAsPropertyHelper<bool> _isEditorReadonly;
     public bool IsEditorReadonly => _isEditorReadonly.Value;
+
     #endregion
-    
+
     #region Debugger Properties
-    
+
     public IObservable<EventPattern<DebuggerUpdatingEventHandlerArgs>> DebuggerUpdatingObservable { get; }
     public IObservable<EventPattern<DebuggerBreakEventHandlerArgs>> DebuggerBreakingObservable { get; }
     public IObservable<EventPattern<DebuggerBreakEventHandlerArgs>> DebuggerBreakEndingObservable { get; }
@@ -74,7 +75,7 @@ public class DocumentViewModel : ViewModelBase {
         get => _highlightedLine;
         set => this.RaiseAndSetIfChanged(ref _highlightedLine, value);
     }
-    
+
     /// <summary>
     /// Reserved for UI Thread.
     /// </summary>
@@ -84,7 +85,7 @@ public class DocumentViewModel : ViewModelBase {
 
     public DocumentViewModel(OpenFileViewModel file) {
         File = file;
-        
+
         Document = new TextDocument(File.Backend.SourceCode);
         SavedText = File.Backend.SourceCode;
 
@@ -106,8 +107,8 @@ public class DocumentViewModel : ViewModelBase {
             UpdateBreakpoints();
             File.Console.DoFlushNewLines();
         };
-        
-        
+
+
         this.WhenAnyValue(x => x.File.State)
             .Select(x => !x.IsEditingAllowed())
             .ToProperty(this, x => x.IsEditorReadonly, out _isEditorReadonly);
@@ -117,8 +118,16 @@ public class DocumentViewModel : ViewModelBase {
             RegisterList.Add(new RegisterEntry((Register)i, () => File.Backend.CurrentEmulator?.Registers,
                 DebuggerUpdatingObservable));
         }
+
+        // Init base Document properties
+        Id = $"Document";
+        Title = file.Name ?? "Unknown Document";
+        // _ = file.WhenAnyValue(f => f.Name).Subscribe(n => {
+        //     Id = $"DocumentViewModel_" + n;
+        //     Title = n ?? "Document";
+        // });
     }
-    
+
     #region Private Methods
 
     protected internal virtual void OnRebuilt(
@@ -132,14 +141,14 @@ public class DocumentViewModel : ViewModelBase {
 
         Rebuilt?.Invoke(this, EventArgs.Empty);
     }
-    
+
     private void UpdateBreakpoints() {
         foreach (var bp in UIBreakpoints.Where(bp => !DebuggerInstance.Breakpoints.Contains(bp)))
             DebuggerInstance.Breakpoints.Add(bp);
         foreach (var bp in DebuggerInstance.Breakpoints) bp.Update();
         DebuggerInstance.Breakpoints.RemoveAll(bp => bp.IsDeleted);
     }
-    
+
     private void HandleDebuggerUpdate(object? sender, DebuggerUpdatingEventHandlerArgs args) {
         OverflowFlag = File.Backend.CurrentEmulator!.Registers.FlagOverflow ? 1 : 0;
         ProgramCounter = File.Backend.CurrentEmulator!.Registers.ProgramCounter;
@@ -164,13 +173,13 @@ public class DocumentViewModel : ViewModelBase {
     }
 
     #endregion
-    
+
     #region Public Methods
 
     public void UpdateCaretInfo(int positionLine, int positionColumn) {
         EditorCaretInfo = $"Pos {positionLine}:{positionColumn}";
     }
-    
+
     /// <summary>
     /// Force terminates the emulator. Needs to run in UI thread.
     /// </summary>

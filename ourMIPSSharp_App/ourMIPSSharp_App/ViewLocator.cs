@@ -1,7 +1,9 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
+using Dock.Model.ReactiveUI.Controls;
 using ourMIPSSharp_App.ViewModels;
+using ourMIPSSharp_App.ViewModels.Editor;
 
 namespace ourMIPSSharp_App;
 
@@ -25,6 +27,6 @@ public class ViewLocator : IDataTemplate
 
     public bool Match(object? data)
     {
-        return data is ViewModelBase;
+        return data is ViewModelBase or DocumentViewModel or Tool;
     }
 }
