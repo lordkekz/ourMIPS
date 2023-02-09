@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -87,13 +88,11 @@ public partial class ConsoleView : UserControl {
                 _editor.Focus();
         };
         
-        this.TryFindColor("SystemBaseMediumColor", out var infoColor);
-        this.TryFindColor("SystemBaseHighColor", out var normalColor);
         LineBrushes = new List<IBrush>() {
-            new SolidColorBrush(infoColor),
-            new SolidColorBrush(normalColor),
-            Brushes.OrangeRed,
-            Brushes.LimeGreen
+            this.FindBrushOrDefault("ConsoleViewInfoBrush"),
+            this.FindBrushOrDefault("ConsoleViewStandardBrush"),
+            this.FindBrushOrDefault("ConsoleViewErrorBrush"),
+            this.FindBrushOrDefault("ConsoleViewInputBrush")
         };
     }
 
@@ -101,7 +100,7 @@ public partial class ConsoleView : UserControl {
         base.OnDataContextChanged(e);
         if (ViewModel is null) return;
         ViewModel!.LinesFlushed += async (sender, args) => {
-            if (!IsAutoScrollEnabled)
+            if (!IsAutoScrollEnabled || _editor.Document is null)
                 return;
             _editor.CaretOffset = _editor.Document.TextLength;
 
@@ -119,7 +118,8 @@ public partial class ConsoleView : UserControl {
         public ConsoleView? MyConsoleView { get; init; }
 
         protected override void ColorizeLine(DocumentLine line) {
-            if (MyConsoleView.ViewModel.Document.TextLength == 0 ||
+            if (MyConsoleView?.ViewModel?.Document is null ||
+                MyConsoleView.ViewModel.Document.TextLength == 0 ||
                 MyConsoleView.ViewModel.Document.LineCount <= line.LineNumber ||
                 MyConsoleView.LineBrushes is null)
                 return;

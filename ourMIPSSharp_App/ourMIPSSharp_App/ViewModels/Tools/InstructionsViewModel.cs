@@ -18,8 +18,7 @@ public class InstructionsViewModel : Tool {
     public InstructionsViewModel(MainViewModel main) {
         Id = "Instructions";
         Title = "Instructions";
-        main.WhenAnyValue(m => m.CurrentFile)
-            .Select(f => f?.Editor.InstructionList)
+        main.WhenAnyValue(m => m.DebugSession!.Editor.InstructionList)
             .ToProperty(this, x => x.Entries, out _entries);
     }
 }

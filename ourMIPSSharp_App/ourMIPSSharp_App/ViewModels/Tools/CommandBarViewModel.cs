@@ -35,7 +35,7 @@ public class CommandBarViewModel : ViewModelBase {
         var isEmulatorActive = Main.WhenAnyValue(x => x.State,
             s => s.IsEmulatorActive());
         var isDebuggingButNotBusy = Main.WhenAnyValue(x => x.State,
-                x => x.CurrentFile.IsBackgroundBusy)
+                x => x.DebugSession!.IsBackgroundBusy)
             .Select(t => t is { Item1: ApplicationState.Debugging, Item2: false });
         var isBuiltButEmulatorInactive = Main.WhenAnyValue(x => x.State, s => s.IsBuilt() && !s.IsEmulatorActive());
 
@@ -72,84 +72,93 @@ public class CommandBarViewModel : ViewModelBase {
     }
 
     private async Task ExecuteRebuildCommand() {
-        if (Main.CurrentFile is null || Main.CurrentFile!.IsBackgroundBusy) return;
-        Main.CurrentConsole?.Clear();
-        Main.CurrentFile.State = ApplicationState.Rebuilding;
-        var str = Main.CurrentEditor!.Text;
+        var f = Main.CurrentFile;
+        if (f is null || Main.IsEmulatorActive || Main.State == ApplicationState.Rebuilding) return;
+        Main.State = ApplicationState.Rebuilding;
+        f.DebugConsole.Clear();
+        var str = f.Text;
         await Task.Run(() => {
-            Main.CurrentBackend!.SourceCode = str;
-            Main.CurrentBackend.Rebuild();
-            Main.CurrentBackend.MakeEmulator();
+            f.Backend.SourceCode = str;
+            f.Backend.Rebuild();
+            f.Backend.MakeEmulator();
         });
 
-        await Main.CurrentConsole!.FlushNewLines();
-        if (Main.CurrentBackend!.Ready) {
-            Main.CurrentFile.State = ApplicationState.Built;
-            Main.CurrentEditor.OnRebuilt(Main.CurrentEditor!.DebuggerBreakChangingObservable);
+        f.DebugConsole.DoFlushNewLines();
+        if (f.Backend.Ready) {
+            Main.State = ApplicationState.Built;
+            Main.DebugSession = f.DebugSession;
+            f.OnRebuilt(f.DebuggerBreakChangingObservable);
         }
-        else Main.CurrentFile.State = ApplicationState.FileOpened;
+        else Main.State = ApplicationState.FileOpened;
     }
 
     private async Task ExecuteRunCommand() {
-        if (Main.CurrentFile is null || Main.CurrentFile!.IsBackgroundBusy || !Main.CurrentBackend!.Ready) return;
-        Main.CurrentFile.IsBackgroundBusy = true;
+        var s = Main.DebugSession;
+        if (s is null || !s.Backend.Ready || s.IsBackgroundBusy) return;
 
-        Main.CurrentBackend.MakeEmulator();
-        Main.CurrentConsole!.Clear();
-        Main.CurrentFile.State = ApplicationState.Running;
-        await Task.Run(Main.CurrentEditor!.DebuggerInstance.Run);
-        Main.CurrentFile.State = ApplicationState.Built;
-        await Main.CurrentConsole!.FlushNewLines();
-        Main.CurrentFile.IsBackgroundBusy = false;
+        s.IsBackgroundBusy = true;
+        s.Editor.DebugConsole.Clear();
+        
+        s.Backend.MakeEmulator();
+        Main.State = ApplicationState.Running;
+        await Task.Run(s.DebuggerInstance.Run);
+        Main.State = ApplicationState.Built;
+        
+        s.Editor.DebugConsole.DoFlushNewLines();
+        s.IsBackgroundBusy = false;
     }
 
     private async Task ExecuteDebugCommand() {
-        if (Main.CurrentFile is null || Main.CurrentFile!.IsBackgroundBusy || !Main.CurrentBackend!.Ready) return;
-        Main.CurrentBackend.MakeEmulator();
+        var s = Main.DebugSession;
+        if (s is null || !s.Backend.Ready || s.IsBackgroundBusy) return;
+        s.Backend.MakeEmulator();
 
-        Main.CurrentConsole!.Clear();
-        Main.CurrentEditor!.DebuggerInstance.StartSession();
-        Main.CurrentFile.State = ApplicationState.Debugging;
-        await Main.CurrentConsole!.FlushNewLines();
+        s.Editor.DebugConsole.Clear();
+        s.DebuggerInstance.StartSession();
+        Main.State = ApplicationState.Debugging;
+        s.Editor.DebugConsole.DoFlushNewLines();
     }
 
     private async Task ExecuteStepCommand() {
-        if (Main.CurrentFile is null || Main.CurrentFile!.IsBackgroundBusy) return;
-        Main.CurrentFile.IsBackgroundBusy = true;
+        var s = Main.DebugSession;
+        if (s is null || !s.Backend.Ready || s.IsBackgroundBusy) return;
+        
+        s.IsBackgroundBusy = true;
+        Main.State = ApplicationState.Running;
+        await Task.Run(s.DebuggerInstance.Step);
 
-        Main.CurrentFile.State = ApplicationState.Running;
-        await Task.Run(Main.CurrentEditor!.DebuggerInstance.Step);
-
-        if (Main.CurrentBackend!.CurrentEmulator!.Terminated || Main.CurrentBackend.CurrentEmulator!.ErrorTerminated)
-            Main.CurrentFile.State = ApplicationState.Built;
+        if (s.Backend.CurrentEmulator!.Terminated || s.Backend.CurrentEmulator!.ErrorTerminated)
+            Main.State = ApplicationState.Built;
         else
-            Main.CurrentFile.State = ApplicationState.Debugging;
-        await Main.CurrentConsole!.FlushNewLines();
-        Main.CurrentFile.IsBackgroundBusy = false;
+            Main.State = ApplicationState.Debugging;
+        
+        s.Editor.DebugConsole.DoFlushNewLines();
+        s.IsBackgroundBusy = false;
     }
 
     private async Task ExecuteForwardCommand() {
-        if (Main.CurrentFile is null || Main.CurrentFile!.IsBackgroundBusy) return;
-        Main.CurrentFile.IsBackgroundBusy = true;
+        var s = Main.DebugSession;
+        if (s is null || !s.Backend.Ready || s.IsBackgroundBusy) return;
+        
+        s.IsBackgroundBusy = true;
+        Main.State = ApplicationState.Running;
+        await Task.Run(s.DebuggerInstance.Forward);
 
-        Main.CurrentFile.State = ApplicationState.Running;
-        await Task.Run(Main.CurrentEditor!.DebuggerInstance.Forward);
-
-        if (Main.CurrentBackend!.CurrentEmulator!.Terminated || Main.CurrentBackend.CurrentEmulator!.ErrorTerminated)
-            Main.CurrentFile.State = ApplicationState.Built;
-        else if (!Main.CurrentBackend.CurrentEmulator!.ForceTerminated)
-            Main.CurrentFile.State = ApplicationState.Debugging;
-        await Main.CurrentConsole!.FlushNewLines();
-        Main.CurrentFile.IsBackgroundBusy = false;
+        if (s.Backend.CurrentEmulator!.Terminated || s.Backend.CurrentEmulator!.ErrorTerminated)
+            Main.State = ApplicationState.Built;
+        else if (!s.Backend.CurrentEmulator!.ForceTerminated)
+            Main.State = ApplicationState.Debugging;
+        s.Editor.DebugConsole.DoFlushNewLines();
+        s.IsBackgroundBusy = false;
     }
 
     private async Task ExecuteStopCommand() {
-        if (Main.CurrentBackend?.CurrentEmulator is null ||
-            Main.CurrentBackend.CurrentEmulator.EffectivelyTerminated) return;
+        var s = Main.DebugSession;
+        if (s is null || !s.Backend.Ready) return;
 
-        await Main.CurrentEditor!.StopEmulator();
-        Main.CurrentFile!.State = ApplicationState.Built;
-        await Main.CurrentConsole!.FlushNewLines();
+        await s.StopEmulator();
+        Main.State = ApplicationState.Built;
+        s.Editor.DebugConsole.DoFlushNewLines();
     }
 
     #endregion

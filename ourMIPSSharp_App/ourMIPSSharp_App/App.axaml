@@ -2,6 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:ourMIPSSharp_App"
              xmlns:i="clr-namespace:Projektanker.Icons.Avalonia;assembly=Projektanker.Icons.Avalonia"
+             xmlns:tools="clr-namespace:ourMIPSSharp_App.Views.Tools"
+             xmlns:generic="clr-namespace:System.Collections.Generic;assembly=System.Collections"
              x:Class="ourMIPSSharp_App.App">
     <Application.DataTemplates>
         <local:ViewLocator />
@@ -11,7 +13,7 @@
         <FluentTheme Mode="Dark" />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
         <StyleInclude Source="avares://AvaloniaEdit/AvaloniaEdit.xaml" />
-        <StyleInclude Source="avares://DialogHost.Avalonia/Styles.xaml"/>
+        <StyleInclude Source="avares://DialogHost.Avalonia/Styles.xaml" />
         <StyleInclude Source="avares://Dock.Avalonia/Themes/DockFluentTheme.axaml" />
         <StyleInclude Source="/Styles/StatusBarStyles.axaml" />
         <StyleInclude Source="/Styles/CommandBarStyles.axaml" />
@@ -57,7 +59,14 @@
                              Color="{DynamicResource SystemBaseMediumColor}" />
             <SolidColorBrush x:Key="TabItemHeaderBackgroundSelectedPressed"
                              Color="{DynamicResource SystemBaseMediumColor}" />
-            <SolidColorBrush x:Key="TabItemHeaderBackgroundSelected" Color="{DynamicResource SystemBaseLowColor}" />
+            <SolidColorBrush x:Key="DockThemeBackgroundBrush"
+                             Color="{DynamicResource SystemChromeBlackHighColor}" />
+            
+            <SolidColorBrush x:Key="ConsoleViewInfoBrush" Color="{DynamicResource SystemBaseMediumColor}" />
+            <SolidColorBrush x:Key="ConsoleViewStandardBrush" Color="{DynamicResource SystemBaseHighColor}" />
+            <SolidColorBrush x:Key="ConsoleViewErrorBrush" Color="OrangeRed" />
+            <SolidColorBrush x:Key="ConsoleViewInputBrush" Color="LimeGreen" />
+            
             <ControlTheme x:Key="DataGridCellTextBlockTheme" TargetType="TextBlock">
                 <Setter Property="Margin" Value="6,0,6,0" />
                 <Setter Property="VerticalAlignment" Value="Center" />

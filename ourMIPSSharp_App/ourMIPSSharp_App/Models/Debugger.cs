@@ -140,6 +140,7 @@ public class Debugger {
     public void Run() {
         var em = Backend.CurrentEmulator;
         Backend.TextInfoWriter.WriteLine("[EMULATOR] Running program.");
+        OnDebuggerUpdating(false);
         var s = new Stopwatch();
         s.Start();
 

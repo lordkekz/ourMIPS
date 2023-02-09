@@ -30,9 +30,9 @@ public partial class MainView : UserControl {
         ViewModel!.OpenProgramFromSource(sourceSample);
         
         // Write ready text to console (immediately applies colors)
-        ViewModel.CurrentConsole!.Clear();
-        ViewModel.CurrentBackend!.TextInfoWriter.WriteLine("Ready.");
-        _ = ViewModel.CurrentConsole.FlushNewLines();
+        ViewModel.ConsoleWrapper.Clear();
+        ViewModel.CurrentFile?.Backend.TextInfoWriter.WriteLine("Ready.");
+        _ = ViewModel.ConsoleWrapper.FlushNewLines();
 
         var saveOptions = new FilePickerSaveOptions {
             Title = "Save program...",

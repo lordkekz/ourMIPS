@@ -44,7 +44,7 @@ public partial class DocumentView : UserControl {
         _lineHighlighter = (EditorDebugCurrentLineHighlighter)Editor.Resources["CurrentLineHighlighter"]!;
         _lineHighlighter.Initialize(Editor.TextArea.TextView);
 
-        AddHandler<PointerWheelEventArgs>(PointerWheelChangedEvent, (o, i) => {
+        AddHandler(PointerWheelChangedEvent, (o, i) => {
             if (i.KeyModifiers != KeyModifiers.Control) return;
             i.Handled = true;
             if (i.Delta.Y > 0) FontSize++;
@@ -60,7 +60,7 @@ public partial class DocumentView : UserControl {
     protected override void OnDataContextChanged(EventArgs e) {
         base.OnDataContextChanged(e);
         if (ViewModel is null) return;
-        var d = ViewModel.DebuggerInstance;
+        var d = ViewModel.DebugSession.DebuggerInstance;
         d.DebuggerBreaking += (s2, a2) => {
             // Check because 0 or -1 is used to signal that no line was found
             if (a2.Line < 1 || Editor.Document is null) return;

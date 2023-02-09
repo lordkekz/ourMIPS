@@ -22,19 +22,11 @@ public class RegistersViewModel : Tool {
     public RegistersViewModel(MainViewModel main) {
         Id = "Registers";
         Title = "Registers";
-        main.WhenAnyValue(m => m.CurrentFile.Editor.RegisterList)
+        main.WhenAnyValue(m => m.DebugSession!.RegisterList)
             .ToProperty(this, x => x.Entries, out _entries);
-        main.WhenAnyValue(m => m.CurrentFile.Editor.ProgramCounter)
+        main.WhenAnyValue(m => m.DebugSession!.ProgramCounter)
             .ToProperty(this, x => x.ProgramCounter, out _programCounter);
-        // main.WhenAnyValue(m => m.CurrentFile,
-        //         m => m.CurrentFile.Editor,
-        //         m => m.CurrentFile.Editor.ProgramCounter,
-        //         (a,b,c) => main.CurrentEditor?.ProgramCounter)
-        //     .Do(x => {
-        //         Debug.WriteLine(this.ToString() + x);
-        //     })
-        //     .ToProperty(this, x => x.ProgramCounter, out _programCounter);
-        main.WhenAnyValue(m => m.CurrentFile.Editor.OverflowFlag)
+        main.WhenAnyValue(m => m.DebugSession!.OverflowFlag)
             .ToProperty(this, x => x.OverflowFlag, out _overflowFlag);
     }
 }

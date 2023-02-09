@@ -21,9 +21,9 @@
                              WordWrap="False"
                              FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
                              FontWeight="Light"
-                             IsReadOnly="{Binding IsEditorReadonly}">
+                             IsReadOnly="{Binding IsDebugging}">
         <avaloniaEdit:TextEditor.Resources>
-            <debugEditor:EditorDebugCurrentLineHighlighter x:Key="CurrentLineHighlighter" Line="{Binding HighlightedLine}" />
+            <debugEditor:EditorDebugCurrentLineHighlighter x:Key="CurrentLineHighlighter" Line="{Binding DebugSession.HighlightedLine}" />
         </avaloniaEdit:TextEditor.Resources>
     </avaloniaEdit:TextEditor>
 </UserControl>

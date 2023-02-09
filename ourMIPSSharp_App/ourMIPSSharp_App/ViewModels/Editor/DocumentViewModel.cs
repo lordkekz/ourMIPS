@@ -1,16 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
 using AvaloniaEdit.Document;
-using lib_ourMIPSSharp.CompilerComponents.Elements;
 using ourMIPSSharp_App.Models;
 using ReactiveUI;
-using Debugger = ourMIPSSharp_App.Models.Debugger;
-using Observable = System.Reactive.Linq.Observable;
 using System.Reactive.Linq;
 using Dock.Model.ReactiveUI.Controls;
 using ourMIPSSharp_App.ViewModels.Tools;
@@ -20,17 +16,28 @@ namespace ourMIPSSharp_App.ViewModels.Editor;
 public class DocumentViewModel : Document {
     #region Editor Properties
 
-    public OpenFileViewModel File { get; }
-    public TextDocument Document { get; }
+    public FileBackend Backend { get; }
+    public ReactiveCommand<Unit, Unit> SaveCommand { get; }
+    public ReactiveCommand<Unit, Unit> CloseCommand { get; }
     public ObservableCollection<InstructionEntry> InstructionList { get; } = new();
+    public event EventHandler? Closing;
+
+    private bool _isClosed;
+    private DebugSessionViewModel _debugSession;
+    private readonly ObservableAsPropertyHelper<bool> _isDebugging;
+    private string _editorCaretInfo;
+
+    public bool IsClosed {
+        get => _isClosed;
+        private set => this.RaiseAndSetIfChanged(ref _isClosed, value);
+    }
+
+    public TextDocument Document { get; }
 
     /// <summary>
     /// Fired whenever the program was rebuilt.
     /// </summary>
     public event EventHandler? Rebuilt;
-
-
-    private string _editorCaretInfo;
 
     public string EditorCaretInfo {
         get => _editorCaretInfo;
@@ -41,91 +48,44 @@ public class DocumentViewModel : Document {
     public string SavedText { get; set; }
     public string Text => Document.Text;
 
-    private readonly ObservableAsPropertyHelper<bool> _isEditorReadonly;
-    public bool IsEditorReadonly => _isEditorReadonly.Value;
+    public DebugSessionViewModel DebugSession {
+        get => _debugSession;
+        private set => this.RaiseAndSetIfChanged(ref _debugSession, value);
+    }
 
-    #endregion
-
-    #region Debugger Properties
-
-    public IObservable<EventPattern<DebuggerUpdatingEventHandlerArgs>> DebuggerUpdatingObservable { get; }
-    public IObservable<EventPattern<DebuggerBreakEventHandlerArgs>> DebuggerBreakingObservable { get; }
-    public IObservable<EventPattern<DebuggerBreakEventHandlerArgs>> DebuggerBreakEndingObservable { get; }
     public IObservable<EventPattern<DebuggerBreakEventHandlerArgs>> DebuggerBreakChangingObservable { get; }
 
-    public ObservableCollection<RegisterEntry> RegisterList { get; } = new();
-    public ObservableCollection<MemoryEntry> MemoryList { get; } = new();
-    public Debugger DebuggerInstance => File.Backend.DebuggerInstance;
+    public bool IsDebugging => _isDebugging.Value;
 
-    private int _overflowFlag;
-    private int _programCounter;
-    private int _highlightedLine;
-
-    public int OverflowFlag {
-        get => _overflowFlag;
-        set => this.RaiseAndSetIfChanged(ref _overflowFlag, value);
-    }
-
-    public int ProgramCounter {
-        get => _programCounter;
-        set => this.RaiseAndSetIfChanged(ref _programCounter, value);
-    }
-
-    public int HighlightedLine {
-        get => _highlightedLine;
-        set => this.RaiseAndSetIfChanged(ref _highlightedLine, value);
-    }
-
-    /// <summary>
-    /// Reserved for UI Thread.
-    /// </summary>
-    public List<Breakpoint> UIBreakpoints { get; } = new();
+    public ConsoleViewModel DebugConsole { get; }
 
     #endregion
 
-    public DocumentViewModel(OpenFileViewModel file) {
-        File = file;
+    public DocumentViewModel(MainViewModel main) {
+        Backend = new FileBackend(() => DebugConsole!.GetInput());
+        DebugConsole = new ConsoleViewModel(Backend);
 
-        Document = new TextDocument(File.Backend.SourceCode);
-        SavedText = File.Backend.SourceCode;
+        Document = new TextDocument(Backend.SourceCode);
+        SavedText = Backend.SourceCode;
 
-        DebuggerUpdatingObservable = Observable.FromEventPattern<DebuggerUpdatingEventHandlerArgs>(
-            a => DebuggerInstance.DebuggerUpdating += a,
-            a => DebuggerInstance.DebuggerUpdating -= a);
-        DebuggerBreakingObservable = Observable.FromEventPattern<DebuggerBreakEventHandlerArgs>(
-            a => DebuggerInstance.DebuggerBreaking += a,
-            a => DebuggerInstance.DebuggerBreaking -= a);
-        DebuggerBreakEndingObservable = Observable.FromEventPattern<DebuggerBreakEventHandlerArgs>(
-            a => DebuggerInstance.DebuggerBreakEnding += a,
-            a => DebuggerInstance.DebuggerBreakEnding -= a);
-        DebuggerBreakChangingObservable = DebuggerBreakingObservable.Merge(DebuggerBreakEndingObservable);
+        // Init Commands
+        SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync);
+        CloseCommand = ReactiveCommand.CreateFromTask(CloseAsync);
+        
+        
+        main.IsEmulatorActiveObservable.Select(b => b && main.DebugSession == DebugSession)
+            .ToProperty(this, x => x.IsDebugging, out _isDebugging);
 
-        DebuggerInstance.DebuggerBreaking += (sender, args) => HighlightedLine = args.Line;
-        DebuggerInstance.DebuggerBreakEnding += (sender, args) => HighlightedLine = 0;
-        DebuggerInstance.DebuggerUpdating += HandleDebuggerUpdate;
-        DebuggerInstance.DebuggerSyncing += (sender, args) => {
-            UpdateBreakpoints();
-            File.Console.DoFlushNewLines();
-        };
+        DebugSession = new DebugSessionViewModel(this);
+        
+        DebuggerBreakChangingObservable =
+            this.WhenAnyValue(x => x.DebugSession)
+                .Select(d => d.DebuggerBreakChangingObservable)
+                .Merge();
 
-
-        this.WhenAnyValue(x => x.File.State)
-            .Select(x => !x.IsEditingAllowed())
-            .ToProperty(this, x => x.IsEditorReadonly, out _isEditorReadonly);
-
-        // Init RegisterList
-        for (var i = 0; i < 32; i++) {
-            RegisterList.Add(new RegisterEntry((Register)i, () => File.Backend.CurrentEmulator?.Registers,
-                DebuggerUpdatingObservable));
-        }
 
         // Init base Document properties
-        Id = $"Document";
-        Title = file.Name ?? "Unknown Document";
-        // _ = file.WhenAnyValue(f => f.Name).Subscribe(n => {
-        //     Id = $"DocumentViewModel_" + n;
-        //     Title = n ?? "Document";
-        // });
+        Id = Title = $"Document {DateTime.Now}";
     }
 
     #region Private Methods
@@ -133,43 +93,13 @@ public class DocumentViewModel : Document {
     protected internal virtual void OnRebuilt(
         IObservable<EventPattern<DebuggerBreakEventHandlerArgs>> debuggerBreakChangingObservable) {
         InstructionList.Clear();
-        var prog = File.Backend.CurrentEmulator!.Program;
+        var prog = Backend.CurrentEmulator!.Program;
         for (var i = 0; i < prog.Count; i++) {
-            var line = File.Backend.CurrentBuilder!.SymbolStacks[i].Last().Line;
+            var line = Backend.CurrentBuilder!.SymbolStacks[i].Last().Line;
             InstructionList.Add(new InstructionEntry(i, line, prog, debuggerBreakChangingObservable));
         }
 
         Rebuilt?.Invoke(this, EventArgs.Empty);
-    }
-
-    private void UpdateBreakpoints() {
-        foreach (var bp in UIBreakpoints.Where(bp => !DebuggerInstance.Breakpoints.Contains(bp)))
-            DebuggerInstance.Breakpoints.Add(bp);
-        foreach (var bp in DebuggerInstance.Breakpoints) bp.Update();
-        DebuggerInstance.Breakpoints.RemoveAll(bp => bp.IsDeleted);
-    }
-
-    private void HandleDebuggerUpdate(object? sender, DebuggerUpdatingEventHandlerArgs args) {
-        OverflowFlag = File.Backend.CurrentEmulator!.Registers.FlagOverflow ? 1 : 0;
-        ProgramCounter = File.Backend.CurrentEmulator!.Registers.ProgramCounter;
-
-        var index = 0;
-        foreach (var address in File.Backend.CurrentEmulator!.Memory.Keys.Order()) {
-            if (index >= MemoryList.Count)
-                MemoryList.Add(new MemoryEntry(address, () => File.Backend.CurrentEmulator!.Memory,
-                    DebuggerUpdatingObservable));
-            else {
-                while (MemoryList[index].AddressDecimal < address)
-                    MemoryList.RemoveAt(index);
-                if (MemoryList[index].AddressDecimal != address)
-                    MemoryList.Insert(index, new MemoryEntry(address, () => File.Backend.CurrentEmulator!.Memory,
-                        DebuggerUpdatingObservable));
-            }
-
-            index++;
-        }
-
-        while (index < MemoryList.Count) MemoryList.RemoveAt(index);
     }
 
     #endregion
@@ -180,20 +110,35 @@ public class DocumentViewModel : Document {
         EditorCaretInfo = $"Pos {positionLine}:{positionColumn}";
     }
 
-    /// <summary>
-    /// Force terminates the emulator. Needs to run in UI thread.
-    /// </summary>
-    public async Task StopEmulator() {
-        File.Backend.CurrentEmulator!.ForceTerminated = true;
 
-        if (File.IsBackgroundBusy) {
-            var backgroundNoLongerBusy = File.WhenAnyValue(x => x.IsBackgroundBusy).Where(b => !b).FirstAsync();
-            await Task.Run(() => backgroundNoLongerBusy.Wait());
+    public async Task CloseAsync() {
+        if (HasUnsavedChanges) {
+            var saveChanges = await Interactions.AskSaveChanges.Handle(Unit.Default);
+            if (saveChanges)
+                await SaveAsync();
         }
 
-        DebuggerInstance.Hide();
-        Debug.Assert(!File.IsBackgroundBusy);
-        File.Backend.TextInfoWriter.WriteLine("[EMULATOR] Program terminated by user.");
+        OnClosing();
+        IsClosed = true;
+    }
+
+    protected virtual void OnClosing() {
+        Closing?.Invoke(this, EventArgs.Empty);
+    }
+
+    private async Task SaveAsync() {
+        try {
+            var file = await Interactions.SaveFileTo.Handle(Unit.Default);
+            if (file is null) return;
+            await using var stream = await file.OpenWriteAsync();
+            await using var write = new StreamWriter(stream);
+            await write.WriteAsync(Text);
+            await write.FlushAsync();
+            SavedText = Text;
+        }
+        catch (IOException ex) {
+            Console.Error.WriteLine(ex);
+        }
     }
 
     #endregion

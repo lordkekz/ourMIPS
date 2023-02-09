@@ -17,9 +17,9 @@ namespace ourMIPSSharp_App.Views;
 /// This class is based on <a href="https://github.com/VitalElement/AvalonStudio/blob/master/AvalonStudio/AvalonStudio.Controls.Editor/BreakPointMargin.cs">BreakPointMargin</a> from AvalonStudio.
 /// </summary>
 public class BreakPointMargin : AbstractMargin {
-    public DocumentViewModel? ViewModel => _mv.ViewModel;
-    private int previewLine;
-    private bool previewPointVisible;
+    public DebugSessionViewModel? ViewModel => _mv.ViewModel?.DebugSession;
+    private int _previewLine;
+    private bool _previewPointVisible;
     private readonly TextEditor _editor;
     private readonly Editor.DocumentView _mv;
 
@@ -59,9 +59,9 @@ public class BreakPointMargin : AbstractMargin {
             }
         }
 
-        if (previewPointVisible) {
+        if (_previewPointVisible) {
             var visualLine =
-                TextView.VisualLines.FirstOrDefault(vl => vl.FirstDocumentLine.LineNumber == previewLine);
+                TextView.VisualLines.FirstOrDefault(vl => vl.FirstDocumentLine.LineNumber == _previewLine);
 
             if (visualLine != null) {
                 context.FillRectangle(Brush.Parse("#E67466"),
@@ -83,9 +83,9 @@ public class BreakPointMargin : AbstractMargin {
         var offset = _editor.Document.GetOffset(textViewPosition.Value.Location);
 
         if (offset != -1) {
-            previewLine =
+            _previewLine =
                 textView.Document.GetLineByOffset(offset).LineNumber; // convert from text line to visual line.
-            previewPointVisible = LineHasInstruction(previewLine);
+            _previewPointVisible = LineHasInstruction(_previewLine);
         }
 
         InvalidateVisual();
@@ -110,7 +110,7 @@ public class BreakPointMargin : AbstractMargin {
             if (currentBreakPoint != null) {
                 ViewModel.UIBreakpoints.Remove(currentBreakPoint);
                 currentBreakPoint.IsDeleted = true;
-                previewPointVisible = true;
+                _previewPointVisible = true;
             }
             else {
                 if (LineHasInstruction(lineClicked)) {
@@ -146,7 +146,7 @@ public class BreakPointMargin : AbstractMargin {
     }
 
     protected override void OnPointerExited(PointerEventArgs e) {
-        previewPointVisible = false;
+        _previewPointVisible = false;
 
         InvalidateVisual();
     }

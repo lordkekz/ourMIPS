@@ -1,14 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.IO;
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
-using Avalonia.Platform.Storage;
 using Dock.Model.Controls;
-using Dock.Model.Core;
 using ourMIPSSharp_App.Models;
 using ourMIPSSharp_App.ViewModels.Editor;
 using ourMIPSSharp_App.ViewModels.Tools;
@@ -26,65 +19,63 @@ public class MainViewModel : ViewModelBase, IDisposable {
 
     #endregion
 
+    private DocumentViewModel? _lastFile;
+    private DocumentViewModel? _currentFile;
+    private ApplicationState _state = ApplicationState.None;
+    private readonly ObservableAsPropertyHelper<bool> _isDebugging;
+    private readonly ObservableAsPropertyHelper<bool> _isEmulatorActive;
+    private SettingsViewModel _settings;
+    private ConsoleViewModelToolWrapper _consoleWrapper;
+    private DebugSessionViewModel? _debugSession;
+    private bool _isSettingsOpened;
 
-    private OpenFileViewModel? _lastFile;
-    private OpenFileViewModel? _currentFile;
-
-    public OpenFileViewModel? CurrentFile {
+    public DocumentViewModel? CurrentFile {
         get => _currentFile;
         set => this.RaiseAndSetIfChanged(ref _currentFile, value);
     }
 
-    private readonly ObservableAsPropertyHelper<FileBackend?> _currentBackend;
-    public FileBackend? CurrentBackend => _currentBackend?.Value;
+    public ApplicationState State {
+        get => _state;
+        set => this.RaiseAndSetIfChanged(ref _state, value);
+    }
 
-    private readonly ObservableAsPropertyHelper<ConsoleViewModel?> _currentConsole;
-    public ConsoleViewModel? CurrentConsole => _currentConsole?.Value;
-
-    private readonly ObservableAsPropertyHelper<DocumentViewModel?> _currentEditor;
-    public DocumentViewModel? CurrentEditor => _currentEditor?.Value;
-
-
-    private ApplicationState _state = ApplicationState.None;
-
-    public ApplicationState State => _state;
-
-
-    private readonly ObservableAsPropertyHelper<bool> _isDebugging;
     public bool IsDebugging => _isDebugging.Value;
 
-    private readonly ObservableAsPropertyHelper<bool> _isEmulatorActive;
     public bool IsEmulatorActive => _isEmulatorActive.Value;
+    public IObservable<bool> IsEmulatorActiveObservable { get; }
 
-    private SettingsViewModel _settings;
 
     public SettingsViewModel Settings {
         get => _settings;
         private set => this.RaiseAndSetIfChanged(ref _settings, value);
     }
 
-    private bool _isSettingsOpened;
+    public ConsoleViewModelToolWrapper ConsoleWrapper {
+        get => _consoleWrapper;
+        private set => this.RaiseAndSetIfChanged(ref _consoleWrapper, value);
+    }
+
+    public DebugSessionViewModel? DebugSession {
+        get => _debugSession;
+        set => this.RaiseAndSetIfChanged(ref _debugSession, value);
+    }
+
 
     public bool IsSettingsOpened {
         get => _isSettingsOpened;
         set => this.RaiseAndSetIfChanged(ref _isSettingsOpened, value);
     }
 
-    public ObservableCollection<OpenFileViewModel> OpenFiles { get; } = new();
+    public ObservableCollection<DocumentViewModel> OpenFiles { get; } = new();
 
     /// <summary>
     /// Fired whenever a new file is opened.
     /// </summary>
-    public event EventHandler<OpenFileViewModel>? FileOpened;
-
-    /// <summary>
-    /// Fired whenever a new file is brought to the foreground.
-    /// </summary>
-    public event EventHandler<FileSwitchedEventArgs>? FileSwitched;
+    public event EventHandler<DocumentViewModel>? FileOpened;
 
     private readonly List<IDisposable> _disposables = new();
 
-    private readonly IFactory? _factory;
+    private readonly DockFactory? _factory;
     private IRootDock? _layout;
 
     public IRootDock? Layout {
@@ -93,37 +84,28 @@ public class MainViewModel : ViewModelBase, IDisposable {
     }
 
     public MainViewModel() {
-        _disposables.Add(this.WhenAnyValue(x => x.CurrentFile).Subscribe(f => OnFileSwitched()));
-
         Commands = new CommandBarViewModel(this);
         Instructions = new InstructionsViewModel(this);
         Memory = new MemoryViewModel(this);
         Registers = new RegistersViewModel(this);
+        ConsoleWrapper = new ConsoleViewModelToolWrapper(this);
 
 
         this.WhenAnyValue(x => x.State, s => s == ApplicationState.Debugging)
             .ToProperty(this, x => x.IsDebugging, out _isDebugging);
 
-        var isEmulatorActive = this.WhenAnyValue(x => x.State,
+        IsEmulatorActiveObservable = this.WhenAnyValue(x => x.State,
             s => s.IsEmulatorActive());
 
-        isEmulatorActive.ToProperty(this, x => x.IsEmulatorActive, out _isEmulatorActive);
+        IsEmulatorActiveObservable.ToProperty(this, x => x.IsEmulatorActive, out _isEmulatorActive);
 
-        _disposables.Add(isEmulatorActive.Subscribe(b => {
-            if (CurrentConsole is not null) CurrentConsole.IsExpectingInput = false;
+        _disposables.Add(IsEmulatorActiveObservable.Subscribe(b => {
+            // TODO this is probably broken
+            if (ConsoleWrapper.ActiveConsole is not null) ConsoleWrapper.ActiveConsole.IsExpectingInput = false;
         }));
 
-        // Current File Output Props
-        this.WhenAnyValue(x => x.CurrentFile, f => f?.Backend)
-            .ToProperty(this, x => x.CurrentBackend, out _currentBackend);
-        this.WhenAnyValue(x => x.CurrentFile, f => f?.Console)
-            .ToProperty(this, x => x.CurrentConsole, out _currentConsole);
-        this.WhenAnyValue(x => x.CurrentFile, f => f?.Editor)
-            .ToProperty(this, x => x.CurrentEditor, out _currentEditor);
-
-
         _factory = new DockFactory(this, new object());
-        DebugFactoryEvents(_factory);
+        _factory.DebugEvents();
 
         Layout = _factory?.CreateLayout();
         if (Layout is null) return;
@@ -132,8 +114,12 @@ public class MainViewModel : ViewModelBase, IDisposable {
     }
 
     public void OpenProgramFromSource(string sourceCode) {
-        var f = new OpenFileViewModel($"Untitled {OpenFiles.Count}");
-        f.Editor.Document.Text = sourceCode;
+        var f = new DocumentViewModel(this) {
+            Title = $"Untitled {OpenFiles.Count}",
+            Document = {
+                Text = sourceCode
+            }
+        };
         f.Closing += (sender, args) => {
             // Remove file if it closes
             OpenFiles.Remove(f);
@@ -148,32 +134,14 @@ public class MainViewModel : ViewModelBase, IDisposable {
     protected virtual void OnFileOpened() {
         if (CurrentFile is null) return;
 
-        var f = CurrentFile;
-        f.WhenAnyValue(f => f.State).Subscribe(s => {
-            if (CurrentFile == f)
-                this.RaiseAndSetIfChanged(ref _state, s, nameof(State));
-        });
+        if (State is ApplicationState.None)
+            State = ApplicationState.FileOpened;
         FileOpened?.Invoke(this, CurrentFile);
-    }
-
-    protected virtual void OnFileSwitched() {
-        foreach (var f in OpenFiles)
-            if (f != CurrentFile)
-                f.Editor.DebuggerInstance.Hide();
-
-        _lastFile = CurrentFile;
-        
-        CurrentEditor?.DebuggerInstance.ComeBack();
-        this.RaiseAndSetIfChanged(ref _state, CurrentFile?.State ?? ApplicationState.None, nameof(State));
-        FileSwitched?.Invoke(this, new FileSwitchedEventArgs{DeactivatedFile = _lastFile, ActivatedFile = CurrentFile});
     }
 
     private void Dispose(bool disposing) {
         if (!disposing) return;
         foreach (var d in _disposables) d.Dispose();
-        _currentBackend.Dispose();
-        _currentConsole.Dispose();
-        _currentEditor.Dispose();
         _isDebugging.Dispose();
         _isEmulatorActive.Dispose();
     }
@@ -186,105 +154,4 @@ public class MainViewModel : ViewModelBase, IDisposable {
     ~MainViewModel() {
         Dispose(false);
     }
-
-    private void DebugFactoryEvents(IFactory factory)
-    {
-        factory.ActiveDockableChanged += (_, args) =>
-        {
-            Debug.WriteLine($"[ActiveDockableChanged] Title='{args.Dockable?.Title}'");
-        };
-
-        factory.FocusedDockableChanged += (_, args) =>
-        {
-            Debug.WriteLine($"[FocusedDockableChanged] Title='{args.Dockable?.Title}'");
-        };
-
-        factory.DockableAdded += (_, args) =>
-        {
-            Debug.WriteLine($"[DockableAdded] Title='{args.Dockable?.Title}'");
-        };
-
-        factory.DockableRemoved += (_, args) =>
-        {
-            Debug.WriteLine($"[DockableRemoved] Title='{args.Dockable?.Title}'");
-        };
-
-        factory.DockableClosed += (_, args) =>
-        {
-            Debug.WriteLine($"[DockableClosed] Title='{args.Dockable?.Title}'");
-        };
-
-        factory.DockableMoved += (_, args) =>
-        {
-            Debug.WriteLine($"[DockableMoved] Title='{args.Dockable?.Title}'");
-        };
-
-        factory.DockableSwapped += (_, args) =>
-        {
-            Debug.WriteLine($"[DockableSwapped] Title='{args.Dockable?.Title}'");
-        };
-
-        factory.DockablePinned += (_, args) =>
-        {
-            Debug.WriteLine($"[DockablePinned] Title='{args.Dockable?.Title}'");
-        };
-
-        factory.DockableUnpinned += (_, args) =>
-        {
-            Debug.WriteLine($"[DockableUnpinned] Title='{args.Dockable?.Title}'");
-        };
-
-        factory.WindowOpened += (_, args) =>
-        {
-            Debug.WriteLine($"[WindowOpened] Title='{args.Window?.Title}'");
-        };
-
-        factory.WindowClosed += (_, args) =>
-        {
-            Debug.WriteLine($"[WindowClosed] Title='{args.Window?.Title}'");
-        };
-
-        factory.WindowClosing += (_, args) =>
-        {
-            // NOTE: Set to True to cancel window closing.
-#if false
-                args.Cancel = true;
-#endif
-            Debug.WriteLine($"[WindowClosing] Title='{args.Window?.Title}', Cancel={args.Cancel}");
-        };
-
-        factory.WindowAdded += (_, args) =>
-        {
-            Debug.WriteLine($"[WindowAdded] Title='{args.Window?.Title}'");
-        };
-
-        factory.WindowRemoved += (_, args) =>
-        {
-            Debug.WriteLine($"[WindowRemoved] Title='{args.Window?.Title}'");
-        };
-
-        factory.WindowMoveDragBegin += (_, args) =>
-        {
-            // NOTE: Set to True to cancel window dragging.
-#if false
-                args.Cancel = true;
-#endif
-            Debug.WriteLine($"[WindowMoveDragBegin] Title='{args.Window?.Title}', Cancel={args.Cancel}, X='{args.Window?.X}', Y='{args.Window?.Y}'");
-        };
-
-        factory.WindowMoveDrag += (_, args) =>
-        {
-            Debug.WriteLine($"[WindowMoveDrag] Title='{args.Window?.Title}', X='{args.Window?.X}', Y='{args.Window?.Y}");
-        };
-
-        factory.WindowMoveDragEnd += (_, args) =>
-        {
-            Debug.WriteLine($"[WindowMoveDragEnd] Title='{args.Window?.Title}', X='{args.Window?.X}', Y='{args.Window?.Y}");
-        };
-    }
-}
-
-public class FileSwitchedEventArgs : EventArgs {
-    public OpenFileViewModel? DeactivatedFile { get; init; }
-    public OpenFileViewModel? ActivatedFile { get; init; }
 }

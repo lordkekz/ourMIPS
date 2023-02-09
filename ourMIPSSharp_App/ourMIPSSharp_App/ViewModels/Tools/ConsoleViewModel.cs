@@ -48,7 +48,6 @@ public class ConsoleViewModel : Tool {
     }
 
     public ConsoleViewModel(FileBackend backend) {
-        Id = "Console";
         Backend = backend;
         Backend.TextInfoWriter.LineWritten += TextInfoWriterOnLineWritten;
         Backend.TextOutWriter.LineWritten += TextOutWriterOnLineWritten;

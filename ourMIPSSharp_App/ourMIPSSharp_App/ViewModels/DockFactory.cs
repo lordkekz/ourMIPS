@@ -33,40 +33,18 @@ public class DockFactory : Factory {
             (
                 _documentDock = new DocumentDock {
                     IsCollapsable = false,
-                    ActiveDockable = _main.CurrentEditor,
+                    ActiveDockable = _main.CurrentFile,
                     VisibleDockables = CreateList<IDockable>(),
                     CanCreateDocument = true
                 },
                 new ProportionalDockSplitter(),
                 _consoleDock = new ToolDock {
-                    ActiveDockable = _main.CurrentConsole,
-                    VisibleDockables = CreateList<IDockable>(),
-                    Alignment = Alignment.Bottom
+                    ActiveDockable = _main.ConsoleWrapper,
+                    VisibleDockables = CreateList<IDockable>(_main.ConsoleWrapper),
+                    Alignment = Alignment.Top,
+                    GripMode = GripMode.Visible
                 }
             )
-        };
-
-        _main.FileSwitched += (sender, args) => {
-            if (args.DeactivatedFile is null || args.ActivatedFile is null)
-                return;
-
-            var c = args.DeactivatedFile.Console;
-            if (c.Owner is not IDock dock) return;
-            
-            var index = 0;
-            
-            if (dock.VisibleDockables is null)
-                dock.VisibleDockables = CreateList<IDockable>();
-            else {
-                index = dock.VisibleDockables.IndexOf(c);
-                dock.VisibleDockables.Remove(c);
-            }
-            
-            if (dock.HiddenDockables is null)
-                dock.HiddenDockables = CreateList<IDockable>(c);
-            else dock.HiddenDockables.Add(c);
-
-            dock.VisibleDockables.Insert(index, args.ActivatedFile.Console);
         };
 
         var rightDock = new ProportionalDock {
@@ -79,14 +57,14 @@ public class DockFactory : Factory {
                     ActiveDockable = _main.Registers,
                     VisibleDockables = CreateList<IDockable>(_main.Registers, _main.Memory),
                     Alignment = Alignment.Top,
-                    GripMode = GripMode.Hidden
+                    GripMode = GripMode.Visible
                 },
                 new ProportionalDockSplitter(),
                 new ToolDock {
                     ActiveDockable = _main.Instructions,
                     VisibleDockables = CreateList<IDockable>(_main.Instructions),
-                    Alignment = Alignment.Right,
-                    GripMode = GripMode.AutoHide
+                    Alignment = Alignment.Top,
+                    GripMode = GripMode.Visible
                 }
             )
         };
@@ -110,11 +88,10 @@ public class DockFactory : Factory {
 
         _rootDock = rootDock;
 
-        _main.FileOpened += (sender, file) => _documentDock.VisibleDockables?.Add(file.Editor);
-        _main.FileSwitched += (sender, args) => _documentDock.ActiveDockable = args.ActivatedFile?.Editor;
+        _main.FileOpened += (sender, file) => _documentDock.VisibleDockables?.Add(file);
         _documentDock.WhenAnyValue(d => d.ActiveDockable).Subscribe(e => {
             if (e is DocumentViewModel m)
-                _main.CurrentFile = m.File;
+                _main.CurrentFile = m;
         });
 
         return rootDock;
@@ -140,5 +117,101 @@ public class DockFactory : Factory {
         };
 
         base.InitLayout(layout);
+    }
+
+    public void DebugEvents()
+    {
+        ActiveDockableChanged += (_, args) =>
+        {
+            Debug.WriteLine($"[ActiveDockableChanged] Title='{args.Dockable?.Title}'");
+        };
+
+        FocusedDockableChanged += (_, args) =>
+        {
+            Debug.WriteLine($"[FocusedDockableChanged] Title='{args.Dockable?.Title}'");
+        };
+
+        DockableAdded += (_, args) =>
+        {
+            Debug.WriteLine($"[DockableAdded] Title='{args.Dockable?.Title}'");
+        };
+
+        DockableRemoved += (_, args) =>
+        {
+            Debug.WriteLine($"[DockableRemoved] Title='{args.Dockable?.Title}'");
+        };
+
+        DockableClosed += (_, args) =>
+        {
+            Debug.WriteLine($"[DockableClosed] Title='{args.Dockable?.Title}'");
+        };
+
+        DockableMoved += (_, args) =>
+        {
+            Debug.WriteLine($"[DockableMoved] Title='{args.Dockable?.Title}'");
+        };
+
+        DockableSwapped += (_, args) =>
+        {
+            Debug.WriteLine($"[DockableSwapped] Title='{args.Dockable?.Title}'");
+        };
+
+        DockablePinned += (_, args) =>
+        {
+            Debug.WriteLine($"[DockablePinned] Title='{args.Dockable?.Title}'");
+        };
+
+        DockableUnpinned += (_, args) =>
+        {
+            Debug.WriteLine($"[DockableUnpinned] Title='{args.Dockable?.Title}'");
+        };
+
+        WindowOpened += (_, args) =>
+        {
+            Debug.WriteLine($"[WindowOpened] Title='{args.Window?.Title}'");
+        };
+
+        WindowClosed += (_, args) =>
+        {
+            Debug.WriteLine($"[WindowClosed] Title='{args.Window?.Title}'");
+        };
+
+        WindowClosing += (_, args) =>
+        {
+            // NOTE: Set to True to cancel window closing.
+#if false
+                args.Cancel = true;
+#endif
+            Debug.WriteLine($"[WindowClosing] Title='{args.Window?.Title}', Cancel={args.Cancel}");
+        };
+
+        WindowAdded += (_, args) =>
+        {
+            Debug.WriteLine($"[WindowAdded] Title='{args.Window?.Title}'");
+        };
+
+        WindowRemoved += (_, args) =>
+        {
+            Debug.WriteLine($"[WindowRemoved] Title='{args.Window?.Title}'");
+        };
+
+        WindowMoveDragBegin += (_, args) =>
+        {
+            // NOTE: Set to True to cancel window dragging.
+#if false
+                args.Cancel = true;
+#endif
+            Debug.WriteLine($"[WindowMoveDragBegin] Title='{args.Window?.Title}', Cancel={args.Cancel}, X='{args.Window?.X}', Y='{args.Window?.Y}'");
+        };
+
+        WindowMoveDrag += (_, args) =>
+        {
+            Debug.WriteLine($"[WindowMoveDrag] Title='{args.Window?.Title}', X='{args.Window?.X}', Y='{args.Window?.Y}");
+        };
+
+        WindowMoveDragEnd += (_, args) =>
+        {
+            Debug.WriteLine($"[WindowMoveDragEnd] Title='{args.Window?.Title}', X='{args.Window?.X}', Y='{args.Window?.Y}");
+        };
     }
 }

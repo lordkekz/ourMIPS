@@ -2,7 +2,8 @@
 	xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:i="clr-namespace:Projektanker.Icons.Avalonia;assembly=Projektanker.Icons.Avalonia"
-	xmlns:viewModels="clr-namespace:ourMIPSSharp_App.ViewModels">
+	xmlns:viewModels="clr-namespace:ourMIPSSharp_App.ViewModels"
+	xmlns:editor="clr-namespace:ourMIPSSharp_App.ViewModels.Editor">
 	<Grid ColumnDefinitions="Auto, Auto, Auto, Auto, Auto, *, Auto">
 		<TextBlock Grid.Column="0" Text="{Binding State}" />
 		<Rectangle Grid.Column="1" />
@@ -18,10 +19,10 @@
 		<TabStrip Grid.Column="4" Items="{Binding OpenFiles}" SelectedItem="{Binding CurrentFile, Mode=TwoWay}"
 		          Name="Strip">
 			<TabStrip.DataTemplates>
-				<DataTemplate DataType="viewModels:OpenFileViewModel">
+				<DataTemplate DataType="editor:DocumentViewModel">
 					<StackPanel Orientation="Horizontal" VerticalAlignment="Stretch"
 					            HorizontalAlignment="Stretch">
-						<TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+						<TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
 						<Button i:Attached.Icon="fa-solid fa-square-xmark"
 						        Command="{Binding CloseCommand}"
 						        VerticalAlignment="Center" />

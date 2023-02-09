@@ -18,8 +18,7 @@ public class MemoryViewModel : Tool {
     public MemoryViewModel(MainViewModel main) {
         Id = "Memory";
         Title = "Memory";
-        main.WhenAnyValue(m => m.CurrentFile)
-            .Select(f => f?.Editor.MemoryList)
+        main.WhenAnyValue(m => m.DebugSession, d=>d?.MemoryList)
             .ToProperty(this, x => x.Entries, out _entries);
     }
 }
