@@ -9,7 +9,9 @@
     <Design.DataContext>
         <tools:ConsoleViewModelToolWrapper />
     </Design.DataContext>
-    <local:ConsoleView DataContext="{Binding ActiveConsole}"
-                       HorizontalAlignment="Stretch"
-                       VerticalAlignment="Stretch" />
+    <Border IsVisible="{Binding HasActiveConsole}">
+        <local:ConsoleView DataContext="{Binding ActiveConsole}"
+                           HorizontalAlignment="Stretch"
+                           VerticalAlignment="Stretch" />
+    </Border>
 </UserControl>

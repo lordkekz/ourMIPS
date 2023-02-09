@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Avalonia;
 using Avalonia.Input;
@@ -116,8 +117,12 @@ public class BreakPointMargin : AbstractMargin {
                 if (LineHasInstruction(lineClicked)) {
                     var a = Document.CreateAnchor(offset);
                     var bp = new Breakpoint(x => {
-                        x.Line = a.Line;
-                        x.IsDeleted |= a.IsDeleted;
+                        // TODO this is broken. Breakpoint movement behavior is currently undefined when switching between DebugDocument and MainDocument.
+                        try {
+                            x.Line = a.Line;
+                            x.IsDeleted |= a.IsDeleted;
+                        }
+                        catch (Exception) { }
                     });
                     ViewModel.UIBreakpoints.Add(bp);
                 }
@@ -129,7 +134,7 @@ public class BreakPointMargin : AbstractMargin {
 
     private bool LineHasInstruction(int lineClicked) {
         var line = TextView.Document.GetLineByNumber(lineClicked);
-        var lineStr = TextView.Document.GetText(line.Offset, line.EndOffset-line.Offset);
+        var lineStr = TextView.Document.GetText(line.Offset, line.EndOffset - line.Offset);
         var instructionWord = lineStr.Trim().Split(' ', 2)[0];
         if (string.IsNullOrWhiteSpace(instructionWord)) return false;
         var keyword = KeywordHelper.FromToken(new Token(DialectOptions.None)

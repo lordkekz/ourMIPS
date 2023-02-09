@@ -9,6 +9,7 @@ using ourMIPSSharp_App.Models;
 using ReactiveUI;
 using System.Reactive.Linq;
 using Dock.Model.ReactiveUI.Controls;
+using DynamicData.Binding;
 using ourMIPSSharp_App.ViewModels.Tools;
 
 namespace ourMIPSSharp_App.ViewModels.Editor;
@@ -25,14 +26,19 @@ public class DocumentViewModel : Document {
     private bool _isClosed;
     private DebugSessionViewModel _debugSession;
     private readonly ObservableAsPropertyHelper<bool> _isDebugging;
+    private readonly ObservableAsPropertyHelper<bool> _hasUnsavedChanges;
+    private readonly ObservableAsPropertyHelper<TextDocument> _document;
     private string _editorCaretInfo;
+    private string _name;
 
     public bool IsClosed {
         get => _isClosed;
         private set => this.RaiseAndSetIfChanged(ref _isClosed, value);
     }
 
-    public TextDocument Document { get; }
+    public TextDocument MainDocument { get; }
+    public TextDocument DebugDocument { get; } = new();
+    public TextDocument Document => _document.Value;
 
     /// <summary>
     /// Fired whenever the program was rebuilt.
@@ -44,8 +50,13 @@ public class DocumentViewModel : Document {
         private set => this.RaiseAndSetIfChanged(ref _editorCaretInfo, value);
     }
 
-    public bool HasUnsavedChanges => !SavedText.Equals(Text);
-    public string SavedText { get; set; }
+    public string Name {
+        get => _name;
+        set => this.RaiseAndSetIfChanged(ref _name, value);
+    }
+
+    public bool HasUnsavedChanges => _hasUnsavedChanges.Value;
+    public string SavedText { get; private set; }
     public string Text => Document.Text;
 
     public DebugSessionViewModel DebugSession {
@@ -61,31 +72,42 @@ public class DocumentViewModel : Document {
 
     #endregion
 
-    public DocumentViewModel(MainViewModel main) {
-        Backend = new FileBackend(() => DebugConsole!.GetInput());
+    public DocumentViewModel(MainViewModel main, string name = "", string sourceCode = "") {
+        Name = name;
+        Backend = new FileBackend(() => DebugConsole!.GetInput()) { SourceCode = sourceCode };
         DebugConsole = new ConsoleViewModel(Backend);
 
-        Document = new TextDocument(Backend.SourceCode);
-        SavedText = Backend.SourceCode;
+        MainDocument = new TextDocument(sourceCode);
+        SavedText = sourceCode;
 
         // Init Commands
         SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync);
         CloseCommand = ReactiveCommand.CreateFromTask(CloseAsync);
-        
-        
-        main.IsEmulatorActiveObservable.Select(b => b && main.DebugSession == DebugSession)
-            .ToProperty(this, x => x.IsDebugging, out _isDebugging);
+
+
+        var isDebuggingObservable = main.IsEmulatorActiveObservable.Select(b => b && main.DebugSession == DebugSession);
+        isDebuggingObservable.ToProperty(this, x => x.IsDebugging, out _isDebugging);
+
+        isDebuggingObservable.Select(b => b ? DebugDocument : MainDocument)
+            .ToProperty(this, x => x.Document, out _document);
 
         DebugSession = new DebugSessionViewModel(this);
-        
+
         DebuggerBreakChangingObservable =
             this.WhenAnyValue(x => x.DebugSession)
                 .Select(d => d.DebuggerBreakChangingObservable)
                 .Merge();
 
+        var savedTextChangedObservable = this.WhenAnyValue(x => x.SavedText);
+        var documentTextChangedObservable = Document.WhenValueChanged(d => d.Text);
+        savedTextChangedObservable.Merge(documentTextChangedObservable).Select(_ => !Document.Text.Equals(SavedText))
+            .ToProperty(this, x => x.HasUnsavedChanges, out _hasUnsavedChanges);
 
         // Init base Document properties
-        Id = Title = $"Document {DateTime.Now}";
+        Id = $"Document {DateTime.Now}";
+
+        this.WhenAnyValue(x => x.Name, x => x.IsDebugging, x => x.HasUnsavedChanges)
+            .Subscribe(x => Title = (x.Item2 ? "Debugging: " : "") + x.Item1 + (x.Item3 ? "*" : ""));
     }
 
     #region Private Methods
@@ -109,7 +131,6 @@ public class DocumentViewModel : Document {
     public void UpdateCaretInfo(int positionLine, int positionColumn) {
         EditorCaretInfo = $"Pos {positionLine}:{positionColumn}";
     }
-
 
     public async Task CloseAsync() {
         if (HasUnsavedChanges) {

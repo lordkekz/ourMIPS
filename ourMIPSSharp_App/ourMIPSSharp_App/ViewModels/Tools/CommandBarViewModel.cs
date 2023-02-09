@@ -60,7 +60,7 @@ public class CommandBarViewModel : ViewModelBase {
             using var reader = new StreamReader(stream);
             var sourceCode = await reader.ReadToEndAsync();
 
-            Main.OpenProgramFromSource(sourceCode);
+            await Main.OpenProgramFromSourceAsync(sourceCode);
         }
         catch (IOException ex) {
             Console.Error.WriteLine(ex);
@@ -87,6 +87,7 @@ public class CommandBarViewModel : ViewModelBase {
         if (f.Backend.Ready) {
             Main.State = ApplicationState.Built;
             Main.DebugSession = f.DebugSession;
+            f.DebugDocument.Text = str;
             f.OnRebuilt(f.DebuggerBreakChangingObservable);
         }
         else Main.State = ApplicationState.FileOpened;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reactive.Linq;
 using Dock.Avalonia.Controls;
 using Dock.Model.Controls;
 using Dock.Model.Core;
@@ -88,7 +89,14 @@ public class DockFactory : Factory {
 
         _rootDock = rootDock;
 
-        _main.FileOpened += (sender, file) => _documentDock.VisibleDockables?.Add(file);
+        _main.FileOpened += (sender, file) => {
+            _documentDock.VisibleDockables?.Add(file);
+            _documentDock.ActiveDockable = file;
+        };
+        _main.WhenAnyValue(m => m.CurrentFile).Subscribe(f => {
+            if (f?.Owner is DocumentDock d)
+                d.ActiveDockable = f;
+        });
         _documentDock.WhenAnyValue(d => d.ActiveDockable).Subscribe(e => {
             if (e is DocumentViewModel m)
                 _main.CurrentFile = m;
@@ -119,65 +127,34 @@ public class DockFactory : Factory {
         base.InitLayout(layout);
     }
 
-    public void DebugEvents()
-    {
-        ActiveDockableChanged += (_, args) =>
-        {
+    public void DebugEvents() {
+        ActiveDockableChanged += (_, args) => {
             Debug.WriteLine($"[ActiveDockableChanged] Title='{args.Dockable?.Title}'");
         };
 
-        FocusedDockableChanged += (_, args) =>
-        {
+        FocusedDockableChanged += (_, args) => {
             Debug.WriteLine($"[FocusedDockableChanged] Title='{args.Dockable?.Title}'");
         };
 
-        DockableAdded += (_, args) =>
-        {
-            Debug.WriteLine($"[DockableAdded] Title='{args.Dockable?.Title}'");
-        };
+        DockableAdded += (_, args) => { Debug.WriteLine($"[DockableAdded] Title='{args.Dockable?.Title}'"); };
 
-        DockableRemoved += (_, args) =>
-        {
-            Debug.WriteLine($"[DockableRemoved] Title='{args.Dockable?.Title}'");
-        };
+        DockableRemoved += (_, args) => { Debug.WriteLine($"[DockableRemoved] Title='{args.Dockable?.Title}'"); };
 
-        DockableClosed += (_, args) =>
-        {
-            Debug.WriteLine($"[DockableClosed] Title='{args.Dockable?.Title}'");
-        };
+        DockableClosed += (_, args) => { Debug.WriteLine($"[DockableClosed] Title='{args.Dockable?.Title}'"); };
 
-        DockableMoved += (_, args) =>
-        {
-            Debug.WriteLine($"[DockableMoved] Title='{args.Dockable?.Title}'");
-        };
+        DockableMoved += (_, args) => { Debug.WriteLine($"[DockableMoved] Title='{args.Dockable?.Title}'"); };
 
-        DockableSwapped += (_, args) =>
-        {
-            Debug.WriteLine($"[DockableSwapped] Title='{args.Dockable?.Title}'");
-        };
+        DockableSwapped += (_, args) => { Debug.WriteLine($"[DockableSwapped] Title='{args.Dockable?.Title}'"); };
 
-        DockablePinned += (_, args) =>
-        {
-            Debug.WriteLine($"[DockablePinned] Title='{args.Dockable?.Title}'");
-        };
+        DockablePinned += (_, args) => { Debug.WriteLine($"[DockablePinned] Title='{args.Dockable?.Title}'"); };
 
-        DockableUnpinned += (_, args) =>
-        {
-            Debug.WriteLine($"[DockableUnpinned] Title='{args.Dockable?.Title}'");
-        };
+        DockableUnpinned += (_, args) => { Debug.WriteLine($"[DockableUnpinned] Title='{args.Dockable?.Title}'"); };
 
-        WindowOpened += (_, args) =>
-        {
-            Debug.WriteLine($"[WindowOpened] Title='{args.Window?.Title}'");
-        };
+        WindowOpened += (_, args) => { Debug.WriteLine($"[WindowOpened] Title='{args.Window?.Title}'"); };
 
-        WindowClosed += (_, args) =>
-        {
-            Debug.WriteLine($"[WindowClosed] Title='{args.Window?.Title}'");
-        };
+        WindowClosed += (_, args) => { Debug.WriteLine($"[WindowClosed] Title='{args.Window?.Title}'"); };
 
-        WindowClosing += (_, args) =>
-        {
+        WindowClosing += (_, args) => {
             // NOTE: Set to True to cancel window closing.
 #if false
                 args.Cancel = true;
@@ -185,33 +162,27 @@ public class DockFactory : Factory {
             Debug.WriteLine($"[WindowClosing] Title='{args.Window?.Title}', Cancel={args.Cancel}");
         };
 
-        WindowAdded += (_, args) =>
-        {
-            Debug.WriteLine($"[WindowAdded] Title='{args.Window?.Title}'");
-        };
+        WindowAdded += (_, args) => { Debug.WriteLine($"[WindowAdded] Title='{args.Window?.Title}'"); };
 
-        WindowRemoved += (_, args) =>
-        {
-            Debug.WriteLine($"[WindowRemoved] Title='{args.Window?.Title}'");
-        };
+        WindowRemoved += (_, args) => { Debug.WriteLine($"[WindowRemoved] Title='{args.Window?.Title}'"); };
 
-        WindowMoveDragBegin += (_, args) =>
-        {
+        WindowMoveDragBegin += (_, args) => {
             // NOTE: Set to True to cancel window dragging.
 #if false
                 args.Cancel = true;
 #endif
-            Debug.WriteLine($"[WindowMoveDragBegin] Title='{args.Window?.Title}', Cancel={args.Cancel}, X='{args.Window?.X}', Y='{args.Window?.Y}'");
+            Debug.WriteLine(
+                $"[WindowMoveDragBegin] Title='{args.Window?.Title}', Cancel={args.Cancel}, X='{args.Window?.X}', Y='{args.Window?.Y}'");
         };
 
-        WindowMoveDrag += (_, args) =>
-        {
-            Debug.WriteLine($"[WindowMoveDrag] Title='{args.Window?.Title}', X='{args.Window?.X}', Y='{args.Window?.Y}");
+        WindowMoveDrag += (_, args) => {
+            Debug.WriteLine(
+                $"[WindowMoveDrag] Title='{args.Window?.Title}', X='{args.Window?.X}', Y='{args.Window?.Y}");
         };
 
-        WindowMoveDragEnd += (_, args) =>
-        {
-            Debug.WriteLine($"[WindowMoveDragEnd] Title='{args.Window?.Title}', X='{args.Window?.X}', Y='{args.Window?.Y}");
+        WindowMoveDragEnd += (_, args) => {
+            Debug.WriteLine(
+                $"[WindowMoveDragEnd] Title='{args.Window?.Title}', X='{args.Window?.X}', Y='{args.Window?.Y}");
         };
     }
 }

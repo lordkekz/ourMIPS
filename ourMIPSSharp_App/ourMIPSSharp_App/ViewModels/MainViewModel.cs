@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Dock.Model.Controls;
 using ourMIPSSharp_App.Models;
 using ourMIPSSharp_App.ViewModels.Editor;
@@ -100,7 +103,7 @@ public class MainViewModel : ViewModelBase, IDisposable {
         IsEmulatorActiveObservable.ToProperty(this, x => x.IsEmulatorActive, out _isEmulatorActive);
 
         _disposables.Add(IsEmulatorActiveObservable.Subscribe(b => {
-            // TODO this is probably broken
+            // TODO this is probably broken (or maybe not)
             if (ConsoleWrapper.ActiveConsole is not null) ConsoleWrapper.ActiveConsole.IsExpectingInput = false;
         }));
 
@@ -113,13 +116,8 @@ public class MainViewModel : ViewModelBase, IDisposable {
         Layout.Navigate.Execute("Documents");
     }
 
-    public void OpenProgramFromSource(string sourceCode) {
-        var f = new DocumentViewModel(this) {
-            Title = $"Untitled {OpenFiles.Count}",
-            Document = {
-                Text = sourceCode
-            }
-        };
+    public async Task OpenProgramFromSourceAsync(string sourceCode) {
+        var f = new DocumentViewModel(this, $"Program {OpenFiles.Count}", sourceCode);
         f.Closing += (sender, args) => {
             // Remove file if it closes
             OpenFiles.Remove(f);
@@ -129,6 +127,9 @@ public class MainViewModel : ViewModelBase, IDisposable {
         OpenFiles.Add(f);
         CurrentFile = f;
         OnFileOpened();
+
+        await Task.Delay(250);
+        await Commands.RebuildCommand.Execute();
     }
 
     protected virtual void OnFileOpened() {

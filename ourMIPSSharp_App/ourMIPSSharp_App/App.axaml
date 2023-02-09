@@ -60,7 +60,7 @@
             <SolidColorBrush x:Key="TabItemHeaderBackgroundSelectedPressed"
                              Color="{DynamicResource SystemBaseMediumColor}" />
             <SolidColorBrush x:Key="DockThemeBackgroundBrush"
-                             Color="{DynamicResource SystemChromeBlackHighColor}" />
+                             Color="Transparent" />
             
             <SolidColorBrush x:Key="ConsoleViewInfoBrush" Color="{DynamicResource SystemBaseMediumColor}" />
             <SolidColorBrush x:Key="ConsoleViewStandardBrush" Color="{DynamicResource SystemBaseHighColor}" />
