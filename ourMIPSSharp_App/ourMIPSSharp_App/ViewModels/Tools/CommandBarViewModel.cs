@@ -11,6 +11,7 @@ public class CommandBarViewModel : ViewModelBase {
     #region Properties
 
     public ReactiveCommand<Unit, Unit> SettingsCommand { get; }
+    public ReactiveCommand<Unit, Unit> CreateDocumentCommand { get; }
     public ReactiveCommand<Unit, Unit> FileOpenCommand { get; }
     public ReactiveCommand<Unit, Unit> MemInitCommand { get; }
     public ReactiveCommand<Unit, Unit> RebuildCommand { get; }
@@ -34,12 +35,11 @@ public class CommandBarViewModel : ViewModelBase {
             s => s.IsRebuildingAllowed());
         var isEmulatorActive = Main.WhenAnyValue(x => x.State,
             s => s.IsEmulatorActive());
-        var isDebuggingButNotBusy = Main.WhenAnyValue(x => x.State,
-                x => x.DebugSession!.IsBackgroundBusy)
-            .Select(t => t is { Item1: ApplicationState.Debugging, Item2: false });
+        var isDebuggingButNotBusy = Main.WhenAnyValue(x => x.State, s => s == ApplicationState.DebugBreak);
         var isBuiltButEmulatorInactive = Main.WhenAnyValue(x => x.State, s => s.IsBuilt() && !s.IsEmulatorActive());
 
         SettingsCommand = ReactiveCommand.Create(ExecuteSettingsCommand);
+        CreateDocumentCommand = ReactiveCommand.CreateFromTask(ExecuteCreateDocumentCommand);
         FileOpenCommand = ReactiveCommand.CreateFromTask(ExecuteFileOpenCommand);
         MemInitCommand = ReactiveCommand.Create(() => throw new NotImplementedException(), canExecuteNever);
         RebuildCommand = ReactiveCommand.CreateFromTask(ExecuteRebuildCommand, isRebuildingAllowed);
@@ -52,6 +52,14 @@ public class CommandBarViewModel : ViewModelBase {
 
     #region ExecuteCommandMethods
 
+    private void ExecuteSettingsCommand() {
+        Main.IsSettingsOpened = !Main.IsSettingsOpened;
+    }
+
+    private async Task ExecuteCreateDocumentCommand() {
+        await Main.OpenProgramFromSourceAsync("# New Program\n\n");
+    }
+
     private async Task ExecuteFileOpenCommand() {
         try {
             var file = await Interactions.OpenProgramFile.Handle(Unit.Default);
@@ -61,14 +69,11 @@ public class CommandBarViewModel : ViewModelBase {
             var sourceCode = await reader.ReadToEndAsync();
 
             await Main.OpenProgramFromSourceAsync(sourceCode);
+            Main.CurrentFile.Name = file.Name;
         }
         catch (IOException ex) {
             Console.Error.WriteLine(ex);
         }
-    }
-
-    private void ExecuteSettingsCommand() {
-        Main.IsSettingsOpened = !Main.IsSettingsOpened;
     }
 
     private async Task ExecuteRebuildCommand() {
@@ -80,13 +85,13 @@ public class CommandBarViewModel : ViewModelBase {
         await Task.Run(() => {
             f.Backend.SourceCode = str;
             f.Backend.Rebuild();
-            f.Backend.MakeEmulator();
+            if (f.Backend.Ready) f.Backend.MakeEmulator();
         });
 
         f.DebugConsole.DoFlushNewLines();
+        Main.DebugSession = f.DebugSession;
         if (f.Backend.Ready) {
             Main.State = ApplicationState.Built;
-            Main.DebugSession = f.DebugSession;
             f.DebugDocument.Text = str;
             f.OnRebuilt(f.DebuggerBreakChangingObservable);
         }
@@ -99,12 +104,12 @@ public class CommandBarViewModel : ViewModelBase {
 
         s.IsBackgroundBusy = true;
         s.Editor.DebugConsole.Clear();
-        
+
         s.Backend.MakeEmulator();
         Main.State = ApplicationState.Running;
         await Task.Run(s.DebuggerInstance.Run);
         Main.State = ApplicationState.Built;
-        
+
         s.Editor.DebugConsole.DoFlushNewLines();
         s.IsBackgroundBusy = false;
     }
@@ -116,23 +121,23 @@ public class CommandBarViewModel : ViewModelBase {
 
         s.Editor.DebugConsole.Clear();
         s.DebuggerInstance.StartSession();
-        Main.State = ApplicationState.Debugging;
+        Main.State = ApplicationState.DebugBreak;
         s.Editor.DebugConsole.DoFlushNewLines();
     }
 
     private async Task ExecuteStepCommand() {
         var s = Main.DebugSession;
         if (s is null || !s.Backend.Ready || s.IsBackgroundBusy) return;
-        
+
         s.IsBackgroundBusy = true;
-        Main.State = ApplicationState.Running;
+        Main.State = ApplicationState.DebugRunning;
         await Task.Run(s.DebuggerInstance.Step);
 
         if (s.Backend.CurrentEmulator!.Terminated || s.Backend.CurrentEmulator!.ErrorTerminated)
             Main.State = ApplicationState.Built;
         else
-            Main.State = ApplicationState.Debugging;
-        
+            Main.State = ApplicationState.DebugBreak;
+
         s.Editor.DebugConsole.DoFlushNewLines();
         s.IsBackgroundBusy = false;
     }
@@ -140,15 +145,15 @@ public class CommandBarViewModel : ViewModelBase {
     private async Task ExecuteForwardCommand() {
         var s = Main.DebugSession;
         if (s is null || !s.Backend.Ready || s.IsBackgroundBusy) return;
-        
+
         s.IsBackgroundBusy = true;
-        Main.State = ApplicationState.Running;
+        Main.State = ApplicationState.DebugRunning;
         await Task.Run(s.DebuggerInstance.Forward);
 
         if (s.Backend.CurrentEmulator!.Terminated || s.Backend.CurrentEmulator!.ErrorTerminated)
             Main.State = ApplicationState.Built;
         else if (!s.Backend.CurrentEmulator!.ForceTerminated)
-            Main.State = ApplicationState.Debugging;
+            Main.State = ApplicationState.DebugBreak;
         s.Editor.DebugConsole.DoFlushNewLines();
         s.IsBackgroundBusy = false;
     }

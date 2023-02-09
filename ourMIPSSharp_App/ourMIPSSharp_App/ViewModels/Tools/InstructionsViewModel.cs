@@ -16,8 +16,9 @@ public class InstructionsViewModel : Tool {
     public ObservableCollection<InstructionEntry>? Entries => _entries.Value;
 
     public InstructionsViewModel(MainViewModel main) {
-        Id = "Instructions";
-        Title = "Instructions";
+        Id = Title ="Instructions";
+        CanClose = CanFloat = CanPin = false;
+        
         main.WhenAnyValue(m => m.DebugSession!.Editor.InstructionList)
             .ToProperty(this, x => x.Entries, out _entries);
     }

@@ -17,6 +17,8 @@ public class ConsoleViewModelToolWrapper : Tool {
     public ConsoleViewModelToolWrapper(MainViewModel main) {
         Main = main;
         Id = Title = "Console";
+        CanClose = CanFloat = CanPin = false;
+        
         main.WhenAnyValue(x => x.DebugSession!.Editor.DebugConsole)
             .ToProperty(this, x => x.ActiveConsole, out _activeConsole);
         this.WhenAnyValue(x => x.ActiveConsole)

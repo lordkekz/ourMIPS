@@ -3,6 +3,8 @@
         <TargetFramework>net7.0</TargetFramework>
         <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
         <WasmMainJSPath>AppBundle\main.js</WasmMainJSPath>
+        <!-- set to true to enable proper threading once skiasharp fixes linker error -->
+        <WasmEnableThreads>false</WasmEnableThreads>
         <OutputType>Exe</OutputType>
     </PropertyGroup>
 

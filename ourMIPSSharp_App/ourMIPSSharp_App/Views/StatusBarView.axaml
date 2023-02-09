@@ -1,35 +1,25 @@
 <UserControl x:Class="ourMIPSSharp_App.Views.StatusBarView"
-	xmlns="https://github.com/avaloniaui"
-	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:i="clr-namespace:Projektanker.Icons.Avalonia;assembly=Projektanker.Icons.Avalonia"
-	xmlns:viewModels="clr-namespace:ourMIPSSharp_App.ViewModels"
-	xmlns:editor="clr-namespace:ourMIPSSharp_App.ViewModels.Editor">
-	<Grid ColumnDefinitions="Auto, Auto, Auto, Auto, Auto, *, Auto">
-		<TextBlock Grid.Column="0" Text="{Binding State}" />
-		<Rectangle Grid.Column="1" />
-		<ToggleButton Grid.Column="2" IsChecked="True" Name="AutoScrollToggleButton">
-			<StackPanel Orientation="Horizontal" Spacing="4">
-				<i:Icon Value="fa-solid fa-turn-down" Classes="OnContent" />
-				<TextBlock Text="Auto scroll" Classes="OnContent" />
-				<i:Icon Value="fa-solid fa-up-down" Classes="OffContent" />
-				<TextBlock Text="Free scroll" Classes="OffContent" />
-			</StackPanel>
-		</ToggleButton>
-		<Rectangle Grid.Column="3" />
-		<TabStrip Grid.Column="4" Items="{Binding OpenFiles}" SelectedItem="{Binding CurrentFile, Mode=TwoWay}"
-		          Name="Strip">
-			<TabStrip.DataTemplates>
-				<DataTemplate DataType="editor:DocumentViewModel">
-					<StackPanel Orientation="Horizontal" VerticalAlignment="Stretch"
-					            HorizontalAlignment="Stretch">
-						<TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
-						<Button i:Attached.Icon="fa-solid fa-square-xmark"
-						        Command="{Binding CloseCommand}"
-						        VerticalAlignment="Center" />
-					</StackPanel>
-				</DataTemplate>
-			</TabStrip.DataTemplates>
-		</TabStrip>
-		<TextBlock Grid.Column="6" Text="{Binding CurrentEditor.EditorCaretInfo}" />
-	</Grid>
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:i="clr-namespace:Projektanker.Icons.Avalonia;assembly=Projektanker.Icons.Avalonia"
+             xmlns:viewModels="clr-namespace:ourMIPSSharp_App.ViewModels"
+             xmlns:editor="clr-namespace:ourMIPSSharp_App.ViewModels.Editor">
+    <Design.DataContext>
+        <viewModels:MainViewModel />
+    </Design.DataContext>
+    <Grid ColumnDefinitions="Auto, Auto, Auto, Auto, Auto, *, Auto">
+        <TextBlock Grid.Column="0" Text="{Binding State}" />
+        <Rectangle Grid.Column="1" />
+        <TextBlock Grid.Column="2" Text="{Binding DebugSession.Editor.Name}" />
+        <Rectangle Grid.Column="3" />
+        <ToggleButton Grid.Column="4" IsChecked="True" Name="AutoScrollToggleButton">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+                <i:Icon Value="fa-solid fa-turn-down" Classes="OnContent" />
+                <TextBlock Text="Auto scroll" Classes="OnContent" />
+                <i:Icon Value="fa-solid fa-up-down" Classes="OffContent" />
+                <TextBlock Text="Free scroll" Classes="OffContent" />
+            </StackPanel>
+        </ToggleButton>
+        <TextBlock Grid.Column="6" Text="{Binding CurrentFile.EditorCaretInfo}" />
+    </Grid>
 </UserControl>

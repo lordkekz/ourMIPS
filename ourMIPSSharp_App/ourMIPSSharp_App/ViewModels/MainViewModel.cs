@@ -93,8 +93,7 @@ public class MainViewModel : ViewModelBase, IDisposable {
         Registers = new RegistersViewModel(this);
         ConsoleWrapper = new ConsoleViewModelToolWrapper(this);
 
-
-        this.WhenAnyValue(x => x.State, s => s == ApplicationState.Debugging)
+        this.WhenAnyValue(x => x.State, s => s.IsDebuggerActive())
             .ToProperty(this, x => x.IsDebugging, out _isDebugging);
 
         IsEmulatorActiveObservable = this.WhenAnyValue(x => x.State,
@@ -118,11 +117,16 @@ public class MainViewModel : ViewModelBase, IDisposable {
 
     public async Task OpenProgramFromSourceAsync(string sourceCode) {
         var f = new DocumentViewModel(this, $"Program {OpenFiles.Count}", sourceCode);
-        f.Closing += (sender, args) => {
+        f.Closing += async (sender, args) => {
             // Remove file if it closes
             OpenFiles.Remove(f);
+            State = OpenFiles.Count > 0 ? ApplicationState.FileOpened : ApplicationState.None;
             if (CurrentFile == f)
                 CurrentFile = null;
+
+            if (DebugSession != f.DebugSession) return;
+            await Commands.StopCommand.Execute();
+            DebugSession = null;
         };
         OpenFiles.Add(f);
         CurrentFile = f;
@@ -143,7 +147,6 @@ public class MainViewModel : ViewModelBase, IDisposable {
     private void Dispose(bool disposing) {
         if (!disposing) return;
         foreach (var d in _disposables) d.Dispose();
-        _isDebugging.Dispose();
         _isEmulatorActive.Dispose();
     }
 

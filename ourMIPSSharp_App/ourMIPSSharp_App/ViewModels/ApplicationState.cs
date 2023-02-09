@@ -6,16 +6,17 @@ public enum ApplicationState {
     Built,
     Rebuilding,
     Running,
-    Debugging
+    DebugBreak,
+    DebugRunning
 }
 
 public static class ApplicationStateExtensions {
     public static bool IsBuilt(this ApplicationState state) =>
-        state is ApplicationState.Built or ApplicationState.Running or ApplicationState.Debugging;
+        state is ApplicationState.Built or ApplicationState.Running or ApplicationState.DebugBreak;
     public static bool IsEmulatorActive(this ApplicationState state) =>
-        state is ApplicationState.Running or ApplicationState.Debugging;
-    public static bool IsEditingAllowed(this ApplicationState state) =>
-        state is not ApplicationState.Debugging;
+        state is ApplicationState.Running or ApplicationState.DebugBreak or ApplicationState.DebugRunning;
+    public static bool IsDebuggerActive(this ApplicationState state) =>
+        state is ApplicationState.DebugBreak or ApplicationState.DebugRunning;
     public static bool IsRebuildingAllowed(this ApplicationState state) =>
         state is ApplicationState.FileOpened or ApplicationState.Built;
 }

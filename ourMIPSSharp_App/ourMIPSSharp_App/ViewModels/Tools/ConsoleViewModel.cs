@@ -89,7 +89,7 @@ public class ConsoleViewModel : Tool {
     /// Flushes new lines to UI. Automatically switches to UI thread.
     /// </summary>
     public async Task FlushNewLines() => await Observable.Start(DoFlushNewLines, RxApp.MainThreadScheduler);
-    
+
     /// <summary>
     /// Flushes new lines to UI. Must be called from UI thread.
     /// </summary>
@@ -138,13 +138,13 @@ public class ConsoleViewModel : Tool {
     /// Gets input. Must be called from background thread.
     /// </summary>
     /// <returns><c>true</c> if input was read; <c>false</c> otherwise</returns>
-    /// <exception cref="InvalidOperationException">When called from UI thread</exception>
-    public bool GetInput() {
+    public async Task<bool> GetInputAsync() {
         FlushNewLines().Wait();
         IsExpectingInput = true;
-        var noLongerExpectingInput = this.WhenAnyValue(x => x.IsExpectingInput)
-            .Where(b => !b).FirstAsync().ToTask();
-        var r = noLongerExpectingInput.Wait(200);
+
+        var r = await this.WhenAnyValue(x => x.IsExpectingInput)
+            .Merge(Observable.Interval(TimeSpan.FromMilliseconds(500)).Select(_ => false)).Where(b => !b).FirstAsync();
+
         Debug.WriteLine(r ? "Got input!" : "No input!");
         return r;
     }

@@ -36,16 +36,25 @@ public class DockFactory : Factory {
                     IsCollapsable = false,
                     ActiveDockable = _main.CurrentFile,
                     VisibleDockables = CreateList<IDockable>(),
-                    CanCreateDocument = true
+                    CanCreateDocument = true,
+                    CanClose = false,
+                    CanFloat = false,
+                    CanPin = false
                 },
                 new ProportionalDockSplitter(),
                 _consoleDock = new ToolDock {
                     ActiveDockable = _main.ConsoleWrapper,
                     VisibleDockables = CreateList<IDockable>(_main.ConsoleWrapper),
                     Alignment = Alignment.Top,
-                    GripMode = GripMode.Visible
+                    GripMode = GripMode.Visible,
+                    CanClose = false,
+                    CanFloat = false,
+                    CanPin = false
                 }
-            )
+            ),
+            CanClose = false,
+            CanFloat = false,
+            CanPin = false
         };
 
         var rightDock = new ProportionalDock {
@@ -58,16 +67,25 @@ public class DockFactory : Factory {
                     ActiveDockable = _main.Registers,
                     VisibleDockables = CreateList<IDockable>(_main.Registers, _main.Memory),
                     Alignment = Alignment.Top,
-                    GripMode = GripMode.Visible
+                    GripMode = GripMode.Visible,
+                    CanClose = false,
+                    CanFloat = false,
+                    CanPin = false
                 },
                 new ProportionalDockSplitter(),
                 new ToolDock {
                     ActiveDockable = _main.Instructions,
                     VisibleDockables = CreateList<IDockable>(_main.Instructions),
                     Alignment = Alignment.Top,
-                    GripMode = GripMode.Visible
+                    GripMode = GripMode.Visible,
+                    CanClose = false,
+                    CanFloat = false,
+                    CanPin = false
                 }
-            )
+            ),
+            CanClose = false,
+            CanFloat = false,
+            CanPin = false
         };
 
         var mainLayout = new ProportionalDock {
@@ -77,7 +95,10 @@ public class DockFactory : Factory {
                 leftDock,
                 new ProportionalDockSplitter(),
                 rightDock
-            )
+            ),
+            CanClose = false,
+            CanFloat = false,
+            CanPin = false
         };
 
         var rootDock = CreateRootDock();
@@ -101,6 +122,8 @@ public class DockFactory : Factory {
             if (e is DocumentViewModel m)
                 _main.CurrentFile = m;
         });
+
+        _documentDock.CreateDocument = _main.Commands.CreateDocumentCommand;
 
         return rootDock;
     }

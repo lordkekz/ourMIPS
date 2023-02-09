@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using ReactiveUI;
 
 namespace ourMIPSSharp_App.Models;
@@ -35,9 +36,9 @@ public class Debugger {
     /// </summary>
     public event EventHandler? DebuggerSyncing;
 
-    private readonly Func<bool> _getInput;
+    private readonly Func<Task<bool>> _getInput;
 
-    public Debugger(Func<bool> getInput, FileBackend backend) {
+    public Debugger(Func<Task<bool>> getInput, FileBackend backend) {
         _getInput = getInput;
         Backend = backend;
     }
@@ -75,7 +76,7 @@ public class Debugger {
         OnDebuggerBreaking();
     }
 
-    public void Step() {
+    public async Task Step() {
         var em = Backend.CurrentEmulator!;
         OnDebuggerBreakEnding();
 
@@ -83,7 +84,7 @@ public class Debugger {
         while (!em.EffectivelyTerminated) {
             em.TryExecuteNext();
 
-            if (em.ExpectingInput) _getInput();
+            if (em.ExpectingInput) await _getInput();
             else break;
         }
 
@@ -99,7 +100,7 @@ public class Debugger {
         OnDebuggerUpdating(true);
     }
 
-    public void Forward() {
+    public async Task Forward() {
         var em = Backend.CurrentEmulator!;
         OnDebuggerSyncing();
         OnDebuggerBreakEnding();
@@ -118,7 +119,7 @@ public class Debugger {
             OnDebuggerSyncing();
 
             // Await input or sth
-            if (em.ExpectingInput) _getInput();
+            if (em.ExpectingInput) await _getInput();
 
             // Pause at breakpoints; but only after at least one instruction was executed.
             if (IsAtBreakpoint(em.ProgramCounter)) {
@@ -137,7 +138,7 @@ public class Debugger {
         OnDebuggerUpdating(true);
     }
 
-    public void Run() {
+    public async Task Run() {
         var em = Backend.CurrentEmulator;
         Backend.TextInfoWriter.WriteLine("[EMULATOR] Running program.");
         OnDebuggerUpdating(false);
@@ -152,7 +153,7 @@ public class Debugger {
             } while (em is { EffectivelyTerminated: false, ExpectingInput: false });
 
             // Await input or sth
-            if (em.ExpectingInput) _getInput();
+            if (em.ExpectingInput) await _getInput();
         }
 
         s.Stop();

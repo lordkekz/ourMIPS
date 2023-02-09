@@ -20,8 +20,9 @@ public class RegistersViewModel : Tool {
     public int OverflowFlag => _overflowFlag.Value;
 
     public RegistersViewModel(MainViewModel main) {
-        Id = "Registers";
-        Title = "Registers";
+        Id = Title = "Registers";
+        CanClose = CanFloat = CanPin = false;
+
         main.WhenAnyValue(m => m.DebugSession!.RegisterList)
             .ToProperty(this, x => x.Entries, out _entries);
         main.WhenAnyValue(m => m.DebugSession!.ProgramCounter)

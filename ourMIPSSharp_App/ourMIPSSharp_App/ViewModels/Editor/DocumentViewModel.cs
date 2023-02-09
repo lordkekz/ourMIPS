@@ -73,8 +73,9 @@ public class DocumentViewModel : Document {
     #endregion
 
     public DocumentViewModel(MainViewModel main, string name = "", string sourceCode = "") {
+        Main = main;
         Name = name;
-        Backend = new FileBackend(() => DebugConsole!.GetInput()) { SourceCode = sourceCode };
+        Backend = new FileBackend(async () => await DebugConsole!.GetInputAsync()) { SourceCode = sourceCode };
         DebugConsole = new ConsoleViewModel(Backend);
 
         MainDocument = new TextDocument(sourceCode);
@@ -85,10 +86,12 @@ public class DocumentViewModel : Document {
         CloseCommand = ReactiveCommand.CreateFromTask(CloseAsync);
 
 
-        var isDebuggingObservable = main.IsEmulatorActiveObservable.Select(b => b && main.DebugSession == DebugSession);
-        isDebuggingObservable.ToProperty(this, x => x.IsDebugging, out _isDebugging);
+        var isDebugging =
+            this.WhenAnyValue(x => x.DebugSession, x => x.Main.State)
+                .Select(t => t.Item1 == Main.DebugSession && t.Item2.IsDebuggerActive());
+        isDebugging.ToProperty(this, x => x.IsDebugging, out _isDebugging);
 
-        isDebuggingObservable.Select(b => b ? DebugDocument : MainDocument)
+        isDebugging.Select(b => b ? DebugDocument : MainDocument)
             .ToProperty(this, x => x.Document, out _document);
 
         DebugSession = new DebugSessionViewModel(this);
@@ -105,10 +108,13 @@ public class DocumentViewModel : Document {
 
         // Init base Document properties
         Id = $"Document {DateTime.Now}";
+        CanFloat = false;
 
         this.WhenAnyValue(x => x.Name, x => x.IsDebugging, x => x.HasUnsavedChanges)
             .Subscribe(x => Title = (x.Item2 ? "Debugging: " : "") + x.Item1 + (x.Item3 ? "*" : ""));
     }
+
+    public MainViewModel Main { get; }
 
     #region Private Methods
 
@@ -132,6 +138,11 @@ public class DocumentViewModel : Document {
         EditorCaretInfo = $"Pos {positionLine}:{positionColumn}";
     }
 
+    public override bool OnClose() {
+        _ = CloseAsync();
+        return true;
+    }
+
     public async Task CloseAsync() {
         if (HasUnsavedChanges) {
             var saveChanges = await Interactions.AskSaveChanges.Handle(Unit.Default);
@@ -151,11 +162,22 @@ public class DocumentViewModel : Document {
         try {
             var file = await Interactions.SaveFileTo.Handle(Unit.Default);
             if (file is null) return;
-            await using var stream = await file.OpenWriteAsync();
-            await using var write = new StreamWriter(stream);
-            await write.WriteAsync(Text);
-            await write.FlushAsync();
-            SavedText = Text;
+
+            var t = Text;
+
+            // Try using System.IO (because Avalonia doesn't always clear existing file contents)
+            if (file.TryGetUri(out var uri) && File.Exists(uri.AbsolutePath)) {
+                await File.WriteAllTextAsync(uri.AbsolutePath, Text);
+            }
+            else {
+                // Fallback to platform-agnostic Avalonia storage
+                await using var stream = await file.OpenWriteAsync();
+                await using var write = new StreamWriter(stream);
+                await write.WriteAsync(Text);
+                await write.FlushAsync();
+            }
+
+            SavedText = t;
         }
         catch (IOException ex) {
             Console.Error.WriteLine(ex);

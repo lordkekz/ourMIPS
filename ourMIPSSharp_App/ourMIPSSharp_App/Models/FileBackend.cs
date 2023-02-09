@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using lib_ourMIPSSharp.CompilerComponents;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
 using lib_ourMIPSSharp.EmulatorComponents;
@@ -23,7 +24,7 @@ public class FileBackend {
     public NotifyingTextWriter TextOutWriter { get; private set; } = new();
     public NotifyingTextWriter TextErrWriter { get; private set; } = new();
 
-    public FileBackend(Func<bool> getInput) {
+    public FileBackend(Func<Task<bool>> getInput) {
         TextInReader = new StringReader("");
         TextInWriter.LineWritten += (sender, args) => {
             var unreadTextIn = TextInReader!.ReadToEnd() + args.Content;

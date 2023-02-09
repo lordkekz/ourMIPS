@@ -11,14 +11,14 @@ using ReactiveUI;
 namespace ourMIPSSharp_App.ViewModels.Tools;
 
 public class MemoryViewModel : Tool {
-    
     private readonly ObservableAsPropertyHelper<ObservableCollection<MemoryEntry>?> _entries;
     public ObservableCollection<MemoryEntry>? Entries => _entries.Value;
 
     public MemoryViewModel(MainViewModel main) {
-        Id = "Memory";
-        Title = "Memory";
-        main.WhenAnyValue(m => m.DebugSession, d=>d?.MemoryList)
+        Id = Title = "Memory";
+        CanClose = CanFloat = CanPin = false;
+
+        main.WhenAnyValue(m => m.DebugSession, d => d?.MemoryList)
             .ToProperty(this, x => x.Entries, out _entries);
     }
 }

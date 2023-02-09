@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -28,7 +29,7 @@ public partial class MainView : UserControl {
         // Load mult_philos sample from unit tests
         var sourceSample = File.ReadAllText("../../../../../lib_ourMIPSSharp_Tests/Samples/mult_philos.ourMIPS");
         _ = ViewModel!.OpenProgramFromSourceAsync(sourceSample);
-        
+
         // Write ready text to console (immediately applies colors)
         ViewModel.ConsoleWrapper.Clear();
         ViewModel.CurrentFile?.Backend.TextInfoWriter.WriteLine("Ready.");
