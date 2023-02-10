@@ -3,6 +3,8 @@ using System.IO;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using lib_ourMIPSSharp.CompilerComponents.Elements;
+using ourMIPSSharp_App.Models;
 using ReactiveUI;
 
 namespace ourMIPSSharp_App.ViewModels.Tools;
@@ -84,7 +86,7 @@ public class CommandBarViewModel : ViewModelBase {
         var str = f.Text;
         await Task.Run(() => {
             f.Backend.SourceCode = str;
-            f.Backend.Rebuild();
+            f.Backend.Rebuild(Main.Settings?.SelectedCompilerMode.ToDialectOptions() ?? DialectOptions.None);
             if (f.Backend.Ready) f.Backend.MakeEmulator();
         });
 

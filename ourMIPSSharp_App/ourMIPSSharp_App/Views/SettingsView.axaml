@@ -2,20 +2,26 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:ourMIPSSharp_App.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="ourMIPSSharp_App.Views.SettingsView"
              Padding="12"
              Background="{DynamicResource SystemChromeBlackMediumColor}">
-    <Grid RowDefinitions="Auto, Auto, Auto, *, Auto, Auto">
+    <Design.DataContext>
+        <viewModels:SettingsViewModel />
+    </Design.DataContext>
+    <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto, *, Auto, Auto">
         <TextBlock Classes="H1Style" Text="Settings" />
         <Rectangle Grid.Row="1" Classes="HLine" />
         <Label Grid.Row="2" Target="ThemeComboBox" Content="Theme" />
-        <ComboBox Grid.Row="3" Name="ThemeComboBox" SelectedIndex="0">
-            <ComboBox.Items>
-                <ComboBoxItem Content="Default Dark" />
-            </ComboBox.Items>
-        </ComboBox>
-        <Rectangle Grid.Row="4" Classes="HLine" />
-        <TextBlock Grid.Row="5">OurMIPSSharp (dev build)</TextBlock>
+        <ComboBox Grid.Row="3" Name="ThemeComboBox"
+                  Items="{Binding Themes}"
+                  SelectedItem="{Binding SelectedAppTheme}" />
+        <Label Grid.Row="4" Target="CompilerModeComboBox" Content="Compiler Mode" />
+        <ComboBox Grid.Row="5" Name="CompilerModeComboBox"
+                  Items="{Binding CompilerModes}"
+                  SelectedItem="{Binding SelectedCompilerMode}" />
+        <Rectangle Grid.Row="6" Classes="HLine" />
+        <TextBlock Grid.Row="7">OurMIPSSharp (dev build)</TextBlock>
     </Grid>
 </UserControl>

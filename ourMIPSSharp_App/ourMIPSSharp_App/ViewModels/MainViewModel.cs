@@ -27,7 +27,7 @@ public class MainViewModel : ViewModelBase, IDisposable {
     private ApplicationState _state = ApplicationState.None;
     private readonly ObservableAsPropertyHelper<bool> _isDebugging;
     private readonly ObservableAsPropertyHelper<bool> _isEmulatorActive;
-    private SettingsViewModel _settings;
+    private SettingsViewModel? _settings;
     private ConsoleViewModelToolWrapper _consoleWrapper;
     private DebugSessionViewModel? _debugSession;
     private bool _isSettingsOpened;
@@ -48,7 +48,7 @@ public class MainViewModel : ViewModelBase, IDisposable {
     public IObservable<bool> IsEmulatorActiveObservable { get; }
 
 
-    public SettingsViewModel Settings {
+    public SettingsViewModel? Settings {
         get => _settings;
         private set => this.RaiseAndSetIfChanged(ref _settings, value);
     }
@@ -84,6 +84,10 @@ public class MainViewModel : ViewModelBase, IDisposable {
     public IRootDock? Layout {
         get => _layout;
         set => this.RaiseAndSetIfChanged(ref _layout, value);
+    }
+
+    public MainViewModel(AppSettings settings) : this() {
+        Settings = new SettingsViewModel(settings);
     }
 
     public MainViewModel() {

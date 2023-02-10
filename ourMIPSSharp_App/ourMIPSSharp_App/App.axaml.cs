@@ -25,13 +25,13 @@ public partial class App : Application {
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
             desktop.MainWindow = new MainWindow {
-                DataContext = new MainViewModel()
+                DataContext = new MainViewModel(Settings)
             };
             desktop.Exit += (_, _) => Settings?.SaveSettings();
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform) {
             singleViewPlatform.MainView = new MainView {
-                DataContext = new MainViewModel()
+                DataContext = new MainViewModel(Settings)
             };
             singleViewPlatform.MainView.Unloaded += (_, _) => Settings?.SaveSettings();
         }
