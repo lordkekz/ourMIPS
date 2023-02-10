@@ -37,6 +37,22 @@
         <Style Selector="Button.PrimaryBtn">
             <Setter Property="Background" Value="{DynamicResource SystemAccentColor}"></Setter>
         </Style>
+        <Style Selector="Border.InfoBox">
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="BorderBrush">
+                <SolidColorBrush Color="Aqua" Opacity=".8" />
+            </Setter>
+            <Setter Property="Background">
+                <SolidColorBrush Color="Aqua" Opacity=".1" />
+            </Setter>
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Margin" Value="4, 12" />
+            <Setter Property="Padding" Value="12" />
+        </Style>
+        <Style Selector="Border.InfoBox > StackPanel">
+            <Setter Property="Spacing" Value="4" />
+        </Style>
     </Application.Styles>
 
     <Application.Resources>
@@ -61,12 +77,12 @@
                              Color="{DynamicResource SystemBaseMediumColor}" />
             <SolidColorBrush x:Key="DockThemeBackgroundBrush"
                              Color="Transparent" />
-            
+
             <SolidColorBrush x:Key="ConsoleViewInfoBrush" Color="{DynamicResource SystemBaseMediumColor}" />
             <SolidColorBrush x:Key="ConsoleViewStandardBrush" Color="{DynamicResource SystemBaseHighColor}" />
             <SolidColorBrush x:Key="ConsoleViewErrorBrush" Color="OrangeRed" />
             <SolidColorBrush x:Key="ConsoleViewInputBrush" Color="LimeGreen" />
-            
+
             <ControlTheme x:Key="DataGridCellTextBlockTheme" TargetType="TextBlock">
                 <Setter Property="Margin" Value="6,0,6,0" />
                 <Setter Property="VerticalAlignment" Value="Center" />

@@ -31,6 +31,7 @@ public class MainViewModel : ViewModelBase, IDisposable {
     private ConsoleViewModelToolWrapper _consoleWrapper;
     private DebugSessionViewModel? _debugSession;
     private bool _isSettingsOpened;
+    private DateTime? _lastBuildAttempt;
 
     public DocumentViewModel? CurrentFile {
         get => _currentFile;
@@ -63,10 +64,14 @@ public class MainViewModel : ViewModelBase, IDisposable {
         set => this.RaiseAndSetIfChanged(ref _debugSession, value);
     }
 
-
     public bool IsSettingsOpened {
         get => _isSettingsOpened;
         set => this.RaiseAndSetIfChanged(ref _isSettingsOpened, value);
+    }
+
+    public DateTime? LastBuildAttempt {
+        get => _lastBuildAttempt;
+        set => this.RaiseAndSetIfChanged(ref _lastBuildAttempt, value);
     }
 
     public ObservableCollection<DocumentViewModel> OpenFiles { get; } = new();
@@ -87,7 +92,7 @@ public class MainViewModel : ViewModelBase, IDisposable {
     }
 
     public MainViewModel(AppSettings settings) : this() {
-        Settings = new SettingsViewModel(settings);
+        Settings = new SettingsViewModel(settings, this);
     }
 
     public MainViewModel() {

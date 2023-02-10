@@ -86,7 +86,7 @@ public class CommandBarViewModel : ViewModelBase {
         var str = f.Text;
         await Task.Run(() => {
             f.Backend.SourceCode = str;
-            f.Backend.Rebuild(Main.Settings?.SelectedCompilerMode.ToDialectOptions() ?? DialectOptions.None);
+            f.Backend.Rebuild(Main.Settings?.Options ?? DialectOptions.None);
             if (f.Backend.Ready) f.Backend.MakeEmulator();
         });
 
@@ -98,6 +98,7 @@ public class CommandBarViewModel : ViewModelBase {
             f.OnRebuilt(f.DebuggerBreakChangingObservable);
         }
         else Main.State = ApplicationState.FileOpened;
+        Main.LastBuildAttempt = DateTime.Now;
     }
 
     private async Task ExecuteRunCommand() {

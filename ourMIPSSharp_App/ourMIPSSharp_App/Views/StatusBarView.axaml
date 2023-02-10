@@ -7,7 +7,7 @@
     <Design.DataContext>
         <viewModels:MainViewModel />
     </Design.DataContext>
-    <Grid ColumnDefinitions="Auto, Auto, Auto, Auto, Auto, *, Auto">
+    <Grid ColumnDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, Auto, Auto, *, Auto">
         <TextBlock Grid.Column="0" Text="{Binding State}" />
         <Rectangle Grid.Column="1" />
         <TextBlock Grid.Column="2" Text="{Binding DebugSession.Editor.Name}" />
@@ -20,6 +20,9 @@
                 <TextBlock Text="Free scroll" Classes="OffContent" />
             </StackPanel>
         </ToggleButton>
-        <TextBlock Grid.Column="6" Text="{Binding CurrentFile.EditorCaretInfo}" />
+        <Rectangle Grid.Column="5" />
+        <TextBlock Grid.Column="6" Text="Last build attempt:" Margin="8,0,-4,0" />
+        <TextBlock Grid.Column="7" Text="{Binding LastBuildAttempt, FallbackValue='-'}" />
+        <TextBlock Grid.Column="9" Text="{Binding CurrentFile.EditorCaretInfo}" />
     </Grid>
 </UserControl>

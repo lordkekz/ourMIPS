@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:viewModels="clr-namespace:ourMIPSSharp_App.ViewModels"
+             xmlns:i="clr-namespace:Projektanker.Icons.Avalonia;assembly=Projektanker.Icons.Avalonia"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="ourMIPSSharp_App.Views.SettingsView"
              Padding="12"
@@ -10,18 +11,44 @@
     <Design.DataContext>
         <viewModels:SettingsViewModel />
     </Design.DataContext>
-    <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto, *, Auto, Auto">
+    <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, *, Auto, Auto">
         <TextBlock Classes="H1Style" Text="Settings" />
         <Rectangle Grid.Row="1" Classes="HLine" />
         <Label Grid.Row="2" Target="ThemeComboBox" Content="Theme" />
-        <ComboBox Grid.Row="3" Name="ThemeComboBox"
+        <ComboBox Grid.Row="3" Name="ThemeComboBox" Margin="8,0,8,8"
                   Items="{Binding Themes}"
                   SelectedItem="{Binding SelectedAppTheme}" />
-        <Label Grid.Row="4" Target="CompilerModeComboBox" Content="Compiler Mode" />
-        <ComboBox Grid.Row="5" Name="CompilerModeComboBox"
+        <Label Grid.Row="4" Target="CompilerModeComboBox" Content="Dialect Preset" />
+        <ComboBox Grid.Row="5" Name="CompilerModeComboBox" Margin="8,0,8,8"
                   Items="{Binding CompilerModes}"
                   SelectedItem="{Binding SelectedCompilerMode}" />
-        <Rectangle Grid.Row="6" Classes="HLine" />
-        <TextBlock Grid.Row="7">OurMIPSSharp (dev build)</TextBlock>
+        <StackPanel Grid.Row="6" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="12,4">
+            <CheckBox IsChecked="{Binding IsCheckedStrictNonDecimalNumbers}"
+                      Content="Strict Non-Decimal Numbers" />
+            <CheckBox IsChecked="{Binding IsCheckedStrictNonDecimalNumberLengths}"
+                      Content="Strict Non-Decimal Number Lengths" />
+            <CheckBox IsChecked="{Binding IsCheckedStrictDecimalNumberLengths}"
+                      Content="Strict Decimal Number Lengths" />
+            <CheckBox IsChecked="{Binding IsCheckedStrictCaseSensitiveDescriptors}"
+                      Content="Strict Case-Sensitive Names" />
+            <CheckBox IsChecked="{Binding IsCheckedStrictKeywordEndmacro}"
+                      Content="Strict Keyword endmacro" />
+            <CheckBox IsChecked="{Binding IsCheckedStrictKeywordMend}"
+                      Content="Strict Keyword mend" />
+            <CheckBox IsChecked="{Binding IsCheckedStrictNoColonAfterMacro}"
+                      Content="Strict No Colon After Macro Declaration" />
+            <CheckBox IsChecked="{Binding IsCheckedStrictMacroDefinitionOrder}"
+                      Content="Strict Macro Definition Order" />
+            <CheckBox IsChecked="{Binding IsCheckedStrictMacroArgumentNames}"
+                      Content="Strict Argument Names" />
+            <Border Classes="InfoBox" IsVisible="{Binding IsChanged}">
+                <StackPanel Orientation="Horizontal">
+                    <i:Icon Value="fa-solid fa-info" />
+                    <TextBlock Text="Changes will take effect the next time you build a program!"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+        <Rectangle Grid.Row="7" Classes="HLine" Fill="{DynamicResource SystemAltMediumColor}" />
+        <TextBlock Grid.Row="8">OurMIPSSharp (dev build)</TextBlock>
     </Grid>
 </UserControl>

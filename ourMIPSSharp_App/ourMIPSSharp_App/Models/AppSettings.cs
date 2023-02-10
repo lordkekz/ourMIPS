@@ -14,9 +14,7 @@ public class AppSettings {
     private List<FileBackend> _openFiles;
     public List<string>? OpenFiles { get; set; }
     public MyAppTheme? ActiveTheme { get; set; }
-    public CompilerMode? ActiveCompilerMode { get; set; }
-
-    public AppSettings() { }
+    public int? DialectOpts { get; set; }
 
     public void SaveSettings() {
         var jsonString = JsonSerializer.Serialize(this, SerializerOptions);
@@ -27,7 +25,7 @@ public class AppSettings {
     private void ApplyDefaultsIfNull() {
         OpenFiles ??= new List<string>();
         ActiveTheme ??= MyAppTheme.Dark;
-        ActiveCompilerMode ??= CompilerMode.OurMIPSSharp;
+        DialectOpts ??= 0;
     }
 
     public static AppSettings MakeInstance() {
@@ -58,7 +56,8 @@ public class AppSettings {
 public enum CompilerMode {
     OurMIPSSharp,
     Philosonline,
-    Yapjoma
+    Yapjoma,
+    Custom
 }
 
 public static class CompilerModeExtensions {
@@ -67,11 +66,23 @@ public static class CompilerModeExtensions {
             CompilerMode.OurMIPSSharp => DialectOptions.None,
             CompilerMode.Philosonline => DialectOptions.Philosonline,
             CompilerMode.Yapjoma => DialectOptions.Yapjoma,
+            CompilerMode.Custom => DialectOptions.None,
             _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, null)
+        };
+    }
+
+    public static CompilerMode ToCompilerMode(this DialectOptions opts) {
+        return opts switch {
+            DialectOptions.None => CompilerMode.OurMIPSSharp,
+            DialectOptions.Philosonline => CompilerMode.Philosonline,
+            DialectOptions.Yapjoma => CompilerMode.Yapjoma,
+            _ => CompilerMode.Custom
         };
     }
 }
 
 public enum MyAppTheme {
-    Dark, Light, HelloKitty
+    Dark,
+    Light,
+    HelloKitty
 }
