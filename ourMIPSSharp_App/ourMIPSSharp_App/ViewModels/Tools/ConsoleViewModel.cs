@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
+using System.Text;
 using System.Threading.Tasks;
 using AvaloniaEdit.Document;
 using Dock.Model.ReactiveUI.Controls;
@@ -96,9 +97,13 @@ public class ConsoleViewModel : Tool {
     public void DoFlushNewLines() {
         // There is no point in using DocumentTextWriter, since it also relies on Document.Insert
         // Only call Document.Insert once, since it seems to update ui every time
-        var str = _newLines.Aggregate("", (a, b) => a + b);
+        var len = _newLines.Sum(s => s.Length);
+        var str = new StringBuilder(len);
+        foreach (var line in _newLines)
+            str.Append(line);
+
         _newLines.Clear();
-        Document.Insert(Document.TextLength, str);
+        Document.Insert(Document.TextLength, str.ToString());
         OnLinesFlushed();
         _lastFlush = DateTime.Now;
     }
