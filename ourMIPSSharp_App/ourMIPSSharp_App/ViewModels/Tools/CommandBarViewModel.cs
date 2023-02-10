@@ -12,10 +12,8 @@ namespace ourMIPSSharp_App.ViewModels.Tools;
 public class CommandBarViewModel : ViewModelBase {
     #region Properties
 
-    public ReactiveCommand<Unit, Unit> SettingsCommand { get; }
     public ReactiveCommand<Unit, Unit> CreateDocumentCommand { get; }
     public ReactiveCommand<Unit, Unit> FileOpenCommand { get; }
-    public ReactiveCommand<Unit, Unit> MemInitCommand { get; }
     public ReactiveCommand<Unit, Unit> RebuildCommand { get; }
     public ReactiveCommand<Unit, Unit> RunCommand { get; }
     public ReactiveCommand<Unit, Unit> DebugCommand { get; }
@@ -30,8 +28,7 @@ public class CommandBarViewModel : ViewModelBase {
     public CommandBarViewModel(MainViewModel main) {
         Main = main;
 
-        var canExecuteNever = new[] { false }.ToObservable();
-        var canExecuteAlways = new[] { true }.ToObservable();
+        
 
         var isRebuildingAllowed = Main.WhenAnyValue(x => x.State,
             s => s.IsRebuildingAllowed());
@@ -40,10 +37,8 @@ public class CommandBarViewModel : ViewModelBase {
         var isDebuggingButNotBusy = Main.WhenAnyValue(x => x.State, s => s == ApplicationState.DebugBreak);
         var isBuiltButEmulatorInactive = Main.WhenAnyValue(x => x.State, s => s.IsBuilt() && !s.IsEmulatorActive());
 
-        SettingsCommand = ReactiveCommand.Create(ExecuteSettingsCommand);
         CreateDocumentCommand = ReactiveCommand.CreateFromTask(ExecuteCreateDocumentCommand);
         FileOpenCommand = ReactiveCommand.CreateFromTask(ExecuteFileOpenCommand);
-        MemInitCommand = ReactiveCommand.Create(() => throw new NotImplementedException(), canExecuteNever);
         RebuildCommand = ReactiveCommand.CreateFromTask(ExecuteRebuildCommand, isRebuildingAllowed);
         RunCommand = ReactiveCommand.CreateFromTask(ExecuteRunCommand, isBuiltButEmulatorInactive);
         DebugCommand = ReactiveCommand.CreateFromTask(ExecuteDebugCommand, isBuiltButEmulatorInactive);
@@ -53,10 +48,6 @@ public class CommandBarViewModel : ViewModelBase {
     }
 
     #region ExecuteCommandMethods
-
-    private void ExecuteSettingsCommand() {
-        Main.IsSettingsOpened = !Main.IsSettingsOpened;
-    }
 
     private async Task ExecuteCreateDocumentCommand() {
         await Main.OpenProgramFromSourceAsync("# New Program\n\n");
@@ -109,6 +100,7 @@ public class CommandBarViewModel : ViewModelBase {
         s.Editor.DebugConsole.Clear();
 
         s.Backend.MakeEmulator();
+        s.Backend.CurrentEmulator!.Memory.InitializePhilos(Main.MemoryInit!.Document.Text);
         Main.State = ApplicationState.Running;
         await Task.Run(s.DebuggerInstance.Run);
         Main.State = ApplicationState.Built;
@@ -121,6 +113,7 @@ public class CommandBarViewModel : ViewModelBase {
         var s = Main.DebugSession;
         if (s is null || !s.Backend.Ready || s.IsBackgroundBusy) return;
         s.Backend.MakeEmulator();
+        s.Backend.CurrentEmulator!.Memory.InitializePhilos(Main.MemoryInit!.Document.Text);
 
         s.Editor.DebugConsole.Clear();
         s.DebuggerInstance.StartSession();

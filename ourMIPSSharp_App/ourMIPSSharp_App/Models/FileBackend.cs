@@ -52,10 +52,5 @@ public class FileBackend {
             TextErr = TextErrWriter,
             TextIn = TextInReader
         };
-        
-        for (int i = 0; i < 1000; i++) {
-            CurrentEmulator.Memory[2 * i] = 104 + 2 * i;
-            _ = CurrentEmulator.Memory[2 * i + 1];
-        }
     }
 }

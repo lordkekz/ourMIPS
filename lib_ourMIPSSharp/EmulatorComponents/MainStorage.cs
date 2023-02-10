@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json.Nodes;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
 
@@ -56,6 +57,17 @@ public class MainStorage : Dictionary<int, int> {
         }
 
         return true;
+    }
+    
+    public JsonObject ToJsonObject(string name = "Default Environment") {
+        var testEnv = new JsonObject();
+        testEnv["name"] = name;
+        var memory = new JsonObject();
+        testEnv["entry_mem"] = memory;
+        foreach (var pair in this.Order())
+            memory[pair.Key.ToString(NumberLiteralFormat.HexPrefix)] = pair.Value;
+
+        return testEnv;
     }
 
     public void InitializeYapjoma(string inputString) {

@@ -15,7 +15,7 @@
              mc:Ignorable="d" d:DesignWidth="1400" d:DesignHeight="450"
              x:Class="ourMIPSSharp_App.Views.MainView">
     <UserControl.Styles>
-        <Style Selector="Border#SettingsSlideBorder">
+        <Style Selector="Border.OverlayBorder">
             <Setter Property="Opacity" Value="0" />
             <Setter Property="RenderTransform" Value="scale(.9)" />
             <Setter Property="Transitions">
@@ -33,7 +33,7 @@
                 </Animation>
             </Style.Animations>
         </Style>
-        <Style Selector="Border#SettingsSlideBorder[Tag=True]">
+        <Style Selector="Border.OverlayBorder[Tag=True]">
             <Setter Property="Opacity" Value="1" />
             <Setter Property="RenderTransform" Value="scale(1)" />
             <Setter Property="IsVisible" Value="True" />
@@ -81,10 +81,16 @@
                          Grid.Row="0" Grid.Column="1" />
             <views:StatusBarView Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" />
             <Border Grid.Row="0" Grid.Column="1"
-                    Name="SettingsSlideBorder" Tag="{Binding IsSettingsOpened}"
+                    Classes="OverlayBorder" Tag="{Binding IsSettingsOpened}"
                     Background="{DynamicResource SystemChromeBlackHighColor}"
                     ZIndex="2">
                 <views:SettingsView DataContext="{Binding Settings}" />
+            </Border>
+            <Border Grid.Row="0" Grid.Column="1"
+                    Classes="OverlayBorder" Tag="{Binding IsMemoryInitOpened}"
+                    Background="{DynamicResource SystemChromeBlackHighColor}"
+                    ZIndex="2">
+                <views:MemoryInitView DataContext="{Binding MemoryInit}" />
             </Border>
         </Grid>
     </dialogHost:DialogHost>

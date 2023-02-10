@@ -7,20 +7,22 @@
              xmlns:tools="clr-namespace:ourMIPSSharp_App.ViewModels.Tools"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="ourMIPSSharp_App.Views.Tools.CommandBarView">
-        <Design.DataContext>
-                <!-- This only sets the DataContext for the previewer in an IDE,
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-                <tools:CommandBarViewModel />
-        </Design.DataContext>
-        <StackPanel Orientation="Vertical" ZIndex="1">
-        <Button i:Attached.Icon="fa-solid fa-sliders"
-                Command="{Binding SettingsCommand}" />
+        <tools:CommandBarViewModel />
+    </Design.DataContext>
+    <StackPanel Orientation="Vertical" ZIndex="1">
+        <ToggleButton i:Attached.Icon="fa-solid fa-sliders"
+                      IsChecked="{Binding Main.IsSettingsOpened}"
+                      IsEnabled="{Binding !Main.IsMemoryInitOpened}" />
         <Button i:Attached.Icon="fa-solid fa-floppy-disk"
                 Command="{Binding Main.CurrentFile.SaveCommand}" />
         <Button i:Attached.Icon="fa-solid fa-folder-open"
                 Command="{Binding FileOpenCommand}" />
-        <Button i:Attached.Icon="fa-solid fa-memory"
-                Command="{Binding MemInitCommand}" />
+        <ToggleButton i:Attached.Icon="fa-solid fa-memory"
+                      IsChecked="{Binding Main.IsMemoryInitOpened}"
+                      IsEnabled="{Binding !Main.IsSettingsOpened}" />
         <Button i:Attached.Icon="fa-solid fa-screwdriver-wrench"
                 Command="{Binding RebuildCommand}" />
         <Button i:Attached.Icon="fa-solid fa-play"

@@ -28,9 +28,11 @@ public class MainViewModel : ViewModelBase, IDisposable {
     private readonly ObservableAsPropertyHelper<bool> _isDebugging;
     private readonly ObservableAsPropertyHelper<bool> _isEmulatorActive;
     private SettingsViewModel? _settings;
+    private MemoryInitViewModel? _memoryInit;
     private ConsoleViewModelToolWrapper _consoleWrapper;
     private DebugSessionViewModel? _debugSession;
     private bool _isSettingsOpened;
+    private bool _isMemoryInitOpened;
     private DateTime? _lastBuildAttempt;
 
     public DocumentViewModel? CurrentFile {
@@ -54,6 +56,11 @@ public class MainViewModel : ViewModelBase, IDisposable {
         private set => this.RaiseAndSetIfChanged(ref _settings, value);
     }
 
+    public MemoryInitViewModel? MemoryInit {
+        get => _memoryInit;
+        private set => this.RaiseAndSetIfChanged(ref _memoryInit, value);
+    }
+
     public ConsoleViewModelToolWrapper ConsoleWrapper {
         get => _consoleWrapper;
         private set => this.RaiseAndSetIfChanged(ref _consoleWrapper, value);
@@ -67,6 +74,11 @@ public class MainViewModel : ViewModelBase, IDisposable {
     public bool IsSettingsOpened {
         get => _isSettingsOpened;
         set => this.RaiseAndSetIfChanged(ref _isSettingsOpened, value);
+    }
+
+    public bool IsMemoryInitOpened {
+        get => _isMemoryInitOpened;
+        set => this.RaiseAndSetIfChanged(ref _isMemoryInitOpened, value);
     }
 
     public DateTime? LastBuildAttempt {
@@ -96,6 +108,7 @@ public class MainViewModel : ViewModelBase, IDisposable {
     }
 
     public MainViewModel() {
+        MemoryInit = new MemoryInitViewModel(this);
         Commands = new CommandBarViewModel(this);
         Instructions = new InstructionsViewModel(this);
         Memory = new MemoryViewModel(this);
