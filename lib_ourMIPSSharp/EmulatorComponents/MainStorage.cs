@@ -35,17 +35,17 @@ public class MainStorage : Dictionary<int, int> {
     public bool InitializePhilos(string inputString, string? id = null) {
         // TODO add/improve exception handling
 
-        var rootNode = JsonNode.Parse(inputString)!.AsObject();
-        JsonObject testEnv;
-        if (id is null) {
-            if (rootNode.Count != 1)
-                return false;
-            testEnv = rootNode.First().Value.AsObject();
-        }
-        else
-            testEnv = rootNode[id].AsObject();
-
         try {
+            var rootNode = JsonNode.Parse(inputString)!.AsObject();
+            JsonObject testEnv;
+            if (id is null) {
+                if (rootNode.Count != 1)
+                    return false;
+                testEnv = rootNode.First().Value.AsObject();
+            }
+            else
+                testEnv = rootNode[id].AsObject();
+
             var mem_init = testEnv["entry_mem"].AsObject();
             foreach (var pair in mem_init) {
                 var address = NumberLiteral.ParseString(pair.Key);
@@ -58,7 +58,7 @@ public class MainStorage : Dictionary<int, int> {
 
         return true;
     }
-    
+
     public JsonObject ToJsonObject(string name = "Default Environment") {
         var testEnv = new JsonObject();
         testEnv["name"] = name;

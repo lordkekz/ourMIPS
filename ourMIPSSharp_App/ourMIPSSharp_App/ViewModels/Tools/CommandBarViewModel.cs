@@ -55,7 +55,7 @@ public class CommandBarViewModel : ViewModelBase {
 
     private async Task ExecuteFileOpenCommand() {
         try {
-            var file = await Interactions.OpenProgramFile.Handle(Unit.Default);
+            var file = await Interactions.OpenProgramFile.Handle("Open program file...");
             if (file is null) return;
             await using var stream = await file.OpenReadAsync();
             using var reader = new StreamReader(stream);

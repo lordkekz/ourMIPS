@@ -35,18 +35,17 @@ public partial class MainView : UserControl {
         ViewModel.CurrentFile?.Backend.TextInfoWriter.WriteLine("Ready.");
         _ = ViewModel.ConsoleWrapper.FlushNewLines();
 
-        var saveOptions = new FilePickerSaveOptions {
-            Title = "Save program...",
-            DefaultExtension = "ourMIPS",
-            ShowOverwritePrompt = true,
-            SuggestedFileName = "program"
-        };
-        var openOptions = new FilePickerOpenOptions {
-            Title = "Open program...",
-            AllowMultiple = false
-        };
+        
         Interactions.SaveFileTo.RegisterHandler(
             async interaction => {
+                
+                var saveOptions = new FilePickerSaveOptions {
+                    Title = interaction.Input.Item1,
+                    SuggestedFileName = interaction.Input.Item2,
+                    DefaultExtension = interaction.Input.Item3,
+                    ShowOverwritePrompt = true
+                };
+                
                 var sp = App.Current?.GetStorageProvider();
                 var file = sp is not null ? await sp.SaveFilePickerAsync(saveOptions) : null;
 
@@ -54,6 +53,11 @@ public partial class MainView : UserControl {
             });
         Interactions.OpenProgramFile.RegisterHandler(
             async interaction => {
+                var openOptions = new FilePickerOpenOptions {
+                    Title = interaction.Input,
+                    AllowMultiple = false
+                };
+                
                 var sp = App.Current?.GetStorageProvider();
                 var file = sp is not null ? await sp.OpenFilePickerAsync(openOptions) : null;
 

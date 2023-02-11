@@ -160,20 +160,20 @@ public class DocumentViewModel : Document {
 
     private async Task SaveAsync() {
         try {
-            var file = await Interactions.SaveFileTo.Handle(Unit.Default);
+            var file = await Interactions.SaveFileTo.Handle(("Save program file...", "program", "txt"));
             if (file is null) return;
 
             var t = Text;
 
             // Try using System.IO (because Avalonia doesn't always clear existing file contents)
             if (file.TryGetUri(out var uri) && File.Exists(uri.AbsolutePath)) {
-                await File.WriteAllTextAsync(uri.AbsolutePath, Text);
+                await File.WriteAllTextAsync(uri.AbsolutePath, t);
             }
             else {
                 // Fallback to platform-agnostic Avalonia storage
                 await using var stream = await file.OpenWriteAsync();
                 await using var write = new StreamWriter(stream);
-                await write.WriteAsync(Text);
+                await write.WriteAsync(t);
                 await write.FlushAsync();
             }
 
