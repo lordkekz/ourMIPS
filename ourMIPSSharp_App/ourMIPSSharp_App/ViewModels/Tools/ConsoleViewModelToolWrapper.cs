@@ -9,10 +9,16 @@ namespace ourMIPSSharp_App.ViewModels.Tools;
 public class ConsoleViewModelToolWrapper : Tool {
     private readonly ObservableAsPropertyHelper<ConsoleViewModel?> _activeConsole;
     private readonly ObservableAsPropertyHelper<bool> _hasActiveConsole;
+    private bool _isAutoScrollEnabled;
 
     public ConsoleViewModel? ActiveConsole => _activeConsole.Value;
     public bool HasActiveConsole => _hasActiveConsole.Value;
     public MainViewModel Main { get; }
+    
+    public bool IsAutoScrollEnabled {
+        get => _isAutoScrollEnabled;
+        set => this.RaiseAndSetIfChanged(ref _isAutoScrollEnabled, value);
+    }
 
     public ConsoleViewModelToolWrapper(MainViewModel main) {
         Main = main;

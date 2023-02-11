@@ -14,28 +14,38 @@
     </Design.DataContext>
     <StackPanel Orientation="Vertical" ZIndex="1">
         <ToggleButton i:Attached.Icon="fa-solid fa-sliders"
+                      ToolTip.Tip="App settings"
                       IsChecked="{Binding Main.IsSettingsOpened}"
                       IsEnabled="{Binding !Main.IsMemoryInitOpened}" />
-        <Button i:Attached.Icon="fa-solid fa-floppy-disk"
-                Command="{Binding Main.CurrentFile.SaveCommand}" />
-        <Button i:Attached.Icon="fa-solid fa-folder-open"
-                Command="{Binding FileOpenCommand}" />
         <ToggleButton i:Attached.Icon="fa-solid fa-memory"
+                      ToolTip.Tip="Memory initialization"
                       IsChecked="{Binding Main.IsMemoryInitOpened}"
                       IsEnabled="{Binding !Main.IsSettingsOpened}" />
+        <Button i:Attached.Icon="fa-solid fa-floppy-disk"
+                ToolTip.Tip="Save current file"
+                Command="{Binding Main.CurrentFile.SaveCommand}" />
+        <Button i:Attached.Icon="fa-solid fa-folder-open"
+                ToolTip.Tip="Open file from disk"
+                Command="{Binding FileOpenCommand}" />
         <Button i:Attached.Icon="fa-solid fa-screwdriver-wrench"
+                ToolTip.Tip="Build current file"
                 Command="{Binding RebuildCommand}" />
         <Button i:Attached.Icon="fa-solid fa-play"
+                ToolTip.Tip="Run built program"
                 Command="{Binding RunCommand}" />
         <Button i:Attached.Icon="fa-solid fa-bug"
+                ToolTip.Tip="Debug built program"
                 Command="{Binding DebugCommand}" />
         <Button i:Attached.Icon="fa-solid fa-forward-step"
+                ToolTip.Tip="Execute one instruction"
                 Command="{Binding StepCommand}"
                 IsVisible="{Binding Main.IsDebugging}" />
         <Button i:Attached.Icon="fa-solid fa-forward"
+                ToolTip.Tip="Execute until breakpoint or end"
                 Command="{Binding ForwardCommand}"
                 IsVisible="{Binding Main.IsDebugging}" />
         <Button i:Attached.Icon="fa-solid fa-stop"
+                ToolTip.Tip="Terminate emulator"
                 Command="{Binding StopCommand}"
                 IsVisible="{Binding Main.IsEmulatorActive}" />
     </StackPanel>

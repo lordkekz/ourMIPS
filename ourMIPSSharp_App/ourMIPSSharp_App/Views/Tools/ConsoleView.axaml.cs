@@ -96,18 +96,25 @@ public partial class ConsoleView : UserControl {
         };
     }
 
+    protected override void OnDataContextBeginUpdate() {
+        base.OnDataContextBeginUpdate();
+        if (ViewModel is null) return;
+        ViewModel!.LinesFlushed -= OnLinesFlushed;
+    }
+
     protected override void OnDataContextChanged(EventArgs e) {
         base.OnDataContextChanged(e);
         if (ViewModel is null) return;
-        ViewModel!.LinesFlushed += async (sender, args) => {
-            if (!IsAutoScrollEnabled || _editor.Document is null)
-                return;
-            _editor.CaretOffset = _editor.Document.TextLength;
+        ViewModel!.LinesFlushed += OnLinesFlushed;
+    }
 
-            // Release UI thread to allow Editor to calculate new line heights
-            await Task.Delay(10);
-            _editor.TextArea.Caret.BringCaretToView();
-        };
+    private async void OnLinesFlushed(object? sender, EventArgs args) {
+        if (!IsAutoScrollEnabled || _editor.Document is null) return;
+        _editor.CaretOffset = _editor.Document.TextLength;
+
+        // Release UI thread to allow Editor to calculate new line heights
+        await Task.Delay(10);
+        _editor.TextArea.Caret.BringCaretToView();
     }
 
     private void InitializeComponent() {

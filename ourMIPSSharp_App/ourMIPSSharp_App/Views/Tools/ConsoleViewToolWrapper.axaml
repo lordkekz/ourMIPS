@@ -9,9 +9,12 @@
     <Design.DataContext>
         <tools:ConsoleViewModelToolWrapper />
     </Design.DataContext>
-    <Border IsVisible="{Binding HasActiveConsole}">
-        <local:ConsoleView DataContext="{Binding ActiveConsole}"
-                           HorizontalAlignment="Stretch"
-                           VerticalAlignment="Stretch" />
-    </Border>
+    <local:ConsoleView
+        DataContext="{Binding ActiveConsole}"
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Stretch"
+        IsVisible="{Binding ViewModel.HasActiveConsole, Mode=TwoWay,
+            RelativeSource={RelativeSource FindAncestor, AncestorType=local:ConsoleViewToolWrapper}}"
+        IsAutoScrollEnabled="{Binding ViewModel.IsAutoScrollEnabled, Mode=TwoWay,
+            RelativeSource={RelativeSource FindAncestor, AncestorType=local:ConsoleViewToolWrapper}}" />
 </UserControl>

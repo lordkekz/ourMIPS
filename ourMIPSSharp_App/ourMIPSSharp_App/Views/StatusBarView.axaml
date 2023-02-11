@@ -12,12 +12,13 @@
         <Rectangle Grid.Column="1" />
         <TextBlock Grid.Column="2" Text="{Binding DebugSession.Editor.Name}" />
         <Rectangle Grid.Column="3" />
-        <ToggleButton Grid.Column="4" IsChecked="True" Name="AutoScrollToggleButton">
+        <ToggleButton Grid.Column="4" IsChecked="{Binding ConsoleWrapper.IsAutoScrollEnabled, Mode=TwoWay}"
+                      Name="AutoScrollToggleButton">
             <StackPanel Orientation="Horizontal" Spacing="4">
                 <i:Icon Value="fa-solid fa-turn-down" Classes="OnContent" />
-                <TextBlock Text="Auto scroll" Classes="OnContent" />
+                <TextBlock Text="Auto scroll console" Classes="OnContent" />
                 <i:Icon Value="fa-solid fa-up-down" Classes="OffContent" />
-                <TextBlock Text="Free scroll" Classes="OffContent" />
+                <TextBlock Text="Free scroll console" Classes="OffContent" />
             </StackPanel>
         </ToggleButton>
         <Rectangle Grid.Column="5" />
