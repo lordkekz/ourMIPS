@@ -30,7 +30,9 @@ public partial class MainView : UserControl {
             var sourceSample = File.ReadAllText("../../../../../lib_ourMIPSSharp_Tests/Samples/mult_philos.ourMIPS");
             _ = ViewModel!.OpenProgramFromSourceAsync(sourceSample);
         }
-        catch (IOException) { }
+        catch (IOException) {
+            ViewModel!.Commands.CreateDocumentCommand.Execute();
+        }
 
         // Write ready text to console (immediately applies colors)
         ViewModel.ConsoleWrapper.Clear();
