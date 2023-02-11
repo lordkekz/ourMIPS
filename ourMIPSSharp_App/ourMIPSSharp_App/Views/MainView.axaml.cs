@@ -25,27 +25,28 @@ public partial class MainView : UserControl {
 
     protected override void OnLoaded() {
         base.OnLoaded();
-
-        // Load mult_philos sample from unit tests
-        var sourceSample = File.ReadAllText("../../../../../lib_ourMIPSSharp_Tests/Samples/mult_philos.ourMIPS");
-        _ = ViewModel!.OpenProgramFromSourceAsync(sourceSample);
+        try {
+            // Load mult_philos sample from unit tests
+            var sourceSample = File.ReadAllText("../../../../../lib_ourMIPSSharp_Tests/Samples/mult_philos.ourMIPS");
+            _ = ViewModel!.OpenProgramFromSourceAsync(sourceSample);
+        }
+        catch (IOException) { }
 
         // Write ready text to console (immediately applies colors)
         ViewModel.ConsoleWrapper.Clear();
         ViewModel.CurrentFile?.Backend.TextInfoWriter.WriteLine("Ready.");
         _ = ViewModel.ConsoleWrapper.FlushNewLines();
 
-        
+
         Interactions.SaveFileTo.RegisterHandler(
             async interaction => {
-                
                 var saveOptions = new FilePickerSaveOptions {
                     Title = interaction.Input.Item1,
                     SuggestedFileName = interaction.Input.Item2,
                     DefaultExtension = interaction.Input.Item3,
                     ShowOverwritePrompt = true
                 };
-                
+
                 var sp = App.Current?.GetStorageProvider();
                 var file = sp is not null ? await sp.SaveFilePickerAsync(saveOptions) : null;
 
@@ -57,7 +58,7 @@ public partial class MainView : UserControl {
                     Title = interaction.Input,
                     AllowMultiple = false
                 };
-                
+
                 var sp = App.Current?.GetStorageProvider();
                 var file = sp is not null ? await sp.OpenFilePickerAsync(openOptions) : null;
 
