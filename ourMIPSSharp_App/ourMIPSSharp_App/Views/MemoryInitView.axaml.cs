@@ -1,27 +1,32 @@
+using System;
+using System.Xml;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform;
 using AvaloniaEdit;
-using AvaloniaEdit.TextMate;
-using AvaloniaEdit.TextMate.Grammars;
+using AvaloniaEdit.Highlighting;
+using AvaloniaEdit.Highlighting.Xshd;
 
-namespace ourMIPSSharp_App.Views; 
+namespace ourMIPSSharp_App.Views;
 
 public partial class MemoryInitView : UserControl {
-    private RegistryOptions _registryOptions;
-    private TextMate.Installation _textMateInstallation;
     private readonly TextEditor _textEditor;
 
     public MemoryInitView() {
         InitializeComponent();
-        _textEditor = this.FindControl<TextEditor>("Editor")!;
-        _registryOptions = new RegistryOptions(ThemeName.Dark);
-        _textMateInstallation = _textEditor.InstallTextMate(_registryOptions);
-        var jsonLanguage = _registryOptions.GetLanguageByExtension(".json");
-        _textMateInstallation.SetGrammar(_registryOptions.GetScopeByLanguageId(jsonLanguage.Id));
         
+        _textEditor = this.FindControl<TextEditor>("Editor")!;
+        
+        // Load syntax highlighting definition as resource so it's always available
+        var assets = AvaloniaLocator.Current.GetService<IAssetLoader>()!;
+        using (var bitmap = assets.Open(new Uri("avares://ourMIPSSharp_App/Assets/philosEnv.xshd"))) {
+            using (var reader = new XmlTextReader(bitmap)) {
+                _textEditor.SyntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
+            }
+        }
         
         _textEditor.AddHandler(PointerWheelChangedEvent, (o, i) => {
             if (i.KeyModifiers != KeyModifiers.Control) return;

@@ -1,0 +1,23 @@
+<SyntaxDefinition name="PhilosEnvJSON"
+        xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+    <Color name="String" foreground="SkyBlue" />
+    <Color name="ValString" foreground="LimeGreen" />
+    <Color name="Number" foreground="Orange" />
+    <Color name="Base" foreground="Azure" />
+    
+    <!-- Main ruleset -->
+    <RuleSet>
+        <Rule color="String">
+            \"[a-zA-Z0-9\._\(\)! ]+\"\w*:
+        </Rule>
+        <Rule color="ValString">
+            \"[a-zA-Z0-9\._\(\)! ]+\"
+        </Rule>
+        <Rule color="Number">
+            [+-]?[0-9]+
+        </Rule>
+        <Rule color="Base">
+            [{},]
+        </Rule>
+    </RuleSet>
+</SyntaxDefinition>
