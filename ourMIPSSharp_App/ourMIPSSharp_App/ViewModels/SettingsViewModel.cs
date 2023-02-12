@@ -104,6 +104,11 @@ public class SettingsViewModel : ViewModelBase {
 
     public MainViewModel Main { get; }
     public AppSettings Model { get; }
+    
+    public string VersionInfo => $"OurMIPSSharp Dev Build.\t" +
+                                 $"Version {ThisAssembly.Git.SemVerString} " +
+                                 (ThisAssembly.Git.IsDirty ? "(Dirty)" : "(Clean)") +
+                                 $"\tCommit Date: {ThisAssembly.Git.CommitDate}";
 
     #endregion
 

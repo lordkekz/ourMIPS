@@ -12,7 +12,7 @@ using ourMIPSSharp_App.ViewModels.Tools;
 using ReactiveUI;
 using Debugger = ourMIPSSharp_App.Models.Debugger;
 
-namespace ourMIPSSharp_App.ViewModels.Editor; 
+namespace ourMIPSSharp_App.ViewModels.Editor;
 
 public class DebugSessionViewModel : ViewModelBase {
     #region Properties
@@ -58,6 +58,7 @@ public class DebugSessionViewModel : ViewModelBase {
     public List<Breakpoint> UIBreakpoints { get; } = new();
 
     #endregion
+
     public DebugSessionViewModel(DocumentViewModel editor) {
         if (editor.DebugSession is not null)
             throw new InvalidOperationException("Document already has a Debug Session attached!");
@@ -81,7 +82,7 @@ public class DebugSessionViewModel : ViewModelBase {
             UpdateBreakpoints();
             Editor.DebugConsole.DoFlushNewLines();
         };
-        
+
         // Init RegisterList
         for (var i = 0; i < 32; i++) {
             RegisterList.Add(new RegisterEntry((Register)i, () => Backend.CurrentEmulator?.Registers,
@@ -90,7 +91,7 @@ public class DebugSessionViewModel : ViewModelBase {
     }
 
     #region Private Methods
-    
+
     private void UpdateBreakpoints() {
         foreach (var bp in UIBreakpoints.Where(bp => !DebuggerInstance.Breakpoints.Contains(bp)))
             DebuggerInstance.Breakpoints.Add(bp);
@@ -129,7 +130,8 @@ public class DebugSessionViewModel : ViewModelBase {
     /// Force terminates the emulator. Needs to run in UI thread.
     /// </summary>
     public async Task StopEmulator() {
-        Backend.CurrentEmulator!.ForceTerminated = true;
+        var em = Backend.CurrentEmulator!;
+        em.ForceTerminated = true;
 
         if (IsBackgroundBusy) {
             var backgroundNoLongerBusy = this.WhenAnyValue(x => x.IsBackgroundBusy)
@@ -139,8 +141,9 @@ public class DebugSessionViewModel : ViewModelBase {
 
         DebuggerInstance.Hide();
         Debug.Assert(!IsBackgroundBusy);
-        Backend.TextInfoWriter.WriteLine("[EMULATOR] Program terminated by user.");
-    }    
+        if (em is { Terminated: false, ErrorTerminated: false })
+            Backend.TextInfoWriter.WriteLine("[EMULATOR] Program terminated by user.");
+    }
 
     #endregion
 }

@@ -9,6 +9,8 @@ using ReactiveUI;
 namespace ourMIPSSharp_App.Models;
 
 public class Debugger {
+    public const int EmulatorTimeoutMilliseconds = 5000;
+    
     public FileBackend Backend { get; }
 
     /// <summary>
@@ -114,12 +116,24 @@ public class Debugger {
                 em.TryExecuteNext();
             } while (!em.EffectivelyTerminated &&
                      !IsAtBreakpoint(em.ProgramCounter) &&
-                     !em.ExpectingInput);
+                     !em.ExpectingInput &&
+                     s.ElapsedMilliseconds < EmulatorTimeoutMilliseconds);
 
             OnDebuggerSyncing();
 
             // Await input or sth
-            if (em.ExpectingInput) await _getInput();
+            if (em.ExpectingInput) {
+                s.Stop();
+                await _getInput();
+                s.Start();
+            }
+
+            // Break after some time to prevent program freezes.
+            if (s.ElapsedMilliseconds >= EmulatorTimeoutMilliseconds) {
+                Backend.TextInfoWriter.WriteLine($"[EMULATOR] Breaking after {EmulatorTimeoutMilliseconds}. Normally your program should be done by now.\nMaybe you accidentally made an infinite loop or forget to initialize memory?");
+                OnDebuggerBreaking();
+                break;
+            }
 
             // Pause at breakpoints; but only after at least one instruction was executed.
             if (IsAtBreakpoint(em.ProgramCounter)) {
@@ -150,14 +164,29 @@ public class Debugger {
             // Execute at least one instruction.
             do {
                 em.TryExecuteNext();
-            } while (em is { EffectivelyTerminated: false, ExpectingInput: false });
+            } while (em is { EffectivelyTerminated: false, ExpectingInput: false } &&
+                     s.ElapsedMilliseconds < EmulatorTimeoutMilliseconds);
 
             // Await input or sth
-            if (em.ExpectingInput) await _getInput();
+            if (em.ExpectingInput) {
+                s.Stop();
+                await _getInput();
+                s.Start();
+            }
+
+            // Break after some time to prevent program freezes.
+            if (s.ElapsedMilliseconds >= EmulatorTimeoutMilliseconds) {
+                OnDebuggerSyncing();
+                Backend.TextInfoWriter.WriteLine($"[EMULATOR] Breaking after {EmulatorTimeoutMilliseconds}. Normally your program should be done by now.\nMaybe you accidentally made an infinite loop or forget to initialize memory?");
+                OnDebuggerBreaking();
+                break;
+            }
         }
 
         s.Stop();
-        Backend.TextInfoWriter.WriteLine($"[EMULATOR] Program terminated after {s.ElapsedMilliseconds}ms");
+        
+        if (em.Terminated || em.ErrorTerminated)
+            Backend.TextInfoWriter.WriteLine($"[EMULATOR] Program terminated after {s.ElapsedMilliseconds}ms");
 
         OnDebuggerUpdating(true);
     }

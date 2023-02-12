@@ -28,8 +28,6 @@ public class CommandBarViewModel : ViewModelBase {
     public CommandBarViewModel(MainViewModel main) {
         Main = main;
 
-        
-
         var isRebuildingAllowed = Main.WhenAnyValue(x => x.State,
             s => s.IsRebuildingAllowed());
         var isEmulatorActive = Main.WhenAnyValue(x => x.State,
@@ -89,6 +87,7 @@ public class CommandBarViewModel : ViewModelBase {
             f.OnRebuilt(f.DebuggerBreakChangingObservable);
         }
         else Main.State = ApplicationState.FileOpened;
+
         Main.LastBuildAttempt = DateTime.Now;
     }
 
@@ -103,7 +102,9 @@ public class CommandBarViewModel : ViewModelBase {
         s.Backend.CurrentEmulator!.Memory.InitializePhilos(Main.MemoryInit!.Document.Text);
         Main.State = ApplicationState.Running;
         await Task.Run(s.DebuggerInstance.Run);
-        Main.State = ApplicationState.Built;
+        Main.State = s.Backend.CurrentEmulator.EffectivelyTerminated
+            ? ApplicationState.Built
+            : ApplicationState.DebugBreak;
 
         s.Editor.DebugConsole.DoFlushNewLines();
         s.IsBackgroundBusy = false;
@@ -150,6 +151,7 @@ public class CommandBarViewModel : ViewModelBase {
             Main.State = ApplicationState.Built;
         else if (!s.Backend.CurrentEmulator!.ForceTerminated)
             Main.State = ApplicationState.DebugBreak;
+
         s.Editor.DebugConsole.DoFlushNewLines();
         s.IsBackgroundBusy = false;
     }

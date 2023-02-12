@@ -59,6 +59,6 @@
             </Border>
         </StackPanel>
         <Rectangle Grid.Row="7" Classes="HLine" Fill="{DynamicResource SystemAltMediumColor}" />
-        <TextBlock Grid.Row="8">OurMIPSSharp (dev build)</TextBlock>
+        <TextBlock Grid.Row="8" Text="{Binding VersionInfo}" />
     </Grid>
 </UserControl>
