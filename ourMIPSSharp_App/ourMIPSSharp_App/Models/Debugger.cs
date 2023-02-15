@@ -130,7 +130,7 @@ public class Debugger {
 
             // Break after some time to prevent program freezes.
             if (s.ElapsedMilliseconds >= EmulatorTimeoutMilliseconds) {
-                Backend.TextInfoWriter.WriteLine($"[EMULATOR] Breaking after {EmulatorTimeoutMilliseconds}. Normally your program should be done by now.\nMaybe you accidentally made an infinite loop or forget to initialize memory?");
+                Backend.TextInfoWriter.WriteLine($"[EMULATOR] Breaking after {EmulatorTimeoutMilliseconds}ms. Normally your program should be done by now.\nMaybe you accidentally made an infinite loop or forget to initialize memory?");
                 OnDebuggerBreaking();
                 break;
             }
@@ -177,7 +177,7 @@ public class Debugger {
             // Break after some time to prevent program freezes.
             if (s.ElapsedMilliseconds >= EmulatorTimeoutMilliseconds) {
                 OnDebuggerSyncing();
-                Backend.TextInfoWriter.WriteLine($"[EMULATOR] Breaking after {EmulatorTimeoutMilliseconds}. Normally your program should be done by now.\nMaybe you accidentally made an infinite loop or forget to initialize memory?");
+                Backend.TextInfoWriter.WriteLine($"[EMULATOR] Breaking after {EmulatorTimeoutMilliseconds}ms. Normally your program should be done by now.\nMaybe you accidentally made an infinite loop or forget to initialize memory?");
                 OnDebuggerBreaking();
                 break;
             }
