@@ -54,16 +54,16 @@ public class CompilerDebug {
     }
 
     /// Main program
-    public Builder Main() {
+    public (bool success, Builder builder) Main() {
         // Read the source code
-        var sourceCode = File.ReadAllText("../../../dummesprinten.ourMIPS");
+        var sourceCode = File.ReadAllText("../../../testscript2.ourMIPS");
         // var sourceCode = File.ReadAllText("../../../../lib_ourMIPSSharp_Tests/Samples/sort_philos.ourMIPS");
 
         // Build the MIPS program
-        var builder = new Builder(sourceCode, DialectOptions.None);
+        var builder = new Builder(sourceCode, DialectOptions.Philosonline);
 
         // Perform a full build of the program
-        var success = builder.FullBuild();
+        var success = builder.FullBuild(false);
 
         try {
             // Print debug information
@@ -81,7 +81,11 @@ public class CompilerDebug {
                 Debug.WriteLine("\n\n(Build failed; end of Debug)");
             }
         }
+        
+        foreach (var err in builder.Errors) {
+            Console.WriteLine(err);
+        }
 
-        return builder;
+        return (success, builder);
     }
 }

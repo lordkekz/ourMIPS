@@ -21,8 +21,9 @@ public class CompilerLabelReader : ICompilerHandler {
             lName = lName.ToLowerInvariant();
 
         if (Labels.TryGetValue(lName, out var value))
-            throw new CompilerError(token, $"Duplicate label declaration for '{lName}'! Original declaration at " +
-                                         $"instruction {value}, duplicate at {_instructionCounter}.");
+            Comp.HandleError(new CompilerError(token,
+                $"Duplicate label declaration for '{lName}'! Original declaration at " +
+                $"instruction {value}, duplicate at {_instructionCounter}."));
 
         Debug.WriteLine($"[CompilerLabelReader] Found label '{lName}' at index {_instructionCounter}!");
         Labels[lName] = _instructionCounter;

@@ -5,6 +5,7 @@ public class Token {
     public string? Content { get; set; }
     public int Line { get; set; } = -1;
     public int Column { get; set; } = -1;
+    public int Length { get; set; } = 1;
     public DialectOptions Options { get; }
 
     public Token(DialectOptions opts) {

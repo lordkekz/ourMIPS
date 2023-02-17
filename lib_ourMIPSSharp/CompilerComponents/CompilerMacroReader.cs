@@ -32,7 +32,7 @@ public class CompilerMacroReader : ICompilerHandler {
 
     public CompilerState OnMacroDeclarationArgs(Token token) {
         if (token.Type != TokenType.Word) return CompilerState.MacroDeclarationArgs;
-        
+
         Debug.WriteLine($"[CompilerMacroReader] Found macro param {token.Content}");
         _current.AddParameter(token);
         return CompilerState.MacroDeclarationArgs;
@@ -42,14 +42,14 @@ public class CompilerMacroReader : ICompilerHandler {
         if (_current.StartIndex == -1)
             // Set start index to index of first instruction in macro body
             _current.StartIndex = Comp.Tokens.IndexOf(token);
-        
+
         switch (KeywordHelper.FromToken(token)) {
             case Keyword.None:
                 // Token doesn't match any keyword.
                 // This must be a macro call. Add Reference.
                 _current.AddReferenceIfNotExists(token);
                 Debug.WriteLine($"[CompilerMacroReader] Found macro reference {token.Content}");
-                
+
                 return CompilerState.MacroInstructionArgs;
             case Keyword.Keyword_Macro:
                 throw new SyntaxError(token, $"Nested macro definition.");
@@ -57,8 +57,8 @@ public class CompilerMacroReader : ICompilerHandler {
             case Keyword.Keyword_EndMacro:
                 Debug.WriteLine($"[CompilerMacroReader] Found endmacro");
                 if (Options.HasFlag(DialectOptions.StrictKeywordMend))
-                    throw new DialectSyntaxError("Keyword 'endmacro'", token,
-                        DialectOptions.StrictKeywordMend);
+                    Comp.HandleError(new DialectSyntaxError("Keyword 'endmacro'", token,
+                        DialectOptions.StrictKeywordMend));
 
                 _current.EndIndex = Comp.Tokens.IndexOf(token);
                 Comp.Macros.Add(_current.Name, _current);
@@ -66,8 +66,8 @@ public class CompilerMacroReader : ICompilerHandler {
             case Keyword.Keyword_Mend:
                 Debug.WriteLine($"[CompilerMacroReader] Found mend");
                 if (Options.HasFlag(DialectOptions.StrictKeywordEndmacro))
-                    throw new DialectSyntaxError("Keyword 'mend'", token,
-                        DialectOptions.StrictKeywordEndmacro);
+                    Comp.HandleError(new DialectSyntaxError("Keyword 'mend'", token,
+                        DialectOptions.StrictKeywordEndmacro));
 
                 _current.EndIndex = Comp.Tokens.IndexOf(token);
                 Comp.Macros.Add(_current.Name, _current);
@@ -81,7 +81,7 @@ public class CompilerMacroReader : ICompilerHandler {
         if (_current.StartIndex == -1)
             // Set start index to index of first label declaration in macro body
             _current.StartIndex = Comp.Tokens.IndexOf(token);
-        
+
         _current.AddLabel(token);
         return CompilerState.MacroInstructionArgs;
     }

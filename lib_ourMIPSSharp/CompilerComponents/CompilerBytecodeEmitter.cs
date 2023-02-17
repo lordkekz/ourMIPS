@@ -24,13 +24,15 @@ public class CompilerBytecodeEmitter : ICompilerHandler {
             throw ICompilerHandler.MakeUnreachableStateException(token, nameof(CompilerBytecodeEmitter));
 
         _current = KeywordHelper.FromToken(token);
-        if (_current is Keyword.None)
+        if (_current is Keyword.None && !Comp.Errors.Any(e =>
+                e is UndefinedSymbolError && e.Line == token.Line && e.Column == token.Column))
             // This should never happen, as any instruction name that isn't a keyword will be interpreted as a macro,
             // and a potential error will already be caught.
             throw new UnreachableException(
                 $"CompilerBytecodeEmitter encountered unknown instruction '{token.Content}' at line {token.Line}, " +
-                $"col {token.Column}! This should have been caught before.");
-        
+                $"col {token.Column}. Didn't read find an UndefinedSymbolError for this occurrence in Compiler.Errors!");
+
+
         _tokens.Clear();
         _tokens.Add(token);
         return CompilerState.InstructionArgs;
@@ -60,7 +62,7 @@ public class CompilerBytecodeEmitter : ICompilerHandler {
             lName = lName.ToLowerInvariant();
 
         if (!Labels.TryGetValue(lName, out var lInstruction))
-            throw new UndefinedSymbolError(tok, "label");
+            Comp.HandleError(new UndefinedSymbolError(tok, "label"));
 
         // Cast to ushort to prevent sign extension
         return (short)(lInstruction - _instructionCounter);

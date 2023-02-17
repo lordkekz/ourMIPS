@@ -18,7 +18,7 @@ public class TokenizerTests {
     
     [Test(Description = "Tests Tokenizer checking for invalid options.")]
     public void TestInvalidOptions() {
-        var ex = Assert.Catch(() => new Tokenizer("", (DialectOptions)(-1)));
+        var ex = Assert.Catch(() => new Tokenizer("", (DialectOptions)(-1), true));
         Assert.IsInstanceOf<InvalidEnumArgumentException>(ex);
     }
 
@@ -34,7 +34,7 @@ public class TokenizerTests {
             "[Line 1, Col 6] Unexpected line break during string!"
         )]
         string expectedMessage) {
-        var t = new Tokenizer(sourceCode, DialectOptions.None);
+        var t = new Tokenizer(sourceCode, DialectOptions.None, true);
         var ex = Assert.Catch(() => t.Tokenize());
         Assert.IsInstanceOf<SyntaxError>(ex);
         Assert.AreEqual(expectedMessage, ex.Message);
@@ -44,7 +44,7 @@ public class TokenizerTests {
      Sequential]
     public void TestCorrectResults(
         [Range(0, 0)] int index) {
-        var t = new Tokenizer(_sourceCodes[index], DialectOptions.None);
+        var t = new Tokenizer(_sourceCodes[index], DialectOptions.None, true);
         var tokens1 = t.Tokenize();
         var str = tokens1.Aggregate("", (current, token) => current + (token.ToString() + '\n'));
         Assert.AreEqual(_printResults[index], str);
@@ -52,7 +52,7 @@ public class TokenizerTests {
     
     [Test(Description = "Tests Tokenizer checking for invalid options.")]
     public void Test() {
-        var ex = Assert.Catch(() => new Tokenizer("", (DialectOptions)(-1)));
+        var ex = Assert.Catch(() => new Tokenizer("", (DialectOptions)(-1), true));
         Assert.IsInstanceOf<InvalidEnumArgumentException>(ex);
     }
 }

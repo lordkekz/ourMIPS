@@ -24,33 +24,38 @@ public class CompilerMacroResolver : ICompilerHandler {
 
     public CompilerState OnInstructionStart(Token token) {
         switch (KeywordHelper.FromToken(token)) {
-            default:
-                // This is a keyword instruction.
-                ResolvedTokens.Add(token);
-
-                // Export current stack
-                SymbolStackTable.Add(_stack
-                    .Select(e => new SymbolPosition(e.Line, e.Column))
-                    .Append(new SymbolPosition(token.Line, token.Column))
-                    .ToArray()
-                );
-
-                return CompilerState.InstructionArgs;
             case Keyword.Keyword_Macro:
                 return CompilerState.MacroDeclaration;
             case Keyword.None:
                 // This must be a macro call.
                 Debug.WriteLine($"[CompilerMacroResolver] Found macro reference {token.Content}");
 
-                var mName = token.Content;
+                var mName = token.Content!;
                 if (!Options.HasFlag(DialectOptions.StrictCaseSensitiveDescriptors))
                     mName = mName.ToLowerInvariant();
 
-                if (!Macros.TryGetValue(mName, out Macro m))
-                    throw new UndefinedSymbolError(token);
-                _current = new StackEntry(m, token.Line, token.Column, new List<Token>());
-                return CompilerState.InstructionArgs;
+                if (Macros.TryGetValue(mName, out var m)) {
+                    // Macro found.
+                    _current = new StackEntry(m, token.Line, token.Column, new List<Token>());
+                    return CompilerState.InstructionArgs;
+                }
+                
+                // Macro not found. If error doesn't throw, pretend this was a keyword instruction and continue.
+                Comp.HandleError(new UndefinedSymbolError(token));
+                break;
         }
+
+        // This is a keyword instruction. (Or a non-fatal UndefinedSymbolError)
+        ResolvedTokens.Add(token);
+
+        // Export current stack
+        SymbolStackTable.Add(_stack
+            .Select(e => new SymbolPosition(e.Line, e.Column))
+            .Append(new SymbolPosition(token.Line, token.Column))
+            .ToArray()
+        );
+        
+        return CompilerState.InstructionArgs;
     }
 
     public void OnInstructionBreak(Token token) {
