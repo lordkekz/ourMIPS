@@ -2,12 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
+using Avalonia.VisualTree;
 using DialogHostAvalonia;
 using ourMIPSSharp_App.DebugEditor;
 using ourMIPSSharp_App.ViewModels;
+using ReactiveUI;
 
 namespace ourMIPSSharp_App.Views;
 
@@ -74,5 +78,18 @@ public partial class MainView : UserControl {
 
                 interaction.SetOutput((bool)(result ?? false));
             });
+
+
+        if (DockControl.FindDescendantOfType<Button>() is { Name: "PART_ButtonCreate" } newProgramButton) {
+            newProgramButton.HotKey = new KeyGesture(Key.N, KeyModifiers.Alt);
+            ToolTip.SetTip(newProgramButton, "Create new program (Alt+N)");
+        }
+
+        // Register a global command to just close the current file.
+        // BUG When closing two tabs after each other while there still are tabs to the right, the command won't be fired. It works again after clicking into the DocumentView or ConsoleView.
+        KeyBindings.Add(new KeyBinding {
+            Command = ReactiveCommand.Create(() => ViewModel?.CurrentFile?.CloseCommand.Execute()),
+            Gesture = new KeyGesture(Key.X, KeyModifiers.Alt)
+        });
     }
 }

@@ -142,19 +142,21 @@ public class MainViewModel : ViewModelBase, IDisposable {
         f.Closing += async (sender, args) => {
             // Remove file if it closes
             OpenFiles.Remove(f);
-            State = OpenFiles.Count > 0 ? ApplicationState.FileOpened : ApplicationState.None;
             if (CurrentFile == f)
                 CurrentFile = null;
 
-            if (DebugSession != f.DebugSession) return;
-            await Commands.StopCommand.Execute();
-            DebugSession = null;
+            if (DebugSession == f.DebugSession) {
+                await Commands.StopCommand.Execute();
+                DebugSession = null;
+            }
+
+            State = OpenFiles.Count > 0 ? ApplicationState.FileOpened : ApplicationState.None;
         };
         OpenFiles.Add(f);
         CurrentFile = f;
         OnFileOpened();
 
-        await Task.Delay(250);
+        // await Task.Delay(250);
         await Commands.RebuildCommand.Execute();
     }
 

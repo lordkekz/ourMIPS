@@ -113,6 +113,7 @@ public class DockFactory : Factory {
         _main.FileOpened += (sender, file) => {
             _documentDock.VisibleDockables?.Add(file);
             _documentDock.ActiveDockable = file;
+            file.Factory = this;
         };
         _main.WhenAnyValue(m => m.CurrentFile).Subscribe(f => {
             if (f?.Owner is DocumentDock d)

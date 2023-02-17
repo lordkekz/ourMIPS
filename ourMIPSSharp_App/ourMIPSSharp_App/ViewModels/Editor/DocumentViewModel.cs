@@ -144,6 +144,14 @@ public class DocumentViewModel : Document {
     }
 
     public async Task CloseAsync() {
+        if (!IsClosed &&
+            Main.Layout != null &&
+            Factory?.FindDockable(Main.Layout, d => d == this) != null) {
+            IsClosed = true;
+            Factory.CloseDockable(this);
+            return;
+        }
+
         if (HasUnsavedChanges) {
             var saveChanges = await Interactions.AskSaveChanges.Handle(Unit.Default);
             if (saveChanges)
@@ -151,7 +159,6 @@ public class DocumentViewModel : Document {
         }
 
         OnClosing();
-        IsClosed = true;
     }
 
     protected virtual void OnClosing() {
