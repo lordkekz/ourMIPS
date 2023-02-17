@@ -56,7 +56,7 @@ public class CompilerDebug {
     /// Main program
     public (bool success, Builder builder) Main() {
         // Read the source code
-        var sourceCode = File.ReadAllText("../../../testscript2.ourMIPS");
+        var sourceCode = File.ReadAllText("../../../testscript.ourMIPS");
         // var sourceCode = File.ReadAllText("../../../../lib_ourMIPSSharp_Tests/Samples/sort_philos.ourMIPS");
 
         // Build the MIPS program

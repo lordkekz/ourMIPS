@@ -39,7 +39,7 @@ public class CompilerMacroResolver : ICompilerHandler {
                     _current = new StackEntry(m, token.Line, token.Column, new List<Token>());
                     return CompilerState.InstructionArgs;
                 }
-                
+
                 // Macro not found. If error doesn't throw, pretend this was a keyword instruction and continue.
                 Comp.HandleError(new UndefinedSymbolError(token));
                 break;
@@ -54,17 +54,27 @@ public class CompilerMacroResolver : ICompilerHandler {
             .Append(new SymbolPosition(token.Line, token.Column))
             .ToArray()
         );
-        
+
         return CompilerState.InstructionArgs;
     }
 
     public void OnInstructionBreak(Token token) {
         if (_current is not null) {
             var m = _current.Macro;
+            var c = _current;
+            _current = null;
             if (!_counters.ContainsKey(m)) _counters[m] = 0;
 
-            _stack.Push(_current);
-            _current = null;
+            // Check that valid params were given
+            // TODO make check more accurate
+            if (m.Params.Count != c.Params.Count) {
+                Comp.HandleError(new MacroParameterCountError(c.Line, c.Column,
+                    token.Column - c.Column, m, c.Params.Count));
+                return;
+            }
+
+            // Resolve macro call
+            _stack.Push(c);
             Comp.IterateTokens(this, CompilerState.InstructionStart, Comp.Tokens, m.StartIndex, m.EndIndex);
             _stack.Pop();
             _counters[m] += 1;

@@ -1,8 +1,15 @@
+using System.Linq.Expressions;
 using lib_ourMIPSSharp.Errors;
 
 namespace lib_ourMIPSSharp.CompilerComponents.Elements;
 
 public class Instruction {
+    /// <summary>
+    /// A default non-null Instruction to use as placeholder.
+    /// Generated from parsing 0 as bytecode. Keyword is None, Immediate is null and no registers are set.
+    /// </summary>
+    public static Instruction Default { get; } = new(0);
+
     public Keyword Command { get; }
     public List<Register> Registers { get; } = new();
     public short? Immediate { get; private set; }
@@ -44,12 +51,12 @@ public class Instruction {
             }
         }
     }
-    
+
     private void ExtractRegister(int index) {
         var reg = (Register)(31 & (Bytecode >> (11 + 5 * (3 - index))));
         Registers.Add(reg);
     }
-    
+
     private void ExtractImmediate() {
         Immediate = (short)(65535 & Bytecode);
     }
@@ -58,7 +65,7 @@ public class Instruction {
         var tKw = toks[0];
         _tokens = toks.ToArray();
         Command = kw;
-        Bytecode = (uint) kw;
+        Bytecode = (uint)kw;
 
         if (!kw.IsParamsOther()) {
             if (_tokens.Length != 4)
@@ -98,8 +105,8 @@ public class Instruction {
                         // sysout with string
                         // update with correct Command
                         Command = Keyword.Magic_Str_Sysout;
-                        Bytecode = (uint) Command;
-                        
+                        Bytecode = (uint)Command;
+
                         // Put immediate to point to string constant
                         Immediate = (short)cbe.Comp.StringConstants.Length;
                         Bytecode |= (uint)(ushort)ImmVal << 10;
@@ -109,8 +116,8 @@ public class Instruction {
                         // sysout with register decimal value
                         // update with correct Command
                         Command = Keyword.Magic_Reg_Sysout;
-                        Bytecode = (uint) Command;
-                        
+                        Bytecode = (uint)Command;
+
                         // Put register to output
                         PutRegister(1);
                     }

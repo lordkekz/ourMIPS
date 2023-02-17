@@ -11,7 +11,7 @@ public class CompilerMacroReader : ICompilerHandler {
 
     public CompilerMacroReader(Compiler comp) {
         Comp = comp;
-        _current = new Macro(Options);
+        _current = new Macro(Options, Comp);
     }
 
     public CompilerState OnInstructionStart(Token token) {
@@ -20,7 +20,7 @@ public class CompilerMacroReader : ICompilerHandler {
             return CompilerState.InstructionArgs;
 
         // Found a macro keyword
-        _current = new Macro(Options);
+        _current = new Macro(Options, Comp);
         return CompilerState.MacroDeclaration;
     }
 
