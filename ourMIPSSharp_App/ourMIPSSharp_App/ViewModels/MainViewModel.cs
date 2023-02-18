@@ -17,6 +17,7 @@ public class MainViewModel : ViewModelBase, IDisposable {
 
     public CommandBarViewModel Commands { get; }
     public InstructionsViewModel Instructions { get; }
+    public ProblemsViewModel Problems { get; }
     public MemoryViewModel Memory { get; }
     public RegistersViewModel Registers { get; }
 
@@ -111,6 +112,7 @@ public class MainViewModel : ViewModelBase, IDisposable {
         MemoryInit = new MemoryInitViewModel(this);
         Commands = new CommandBarViewModel(this);
         Instructions = new InstructionsViewModel(this);
+        Problems = new ProblemsViewModel(this);
         Memory = new MemoryViewModel(this);
         Registers = new RegistersViewModel(this);
         ConsoleWrapper = new ConsoleViewModelToolWrapper(this);

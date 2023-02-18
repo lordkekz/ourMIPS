@@ -44,7 +44,7 @@ public class DockFactory : Factory {
                 new ProportionalDockSplitter(),
                 _consoleDock = new ToolDock {
                     ActiveDockable = _main.ConsoleWrapper,
-                    VisibleDockables = CreateList<IDockable>(_main.ConsoleWrapper),
+                    VisibleDockables = CreateList<IDockable>(_main.ConsoleWrapper, _main.Problems),
                     Alignment = Alignment.Top,
                     GripMode = GripMode.Visible,
                     CanClose = false,

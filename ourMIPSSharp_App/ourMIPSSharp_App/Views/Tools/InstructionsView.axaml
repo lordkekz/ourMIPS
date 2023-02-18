@@ -12,7 +12,7 @@
     <UserControl.Resources>
         <converters:InstructionIsCurrentHighlightRowConverter x:Key="InstructionIsCurrentHighlightRowConverter" />
     </UserControl.Resources>
-    <DataGrid Grid.Row="2" Items="{Binding  Entries}" AutoGenerateColumns="False"
+    <DataGrid Items="{Binding  Entries}" AutoGenerateColumns="False"
               CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="False"
               SelectionChanged="DataGrid_OnSelectionChanged">
         <DataGrid.Columns>

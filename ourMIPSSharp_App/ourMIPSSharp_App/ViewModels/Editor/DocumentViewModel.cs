@@ -9,7 +9,9 @@ using ourMIPSSharp_App.Models;
 using ReactiveUI;
 using System.Reactive.Linq;
 using Dock.Model.ReactiveUI.Controls;
+using DynamicData;
 using DynamicData.Binding;
+using lib_ourMIPSSharp.EmulatorComponents;
 using ourMIPSSharp_App.ViewModels.Tools;
 
 namespace ourMIPSSharp_App.ViewModels.Editor;
@@ -21,6 +23,7 @@ public class DocumentViewModel : Document {
     public ReactiveCommand<Unit, Unit> SaveCommand { get; }
     public ReactiveCommand<Unit, Unit> CloseCommand { get; }
     public ObservableCollection<InstructionEntry> InstructionList { get; } = new();
+    public ObservableCollection<ProblemEntry> ProblemList { get; } = new();
     public event EventHandler? Closing;
 
     private bool _isClosed;
@@ -120,12 +123,18 @@ public class DocumentViewModel : Document {
 
     protected internal virtual void OnRebuilt(
         IObservable<EventPattern<DebuggerBreakEventHandlerArgs>> debuggerBreakChangingObservable) {
-        InstructionList.Clear();
-        var prog = Backend.CurrentEmulator!.Program;
-        for (var i = 0; i < prog.Count; i++) {
-            var line = Backend.CurrentBuilder!.SymbolStacks[i].Last().Line;
-            InstructionList.Add(new InstructionEntry(i, line, prog, debuggerBreakChangingObservable));
+        if (Backend.Ready) {
+            InstructionList.Clear();
+            var prog = Backend.CurrentEmulator!.Program;
+            for (var i = 0; i < prog.Count; i++) {
+                var line = Backend.CurrentBuilder!.SymbolStacks[i].Last().Line;
+                InstructionList.Add(new InstructionEntry(i, line, prog, debuggerBreakChangingObservable));
+            }
         }
+
+        ProblemList.Clear();
+        foreach (var error in Backend.CurrentBuilder!.Errors)
+            ProblemList.Add(new ProblemEntry(error));
 
         Rebuilt?.Invoke(this, EventArgs.Empty);
     }

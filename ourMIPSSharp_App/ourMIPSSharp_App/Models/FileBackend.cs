@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using lib_ourMIPSSharp.CompilerComponents;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
 using lib_ourMIPSSharp.EmulatorComponents;
-using lib_ourMIPSSharp.Errors;
 
 namespace ourMIPSSharp_App.Models;
 
@@ -40,7 +39,7 @@ public class FileBackend {
             TextErr = TextErrWriter
         };
         
-        Ready = CurrentBuilder.FullBuild();
+        Ready = CurrentBuilder.FullBuild(false);
     }
 
     public void MakeEmulator() {

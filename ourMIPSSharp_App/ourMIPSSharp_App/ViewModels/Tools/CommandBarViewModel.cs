@@ -84,9 +84,9 @@ public class CommandBarViewModel : ViewModelBase {
         if (f.Backend.Ready) {
             Main.State = ApplicationState.Built;
             f.DebugDocument.Text = str;
-            f.OnRebuilt(f.DebuggerBreakChangingObservable);
         }
         else Main.State = ApplicationState.FileOpened;
+        f.OnRebuilt(f.DebuggerBreakChangingObservable);
 
         Main.LastBuildAttempt = DateTime.Now;
     }
