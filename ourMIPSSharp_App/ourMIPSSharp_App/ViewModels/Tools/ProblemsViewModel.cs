@@ -1,5 +1,10 @@
+using System;
 using System.Collections;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Reactive;
+using System.Reactive.Linq;
+using Avalonia.Collections;
 using Dock.Model.ReactiveUI.Controls;
 using lib_ourMIPSSharp.Errors;
 using ReactiveUI;
@@ -14,8 +19,15 @@ public class ProblemsViewModel : Tool {
         Id = Title = "Problems";
         CanClose = CanFloat = CanPin = false;
 
-        main.WhenAnyValue(m => m.DebugSession!.Editor.ProblemList)
-            .ToProperty(this, x => x.Entries, out _entries);
+        var entriesObservable = main.WhenAnyValue(m => m.CurrentFile.ProblemList);
+        entriesObservable.ToProperty(this, x => x.Entries, out _entries);
+
+        var anyProblemListChangedObservable = entriesObservable
+            .Select(e => e.GetWeakCollectionChangedObservable().Select(_ => Unit.Default))
+            .Merge();
+        
+        entriesObservable.Select(_ => Unit.Default).Merge(anyProblemListChangedObservable)
+            .Subscribe(_ => { Title = $"Problems in current file ({Entries.Count})"; });
     }
 }
 

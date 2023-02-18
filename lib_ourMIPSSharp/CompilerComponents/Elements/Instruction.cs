@@ -150,7 +150,7 @@ public class Instruction {
         Bytecode |= (ushort)imm;
     }
 
-    public string ToString() {
+    public override string ToString() {
         var result = Command.ToString().Split('_').Last().ToLower();
         result = Registers.Aggregate(result, (current, reg) => current + $" r{(int)reg}");
         if (Immediate is not null) {
@@ -158,5 +158,17 @@ public class Instruction {
         }
 
         return result;
+    }
+
+    public IEnumerable<CompilerError> CheckWarnings(List<Token> toks) {
+        if (Command.IsParamsRegRegReg() || Command.IsParamsRegRegImm()) {
+            if (Registers[1] == Register.Zero)
+                yield return new CompilerWarning(toks[2], "Writes to zero register have no effect!");
+        }
+        
+        if (Command is Keyword.Magic_Reg_Sysin or Keyword.Instruction_Ldpc) {
+            if (Registers[0] == Register.Zero)
+                yield return new CompilerWarning(toks[1], "Writes to zero register have no effect!");
+        }
     }
 }

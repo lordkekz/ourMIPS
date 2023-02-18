@@ -39,7 +39,7 @@ public class FileBackend {
             TextErr = TextErrWriter
         };
         
-        Ready = CurrentBuilder.FullBuild(false);
+        Ready = CurrentBuilder.FullBuild(false) && CurrentBuilder.ErrorCount == 0;
     }
 
     public void MakeEmulator() {

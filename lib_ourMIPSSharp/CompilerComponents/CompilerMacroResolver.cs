@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Diagnostics;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
 using lib_ourMIPSSharp.Errors;
@@ -72,6 +71,10 @@ public class CompilerMacroResolver : ICompilerHandler {
                     token.Column - c.Column, m, c.Params.Count));
                 return;
             }
+            
+            // Don't fall for recursion
+            if (_stack.Any(se => se.Macro == m))
+                return;
 
             // Resolve macro call
             _stack.Push(c);

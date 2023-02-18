@@ -1,3 +1,8 @@
+
+addi r0 r0 4898375
+addi r0 r0 0b123b
+
+
 ; test
 macro dasnullte
     dasdritte
@@ -34,4 +39,5 @@ macro nochzweis
     #daserste
 endmacro
 
+daserste
 systerm

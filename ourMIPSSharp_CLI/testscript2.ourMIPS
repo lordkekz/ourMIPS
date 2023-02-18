@@ -1,10 +1,12 @@
 # Testet Tokenizer auf komische Syntax
 ,: , : $ $[][]
-# Das wäre ein Syntaxfehler: $$
+Das wäre ein Syntaxfehler: $$
+
+sysout s0 s0
 
 addi r0, r1 ,0x45
-macro machwas, regg0, zahl33[], labbel :# gogogaga
-mend
+;macro machwas, regg0, zahl33[], labbel :# gogogaga
+;mend
 
 ende:
 systerm

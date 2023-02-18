@@ -10,7 +10,8 @@ public class CompilerError : IComparable<CompilerError>, IEquatable<CompilerErro
     public string? Message { get; }
     public CompilerErrorException Exception { get; }
 
-    public CompilerError(Token t, string? message) : this(t.Line, t.Column, t.Length, message) { }
+    public CompilerError(Token t, string? message, CompilerSeverity severity = CompilerSeverity.Error) :
+        this(t.Line, t.Column, t.Length, message, severity) { }
 
     public CompilerError(int line, int column, int length, string? message = null,
         CompilerSeverity severity = CompilerSeverity.Error) {
