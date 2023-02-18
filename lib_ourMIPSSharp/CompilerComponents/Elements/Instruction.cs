@@ -161,11 +161,16 @@ public class Instruction {
     }
 
     public IEnumerable<CompilerError> CheckWarnings(List<Token> toks) {
-        if (Command.IsParamsRegRegReg() || Command.IsParamsRegRegImm()) {
+        if (Command.IsParamsRegRegImm()) {
             if (Registers[1] == Register.Zero)
                 yield return new CompilerWarning(toks[2], "Writes to zero register have no effect!");
         }
-        
+
+        if (Command.IsParamsRegRegReg()) {
+            if (Registers[2] == Register.Zero)
+                yield return new CompilerWarning(toks[3], "Writes to zero register have no effect!");
+        }
+
         if (Command is Keyword.Magic_Reg_Sysin or Keyword.Instruction_Ldpc) {
             if (Registers[0] == Register.Zero)
                 yield return new CompilerWarning(toks[1], "Writes to zero register have no effect!");

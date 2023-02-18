@@ -1,11 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Reactive;
 using System.Reactive.Linq;
-using Avalonia.Collections;
 using Dock.Model.ReactiveUI.Controls;
+using DynamicData.Binding;
 using lib_ourMIPSSharp.Errors;
 using ReactiveUI;
 
@@ -14,8 +13,10 @@ namespace ourMIPSSharp_App.ViewModels.Tools;
 public class ProblemsViewModel : Tool {
     private readonly ObservableAsPropertyHelper<ObservableCollection<ProblemEntry>?> _entries;
     public ObservableCollection<ProblemEntry>? Entries => _entries.Value;
+    public MainViewModel Main { get; }
 
     public ProblemsViewModel(MainViewModel main) {
+        Main = main;
         Id = Title = "Problems";
         CanClose = CanFloat = CanPin = false;
 
@@ -23,7 +24,7 @@ public class ProblemsViewModel : Tool {
         entriesObservable.ToProperty(this, x => x.Entries, out _entries);
 
         var anyProblemListChangedObservable = entriesObservable
-            .Select(e => e.GetWeakCollectionChangedObservable().Select(_ => Unit.Default))
+            .Select(e => e.ObserveCollectionChanges().Select(_ => Unit.Default))
             .Merge();
         
         entriesObservable.Select(_ => Unit.Default).Merge(anyProblemListChangedObservable)

@@ -1,4 +1,5 @@
 using System;
+using System.Reactive.Linq;
 using System.Xml;
 using Avalonia;
 using Avalonia.Controls;
@@ -7,8 +8,10 @@ using Avalonia.Interactivity;
 using Avalonia.Platform;
 using AvaloniaEdit.Highlighting;
 using AvaloniaEdit.Highlighting.Xshd;
+using DynamicData.Binding;
 using ourMIPSSharp_App.DebugEditor;
 using ourMIPSSharp_App.ViewModels.Editor;
+using ReactiveUI;
 
 namespace ourMIPSSharp_App.Views.Editor;
 
@@ -44,6 +47,9 @@ public partial class DocumentView : UserControl {
         _lineHighlighter = (EditorDebugCurrentLineHighlighter)Editor.Resources["CurrentLineHighlighter"]!;
         _lineHighlighter.Initialize(Editor.TextArea.TextView);
 
+        var errorHighlighter = new ErrorHighlightingTransformer(this);
+        Editor.TextArea.TextView.LineTransformers.Add(errorHighlighter);
+
         AddHandler(PointerWheelChangedEvent, (o, i) => {
             if (i.KeyModifiers != KeyModifiers.Control) return;
             i.Handled = true;
@@ -68,5 +74,8 @@ public partial class DocumentView : UserControl {
             Editor.TextArea.Caret.BringCaretToView();
         };
         d.DebuggerBreakEnding += (sender, args) => { };
+
+        ViewModel!.ProblemList.ObserveCollectionChanges().ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(_ => Editor.TextArea.TextView.Redraw());
     }
 }

@@ -9,9 +9,8 @@ using ourMIPSSharp_App.Models;
 using ReactiveUI;
 using System.Reactive.Linq;
 using Dock.Model.ReactiveUI.Controls;
-using DynamicData;
 using DynamicData.Binding;
-using lib_ourMIPSSharp.EmulatorComponents;
+using lib_ourMIPSSharp.CompilerComponents.Elements;
 using ourMIPSSharp_App.ViewModels.Tools;
 
 namespace ourMIPSSharp_App.ViewModels.Editor;
@@ -106,6 +105,9 @@ public class DocumentViewModel : Document {
 
         var savedTextChangedObservable = this.WhenAnyValue(x => x.SavedText);
         var documentTextChangedObservable = Document.WhenValueChanged(d => d.Text);
+
+        documentTextChangedObservable.Subscribe(_ => SilentRebuildIfReady());
+
         savedTextChangedObservable.Merge(documentTextChangedObservable).Select(_ => !Document.Text.Equals(SavedText))
             .ToProperty(this, x => x.HasUnsavedChanges, out _hasUnsavedChanges);
 
@@ -132,11 +134,30 @@ public class DocumentViewModel : Document {
             }
         }
 
-        ProblemList.Clear();
-        foreach (var error in Backend.CurrentBuilder!.Errors)
-            ProblemList.Add(new ProblemEntry(error));
+        UpdateProblems();
 
         Rebuilt?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void UpdateProblems() {
+        ProblemList.Clear();
+        foreach (var error in Backend.Errors)
+            ProblemList.Add(new ProblemEntry(error));
+    }
+
+    private const int SilentRebuildWaitMillis = 2000;
+    
+    /// <summary>
+    /// Run silent builds to update error list
+    /// </summary>
+    private async void SilentRebuildIfReady() {
+        if (Backend.SilentRebuildIfReady(SilentRebuildWaitMillis, Text, Main.Settings?.Options ?? DialectOptions.None))
+            UpdateProblems();
+        else {
+            await Task.Delay(SilentRebuildWaitMillis);
+            if (Backend.SilentRebuildIfReady(SilentRebuildWaitMillis, Text, Main.Settings?.Options ?? DialectOptions.None))
+                UpdateProblems();
+        }
     }
 
     #endregion
