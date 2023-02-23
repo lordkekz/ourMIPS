@@ -60,22 +60,29 @@ jobs:
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
-        
-    - name: Cache
+    
+    - name: Cache nuget packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+    
+    - name: Cache bin and obj
       uses: actions/cache@v3.2.6
       env:
-        cache-name: cache-node-modules
+        cache-name: cache-bin-obj
       with:
         # A list of files, directories, and wildcard patterns to cache and restore
         path: |
           **/bin/
           **/obj/
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**.csproj') }}
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache-name }}-
           ${{ runner.os }}-build-
           ${{ runner.os }}-
-          buildcache
 
     # Install the .NET Core workload
     - name: Install .NET Core
