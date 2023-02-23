@@ -17,6 +17,10 @@
         </AndroidResource>
     </ItemGroup>
 
+    <PropertyGroup>
+        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="Avalonia.Android" Version="$(AvaloniaVersion)"/>
     </ItemGroup>

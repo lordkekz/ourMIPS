@@ -12,6 +12,10 @@
         <WasmExtraFilesToDeploy Include="AppBundle\**" />
     </ItemGroup>
 
+    <PropertyGroup>
+        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="Avalonia.Web" Version="11.0.0-preview3" />
     </ItemGroup>

@@ -2,12 +2,12 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ourMIPSSharp_App", "ourMIPSSharp_App\ourMIPSSharp_App\ourMIPSSharp_App.csproj", "{D508FF15-3738-4B89-A044-7A8C967DE9CE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ourMIPSSharp_App.Android", "ourMIPSSharp_App\ourMIPSSharp_App.Android\ourMIPSSharp_App.Android.csproj", "{7DC9E5B1-9C72-42F7-A2EF-01250FE08D5A}"
-EndProject
+#Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ourMIPSSharp_App.Android", "ourMIPSSharp_App\ourMIPSSharp_App.Android\ourMIPSSharp_App.Android.csproj", "{7DC9E5B1-9C72-42F7-A2EF-01250FE08D5A}"
+#EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ourMIPSSharp_App.Desktop", "ourMIPSSharp_App\ourMIPSSharp_App.Desktop\ourMIPSSharp_App.Desktop.csproj", "{817BF165-E93D-4E26-8689-91D2EA2B680A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ourMIPSSharp_App.iOS", "ourMIPSSharp_App\ourMIPSSharp_App.iOS\ourMIPSSharp_App.iOS.csproj", "{143946A8-75EB-4756-B269-3A9CA5417B7F}"
-EndProject
+#Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ourMIPSSharp_App.iOS", "ourMIPSSharp_App\ourMIPSSharp_App.iOS\ourMIPSSharp_App.iOS.csproj", "{143946A8-75EB-4756-B269-3A9CA5417B7F}"
+#EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ourMIPSSharp_App.Web", "ourMIPSSharp_App\ourMIPSSharp_App.Web\ourMIPSSharp_App.Web.csproj", "{B08CFC64-6603-410A-8140-081D9854E88B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ourMIPSSharp_CLI", "ourMIPSSharp_CLI\ourMIPSSharp_CLI.csproj", "{0B85E7C2-DD9F-4726-9A77-25CE9E9345BD}"
