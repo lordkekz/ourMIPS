@@ -93,19 +93,23 @@ jobs:
     # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
     - name: Setup MSBuild.exe
       uses: microsoft/setup-msbuild@v1.0.2
-      
-    # Build Program
-    - name: .Net Build
+    
+    - name: Dotnet Build
+      uses: EasyDesk/action-dotnet-build@latest
+    
+    - name: Dotnet Publish
       # You may pin to the exact commit or the version.
-      # uses: EasyDesk/action-dotnet-build@d2c47d8701e3ea8db03dcabaacb37204fe123a22
-      uses: EasyDesk/action-dotnet-build@v1.0.0
+      # uses: EasyDesk/action-dotnet-publish@75033960a28daa2ea89e0c1d8a04754568996506
+      uses: EasyDesk/action-dotnet-publish@v1.0.0
       with:
-        # Additional build arguments to pass to 'dotnet build'.
-        #build-args: # optional
-        # The build configuration to use (defaults to 'Release').
-        #build-configuration: # optional, default is Release
-        # The path to the project or solution to build (defaults to the current directory).
+        # Path to the project to publish.
         path: ourMIPSSharp_App/ourMIPSSharp_App.Desktop/ # optional, default is .
+        # Directory where all packages will be put (default value is 'packages').
+        #output-dir: # optional, default is packages
+        # Build configuration for the build (default value is 'Release').
+        #build-configuration: # optional, default is Release
+        # Whether to skip the build using the --no-build flag (default value is 'true').
+        #skip-build: # optional, default is true
 
     - name: Zip Release
       # You may pin to the exact commit or the version.
@@ -117,7 +121,7 @@ jobs:
         # Base path for archive files
         #path:  # optional, default is .
         # Working directory before zipping
-        directory: ourMIPSSharp_App/ourMIPSSharp_App.Desktop/bin/Release/net7.0/ # optional, default is .
+        directory: packages/ # optional, default is .
         # List of excluded files / directories
         #exclusions: # optional, default is 
         # List of excluded files / directories with recursive wildcards (only applies on Windows with `zip` type)
@@ -127,9 +131,14 @@ jobs:
         # Tool to use for archiving
         #type: # optional, default is zip
 
-    # Upload the MSIX package: https://github.com/marketplace/actions/upload-a-build-artifact
-    - name: Upload build artifacts
+    - name: Upload Windows
       uses: actions/upload-artifact@v3
       with:
-        name: release
-        path: ourMIPSSharp_App/ourMIPSSharp_App.Desktop/bin/Release/net7.0/release.zip
+        name: Windows
+        path: packages/OurMIPSSharp.exe
+    - name: Upload Linux
+      uses: actions/upload-artifact@v3
+      with:
+        name: Linux
+        path: packages/OurMIPSSharp
+        
