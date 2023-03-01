@@ -14,6 +14,22 @@
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     </PropertyGroup>
     
+    <PropertyGroup>
+        <GitVersion>false</GitVersion>
+        <GitInfoReportImportance Condition="'$(Configuration)' == 'Release'">high</GitInfoReportImportance>
+    </PropertyGroup>
+    
+    <Target Name="PopulateInfo" DependsOnTargets="GitVersion" BeforeTargets="GetAssemblyVersion;GenerateNuspec;GetPackageContents">
+        <PropertyGroup>
+            <Version>$(GitSemVerMajor).$(GitSemVerMinor).$(GitSemVerPatch)</Version>
+            <PackageVersion>$(Version)</PackageVersion>
+
+            <RepositoryBranch>$(GitBranch)</RepositoryBranch>
+            <RepositoryCommit>$(GitCommit)</RepositoryCommit>
+            <SourceRevisionId>$(GitBranch) $(GitCommit)</SourceRevisionId>
+        </PropertyGroup>
+    </Target>
+    
     <ItemGroup>
         <PackageReference Include="Avalonia" Version="11.0.0-preview3" />
         <PackageReference Include="Avalonia.AvaloniaEdit" Version="11.0.0-preview2" />

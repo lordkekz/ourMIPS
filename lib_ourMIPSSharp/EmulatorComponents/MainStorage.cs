@@ -11,7 +11,7 @@ namespace lib_ourMIPSSharp.EmulatorComponents;
 public class MainStorage : Dictionary<int, int> {
     private Random _random = new Random();
 
-    public int this[int index] {
+    public new int this[int index] {
         get {
             if (!ContainsKey(index))
                 InitializeWord(index);
