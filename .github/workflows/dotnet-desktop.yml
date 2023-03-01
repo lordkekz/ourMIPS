@@ -57,18 +57,18 @@ jobs:
         uses: EasyDesk/action-dotnet-build@latest
 
       - name: Dotnet Publish Windows
-        uses: lordkekz/action-dotnet-publish@ed815cfde9791499d65ed6b555f1a0efe1ff128f
+        uses: lordkekz/action-dotnet-publish@v1.0.1
         with:
           path: ourMIPSSharp_App/ourMIPSSharp_App.Desktop/
           output-dir: packages/
-          args: "-r 'win-x64'"
+          args: "-r win-x64"
 
       - name: Dotnet Publish Linux
-        uses: lordkekz/action-dotnet-publish@ed815cfde9791499d65ed6b555f1a0efe1ff128f
+        uses: lordkekz/action-dotnet-publish@v1.0.1
         with:
           path: ourMIPSSharp_App/ourMIPSSharp_App.Desktop/
           output-dir: packages/
-          args: "-r 'linux-x64'"
+          args: "-r linux-x64"
 
       - name: Zip Web
         # You may pin to the exact commit or the version.
