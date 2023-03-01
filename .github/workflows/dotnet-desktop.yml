@@ -57,14 +57,14 @@ jobs:
         uses: EasyDesk/action-dotnet-build@latest
 
       - name: Dotnet Publish Windows
-        uses: lordkekz/action-dotnet-publish@v1
+        uses: lordkekz/action-dotnet-publish@ed815cfde9791499d65ed6b555f1a0efe1ff128f
         with:
           path: ourMIPSSharp_App/ourMIPSSharp_App.Desktop/
           output-dir: packages/
           args: "-r 'win-x64'"
 
       - name: Dotnet Publish Linux
-        uses: lordkekz/action-dotnet-publish@v1
+        uses: lordkekz/action-dotnet-publish@ed815cfde9791499d65ed6b555f1a0efe1ff128f
         with:
           path: ourMIPSSharp_App/ourMIPSSharp_App.Desktop/
           output-dir: packages/
