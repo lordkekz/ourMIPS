@@ -107,4 +107,10 @@ jobs:
         with:
           name: Web
           path: ourMIPSSharp_App/ourMIPSSharp_App.Web/bin/Release/net7.0/browser-wasm/AppBundle/OurMIPS_Web.zip
+
+      - name: Upload GitInfo Cache
+        uses: actions/upload-artifact@v3
+        with:
+          name: GitInfoCache
+          path: ourMIPSSharp_App/ourMIPSSharp_App/obj/Release/net7.0/GitInfo.cache
         
