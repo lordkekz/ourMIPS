@@ -76,7 +76,7 @@ jobs:
         # uses: TheDoctor0/zip-release@a24011d8d445e4da5935a7e73c1f98e22a439464
         uses: TheDoctor0/zip-release@0.7.1
         with:
-          filename: \'OurMIPS Web.zip\'
+          filename: "'OurMIPS Web.zip'"
           # Base path for archive files
           #path:  # optional, default is .
           # Working directory before zipping
