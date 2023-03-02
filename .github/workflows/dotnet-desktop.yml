@@ -69,6 +69,7 @@ jobs:
           path: ourMIPSSharp_App/ourMIPSSharp_App.Desktop/
           output-dir: packages/
           args: "-r linux-x64"
+          skip-build: false
 
       - name: Zip Web
         # You may pin to the exact commit or the version.
