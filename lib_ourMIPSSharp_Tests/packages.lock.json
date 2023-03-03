@@ -93,6 +93,7 @@
       "lib_ourmipssharp": {
         "type": "Project"
       }
-    }
+    },
+    "net7.0/win-x64": {}
   }
 }
