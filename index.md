@@ -8,7 +8,9 @@ layout: home
 title: Downloads
 ---
 
-- [Downloads are in this folder](http://dl.lkekz.de/ourmips/)
+- [Web version (master branch)](https://ourmips.lkekz.de/)
+- [Web version (develop branch)](https://dev.ourmips.lkekz.de/)
+- [Downloads are in this folder](https://dl.lkekz.de/ourmips/)
 
 # Spezifikation und Funktionsübersicht
 ## Registergröße
