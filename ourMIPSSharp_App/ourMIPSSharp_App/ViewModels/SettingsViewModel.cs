@@ -1,8 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Reactive;
-using System.Reactive.Linq;
-using DynamicData.Binding;
+using System.Net.Http;
+using System.Text.Json.Nodes;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
 using ourMIPSSharp_App.Models;
 using ReactiveUI;
@@ -104,11 +103,12 @@ public class SettingsViewModel : ViewModelBase {
 
     public MainViewModel Main { get; }
     public AppSettings Model { get; }
-    
+
     public string VersionInfo => $"OurMIPSSharp Dev Build.\t" +
                                  $"Version {ThisAssembly.Git.SemVerString} " +
                                  (ThisAssembly.Git.IsDirty ? "(Dirty)" : "(Clean)") +
-                                 $"\tCommit Date: {ThisAssembly.Git.CommitDate}";
+                                 $"\tCommit Date: {ThisAssembly.Git.CommitDate} " +
+                                 $"\tLatest version is {GetLatestVersion()}";
 
     #endregion
 
@@ -167,7 +167,7 @@ public class SettingsViewModel : ViewModelBase {
         Model.DialectOpts = opts;
         Options = (DialectOptions)opts;
         UpdateModeSafe(Options.ToCompilerMode());
-        
+
         return SelectedCompilerMode;
     }
 
@@ -198,5 +198,24 @@ public class SettingsViewModel : ViewModelBase {
         IsCheckedStrictMacroDefinitionOrder = options.HasFlag(DialectOptions.StrictMacroDefinitionOrder);
         IsCheckedStrictMacroArgumentNames = options.HasFlag(DialectOptions.StrictMacroArgumentNames);
         IsApplyingMode = false;
+    }
+
+    private static string GetLatestVersion() {
+        Console.Error.WriteLine("Trying to get version");
+        using HttpClient client = new();
+        client.DefaultRequestHeaders.Add("User-Agent", "OurMIPS Version Info");
+        var task = client.GetStringAsync("https://dl.lkekz.de/ourmips/version.json");
+        try {
+            if (!task.Wait(TimeSpan.FromSeconds(10)))
+                return "unknown (timeout)";
+            var response = task.Result;
+            
+            Console.Error.WriteLine("response: " + response);
+            var root = JsonNode.Parse(response);
+            return root["branches"][ThisAssembly.Git.Branch].AsValue().GetValue<string>();
+        }
+        catch (Exception ex) { }
+
+        return "unknown (error)";
     }
 }
