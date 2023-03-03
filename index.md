@@ -8,9 +8,7 @@ layout: home
 title: Downloads
 ---
 
-- [WebAssembly (ZIP-Archiv)](http://download.lkekz.de/OurMIPSSharp_WebAssembly.zip)
-- [Windows 10/11 64-Bit (Portable EXE)](http://download.lkekz.de/OurMIPSSharp_Windows.exe)
-- [Linux 64-Bit (Portable binary)](http://download.lkekz.de/OurMIPSSharp_Linux)
+- [Downloads are in this folder](http://dl.lkekz.de/ourmips/)
 
 # Spezifikation und Funktionsübersicht
 ## Registergröße
