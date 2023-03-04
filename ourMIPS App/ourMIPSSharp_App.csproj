@@ -49,10 +49,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\lib_ourMIPSSharp\lib_ourMIPSSharp.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Compile Update="Views\Tools\ConsoleView.axaml.cs">
         <DependentUpon>ConsoleView.axaml</DependentUpon>
         <SubType>Code</SubType>
@@ -77,5 +73,9 @@
         <DependentUpon>DocumentView.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\lib_ourMIPSSharp\lib_ourMIPSSharp.csproj" />
     </ItemGroup>
 </Project>

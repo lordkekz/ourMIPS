@@ -42,6 +42,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\ourMIPSSharp_App\ourMIPSSharp_App.csproj" />
+        <ProjectReference Include="..\ourMIPS App\ourMIPSSharp_App.csproj" />
     </ItemGroup>
 </Project>
