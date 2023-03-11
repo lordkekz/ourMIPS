@@ -1,0 +1,51 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:tools="clr-namespace:ourMIPS_App.ViewModels.Tools"
+             xmlns:converters="clr-namespace:ourMIPS_App.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="ourMIPS_App.Views.Tools.MemoryView">
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <tools:MemoryViewModel />
+    </Design.DataContext>
+    <UserControl.Resources>
+        <converters:DataChangedHighlightRowConverter x:Key="DataChangedHighlightRowConverter" />
+    </UserControl.Resources>
+    <DataGrid Grid.Row="2" Items="{Binding  Entries}"
+              AutoGenerateColumns="False"
+              CanUserReorderColumns="True" CanUserResizeColumns="True" CanUserSortColumns="False"
+              SelectionChanged="DataGrid_OnSelectionChanged">
+        <DataGrid.Columns>
+            <DataGridTextColumn Header="Address"
+                                Binding="{Binding AddressDecimal}"
+                                FontFamily="Courier New" />
+            <DataGridTextColumn Header="Address (Hex)"
+                                Binding="{Binding AddressHex}"
+                                FontFamily="Courier New" />
+            <DataGridTemplateColumn Header="Value">
+                <DataTemplate DataType="tools:MemoryEntry">
+                    <TextBlock HorizontalAlignment="Right"
+                               Text="{Binding ValueDecimal}"
+                               FontFamily="Courier New" />
+                </DataTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="Value (Hex)"
+                                Binding="{Binding ValueHex}"
+                                FontFamily="Courier New" />
+            <DataGridTextColumn Header="Value (Binary)"
+                                Width="*"
+                                Binding="{Binding ValueBinary}"
+                                FontFamily="Courier New" />
+        </DataGrid.Columns>
+
+        <DataGrid.Styles>
+            <Style Selector="DataGridCell" x:DataType="tools:MemoryEntry">
+                <Setter Property="Background"
+                        Value="{Binding HasChanged,  Converter={StaticResource DataChangedHighlightRowConverter}}" />
+            </Style>
+        </DataGrid.Styles>
+    </DataGrid>
+</UserControl>

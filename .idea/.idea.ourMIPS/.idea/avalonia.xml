@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AvaloniaProject">
+    <option name="projectPerEditor">
+      <map>
+        <entry key="ourMIPS_App/App.axaml" value="ourMIPS_App.Desktop/ourMIPS_App.Desktop.csproj" />
+        <entry key="ourMIPS_App/Views/Editor/DocumentView.axaml" value="ourMIPS_App.Desktop/ourMIPS_App.Desktop.csproj" />
+        <entry key="ourMIPS_App/Views/MemoryInitView.axaml" value="ourMIPS_App.Desktop/ourMIPS_App.Desktop.csproj" />
+      </map>
+    </option>
+  </component>
+</project>

@@ -1,0 +1,65 @@
+<UserControl x:Class="ourMIPS_App.Views.Tools.RegistersView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:tools="clr-namespace:ourMIPS_App.ViewModels.Tools"
+             xmlns:converters="clr-namespace:ourMIPS_App.Converters">
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <tools:RegistersViewModel />
+    </Design.DataContext>
+    <UserControl.Resources>
+        <converters:DataChangedHighlightRowConverter x:Key="DataChangedHighlightRowConverter" />
+    </UserControl.Resources>
+    <Grid ColumnDefinitions="Auto, Auto, *" RowDefinitions="Auto, Auto, *"
+          HorizontalAlignment="Stretch">
+        <TextBlock Grid.Row="0" Grid.Column="0" HorizontalAlignment="Left"
+                   Margin="0,0,24,0" Text="Program Counter:" />
+        <TextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right"
+                   Margin="0,0,24,0" Text="{Binding ProgramCounter}" />
+        <TextBlock Grid.Row="1" Grid.Column="0" HorizontalAlignment="Left" Text="Overflow Flag:" />
+        <TextBlock Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right"
+                   Text="{Binding OverflowFlag}" />
+        <DataGrid Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="2"
+                  Items="{Binding  Entries}"
+                  AutoGenerateColumns="False"
+                  CanUserReorderColumns="True" CanUserResizeColumns="True"
+                  CanUserSortColumns="False"
+                  SelectionChanged="DataGrid_OnSelectionChanged">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Id"
+                                    Binding="{Binding RegId}"
+                                    FontFamily="Courier New"
+                                    FontWeight="Light" />
+                <DataGridTextColumn Header="Name"
+                                    Binding="{Binding Name}"
+                                    FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+                                    FontWeight="ExtraLight" />
+                <DataGridTemplateColumn Header="Value">
+                    <DataTemplate DataType="tools:RegisterEntry">
+                        <TextBlock HorizontalAlignment="Right"
+                                   Text="{Binding ValueDecimal}"
+                                   FontFamily="Courier New"
+                                   FontWeight="Light" />
+                    </DataTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Value (Hex)"
+                                    Binding="{Binding ValueHex}"
+                                    FontFamily="Courier New"
+                                    FontWeight="Light" />
+                <DataGridTextColumn Header="Value (Binary)"
+                                    Width="*"
+                                    Binding="{Binding ValueBinary}"
+                                    FontFamily="Courier New"
+                                    FontWeight="Light" />
+            </DataGrid.Columns>
+
+            <DataGrid.Styles>
+                <Style Selector="DataGridCell" x:DataType="tools:RegisterEntry">
+                    <Setter Property="Background"
+                            Value="{Binding HasChanged,  Converter={StaticResource DataChangedHighlightRowConverter}}" />
+                </Style>
+            </DataGrid.Styles>
+        </DataGrid>
+    </Grid>
+</UserControl>

@@ -1,5 +1,3 @@
-using NUnit.Framework;
-
 namespace lib_ourMIPSSharp_Tests; 
 
 [TestFixture]

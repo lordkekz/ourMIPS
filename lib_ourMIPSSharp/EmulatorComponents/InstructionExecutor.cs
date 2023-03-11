@@ -1,6 +1,9 @@
-using System.ComponentModel;
+#region
+
 using lib_ourMIPSSharp.CompilerComponents.Elements;
 using lib_ourMIPSSharp.Errors;
+
+#endregion
 
 namespace lib_ourMIPSSharp.EmulatorComponents;
 

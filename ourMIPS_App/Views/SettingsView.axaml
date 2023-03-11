@@ -1,0 +1,64 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="clr-namespace:Projektanker.Icons.Avalonia;assembly=Projektanker.Icons.Avalonia"
+             xmlns:viewModels="clr-namespace:ourMIPS_App.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="ourMIPS_App.Views.SettingsView"
+             Padding="12"
+             Background="{DynamicResource SystemChromeBlackMediumColor}">
+    <Design.DataContext>
+        <viewModels:SettingsViewModel />
+    </Design.DataContext>
+    <Grid RowDefinitions="Auto, Auto, Auto, Auto, Auto, Auto, *, Auto, Auto">
+        <TextBlock Classes="H1Style" Text="Settings" />
+        <Rectangle Grid.Row="1" Classes="HLine" />
+        <Label Grid.Row="2" Target="ThemeComboBox" Content="Theme" />
+        <ComboBox Grid.Row="3" Name="ThemeComboBox" Margin="8,0,8,8"
+                  Items="{Binding Themes}"
+                  SelectedItem="{Binding SelectedAppTheme}"
+                  IsEnabled="False" />
+        <Label Grid.Row="4" Target="CompilerModeComboBox" Content="Dialect Preset" />
+        <ComboBox Grid.Row="5" Name="CompilerModeComboBox" Margin="8,0,8,8"
+                  Items="{Binding CompilerModes}"
+                  SelectedItem="{Binding SelectedCompilerMode}" />
+        <StackPanel Grid.Row="6" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="12,4">
+            <CheckBox IsChecked="{Binding IsCheckedStrictNonDecimalNumbers}"
+                      Content="Strict Non-Decimal Numbers"
+                      ToolTip.Tip="Enforce that non-decimal numbers are not suffixed with 'b' or 'h'. (Yapjoma)" />
+            <CheckBox IsChecked="{Binding IsCheckedStrictNonDecimalNumberLengths}"
+                      Content="Strict Non-Decimal Number Lengths"
+                      ToolTip.Tip="Enforce that non-decimal numbers are exactly 16 Bits long, implying them to be in two's complement. (Yapjoma)" />
+            <CheckBox IsChecked="{Binding IsCheckedStrictDecimalNumberLengths}"
+                      Content="Strict Decimal Number Lengths"
+                      ToolTip.Tip="Enforce that decimal numbers are less than 16 Bits long, implying them to be regularly signed. (Yapjoma)" />
+            <CheckBox IsChecked="{Binding IsCheckedStrictCaseSensitiveDescriptors}"
+                      Content="Strict Case-Sensitive Names"
+                      ToolTip.Tip="Enforce that custom descriptors (aliases, macros, labels) are case-sensitive. (Philosonline)" />
+            <CheckBox IsChecked="{Binding IsCheckedStrictKeywordEndmacro}"
+                      Content="Strict Keyword endmacro"
+                      ToolTip.Tip="Enforce that marco blocks are ended with the 'endmacro' keyword. (Philosonline)" />
+            <CheckBox IsChecked="{Binding IsCheckedStrictKeywordMend}"
+                      Content="Strict Keyword mend"
+                      ToolTip.Tip="Enforce that marco blocks are ended with the 'mend' keyword. (Yapjoma)" />
+            <CheckBox IsChecked="{Binding IsCheckedStrictNoColonAfterMacro}"
+                      Content="Strict No Colon After Macro Declaration"
+                      ToolTip.Tip="Enforce that no colon may be placed after the argument list of a macro. (Yapjoma)" />
+            <CheckBox IsChecked="{Binding IsCheckedStrictMacroDefinitionOrder}"
+                      Content="Strict Macro Definition Order"
+                      ToolTip.Tip="Enforces that macros are defined before they are used. (Philosonline)" />
+            <CheckBox IsChecked="{Binding IsCheckedStrictMacroArgumentNames}"
+                      Content="Strict Argument Names"
+                      ToolTip.Tip="Enforces that macro arguments are named with their type (reg/const/label) and suffixed with a number. (Yapjoma)" />
+            <Border Classes="InfoBox" IsVisible="{Binding IsChanged}">
+                <StackPanel Orientation="Horizontal">
+                    <i:Icon Value="fa-solid fa-info" />
+                    <TextBlock Text="Changes will take effect the next time you build a program!" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+        <Rectangle Grid.Row="7" Classes="HLine" Fill="{DynamicResource SystemAltMediumColor}" />
+        <TextBlock Grid.Row="8" Text="{Binding VersionInfo}" />
+    </Grid>
+</UserControl>

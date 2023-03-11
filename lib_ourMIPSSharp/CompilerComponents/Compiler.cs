@@ -1,8 +1,12 @@
+#region
+
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
 using lib_ourMIPSSharp.Errors;
+
+#endregion
 
 namespace lib_ourMIPSSharp.CompilerComponents;
 

@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
+             xmlns:ourMipsSharpApp="clr-namespace:ourMIPS_App"
+             xmlns:tools="clr-namespace:ourMIPS_App.ViewModels.Tools"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="ourMIPS_App.Views.Tools.ConsoleView">
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <tools:ConsoleViewModel />
+    </Design.DataContext>
+    <UserControl.Styles>
+        <Style Selector="TextBox#InputBox">
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Background" Value="{DynamicResource SystemControlTransparentBrush}" />
+        </Style>
+        <Style Selector="TextBox#InputBox[IsEnabled=True]">
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemeAccentBrush}" />
+        </Style>
+    </UserControl.Styles>
+    <Grid RowDefinitions="Auto,*"
+          HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch">
+        <TextBox Grid.Row="0"
+                 Name="InputBox"
+                 HorizontalAlignment="Stretch"
+                 MaxLines="1"
+                 Watermark="Console Input..."
+                 Text="{Binding InputString, Mode=TwoWay}"
+                 KeyDown="InputBox_OnKeyDown"
+                 IsEnabled="{Binding IsExpectingInput}" />
+        <avaloniaEdit:TextEditor Grid.Row="1"
+                                 Name="Editor"
+                                 HorizontalScrollBarVisibility="Auto"
+                                 VerticalScrollBarVisibility="Visible"
+                                 HorizontalAlignment="Stretch"
+                                 VerticalAlignment="Stretch"
+                                 ShowLineNumbers="True"
+                                 Document="{Binding Document}"
+                                 WordWrap="False"
+                                 IsReadOnly="True"
+                                 FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+                                 FontWeight="Light" />
+    </Grid>
+</UserControl>

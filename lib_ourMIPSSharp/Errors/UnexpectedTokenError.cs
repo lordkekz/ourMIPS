@@ -1,5 +1,9 @@
+#region
+
 using lib_ourMIPSSharp.CompilerComponents;
 using lib_ourMIPSSharp.CompilerComponents.Elements;
+
+#endregion
 
 namespace lib_ourMIPSSharp.Errors;
 

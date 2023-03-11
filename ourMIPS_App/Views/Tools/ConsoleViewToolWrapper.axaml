@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:ourMIPS_App.Views.Tools"
+             xmlns:tools="clr-namespace:ourMIPS_App.ViewModels.Tools"
+             xmlns:tools1="clr-namespace:ourMIPS_App.Views.Tools"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="ourMIPS_App.Views.Tools.ConsoleViewToolWrapper">
+    <Design.DataContext>
+        <tools:ConsoleViewModelToolWrapper />
+    </Design.DataContext>
+    <tools1:ConsoleView
+        DataContext="{Binding ActiveConsole}"
+        HorizontalAlignment="Stretch"
+        VerticalAlignment="Stretch"
+        IsVisible="{Binding ViewModel.HasActiveConsole, Mode=TwoWay,
+            RelativeSource={RelativeSource FindAncestor, AncestorType=tools1:ConsoleViewToolWrapper}}"
+        IsAutoScrollEnabled="{Binding ViewModel.IsAutoScrollEnabled, Mode=TwoWay,
+            RelativeSource={RelativeSource FindAncestor, AncestorType=tools1:ConsoleViewToolWrapper}}" />
+</UserControl>

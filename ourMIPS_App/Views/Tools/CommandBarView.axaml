@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:i="clr-namespace:Projektanker.Icons.Avalonia;assembly=Projektanker.Icons.Avalonia"
+             xmlns:tools="clr-namespace:ourMIPS_App.ViewModels.Tools"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="ourMIPS_App.Views.Tools.CommandBarView">
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <tools:CommandBarViewModel />
+    </Design.DataContext>
+    <StackPanel Orientation="Vertical" ZIndex="1">
+        <ToggleButton i:Attached.Icon="fa-solid fa-sliders"
+                      ToolTip.Tip="App settings"
+                      IsChecked="{Binding Main.IsSettingsOpened}"
+                      IsEnabled="{Binding !Main.IsMemoryInitOpened}" />
+        <ToggleButton i:Attached.Icon="fa-solid fa-memory"
+                      ToolTip.Tip="Memory initialization"
+                      IsChecked="{Binding Main.IsMemoryInitOpened}"
+                      IsEnabled="{Binding !Main.IsSettingsOpened}" />
+        <Button i:Attached.Icon="fa-solid fa-floppy-disk"
+                ToolTip.Tip="Save current file (Alt+S)"
+                Command="{Binding Main.CurrentFile.SaveCommand}"
+                HotKey="Alt+S" />
+        <Button i:Attached.Icon="fa-solid fa-folder-open"
+                ToolTip.Tip="Open file from disk (Alt+O)"
+                Command="{Binding FileOpenCommand}"
+                HotKey="Alt+O" />
+        <Button i:Attached.Icon="fa-solid fa-screwdriver-wrench"
+                ToolTip.Tip="Build current file (Alt+B)"
+                Command="{Binding RebuildCommand}"
+                HotKey="Alt+B" />
+        <Button i:Attached.Icon="fa-solid fa-play"
+                ToolTip.Tip="Run built program (Alt+R)"
+                Command="{Binding RunCommand}"
+                HotKey="Alt+R" />
+        <Button i:Attached.Icon="fa-solid fa-bug"
+                ToolTip.Tip="Debug built program (Alt+D)"
+                Command="{Binding DebugCommand}"
+                HotKey="Alt+D" />
+        <Button i:Attached.Icon="fa-solid fa-forward-step"
+                ToolTip.Tip="Execute one instruction (Alt+W)"
+                Command="{Binding StepCommand}"
+                IsVisible="{Binding Main.IsDebugging}"
+                HotKey="Alt+W" />
+        <Button i:Attached.Icon="fa-solid fa-forward"
+                ToolTip.Tip="Execute until breakpoint or end (Alt+E)"
+                Command="{Binding ForwardCommand}"
+                IsVisible="{Binding Main.IsDebugging}"
+                HotKey="Alt+E" />
+        <Button i:Attached.Icon="fa-solid fa-stop"
+                ToolTip.Tip="Terminate emulator (Alt+Q)"
+                Command="{Binding StopCommand}"
+                IsVisible="{Binding Main.IsEmulatorActive}"
+                HotKey="Alt+Q" />
+    </StackPanel>
+</UserControl>

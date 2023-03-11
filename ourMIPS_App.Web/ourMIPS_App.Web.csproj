@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <RuntimeIdentifier>browser-wasm</RuntimeIdentifier>
+        <WasmMainJSPath>AppBundle\main.js</WasmMainJSPath>
+        <!-- set to true to enable proper threading once skiasharp fixes linker error -->
+        <WasmEnableThreads>false</WasmEnableThreads>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <WasmExtraFilesToDeploy Include="AppBundle\**" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia.Web" Version="11.0.0-preview3" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\ourMIPS_App\ourMIPS_App.csproj" />
+    </ItemGroup>
+</Project>
